@@ -14,7 +14,7 @@ const ITEMS = [
   { href: "/admin/ai/usage", icon: LineChart, label: "مانیتورینگ AI", short: "مصرف AI", tab: true },
   { href: "/admin/channels", icon: Plug, label: "کانال‌ها" },
   { href: "/admin/plans", icon: CreditCard, label: "پلن‌ها" },
-  { href: "/admin/requests", icon: Inbox, label: "درخواست‌های خرید" },
+  { href: "/admin/requests", icon: Inbox, label: "خریدها و پرداخت‌ها" },
   { href: "/admin/ai", icon: KeyRound, label: "کلیدهای AI", exact: true },
   { href: "/admin/integrations", icon: Blocks, label: "یکپارچه‌سازی‌ها" },
   { href: "/admin/audit", icon: ScrollText, label: "لاگ ادمین" },

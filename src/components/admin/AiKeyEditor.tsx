@@ -9,12 +9,22 @@ import { useMe } from "@/lib/hooks";
 import { Button, Dialog, Field, Input, Select, Switch } from "@/components/ui/primitives";
 
 export const KIND_LABEL: Record<string, string> = { gemini: "Google Gemini", metis: "Gemini از طریق متیس", openai: "OpenAI سازگار", anthropic: "Claude" };
-export const EMPTY_KEY = { name: "", kind: "gemini", base_url: "", proxy: "", default_model: "gemini-2.5-flash", input_price_per_m: 0, output_price_per_m: 0, monthly_budget_toman: 0, is_active: true };
+export const EMPTY_KEY = { name: "", kind: "gemini", base_url: "", proxy: "", default_model: "gemini-3.8-flash", input_price_per_m: 0, output_price_per_m: 0, monthly_budget_toman: 0, is_active: true };
 
 export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[]; onClose: () => void }) {
   const qc = useQueryClient();
   const [k, setK] = useState<any>({ api_key: "", ...value });
   const kindInfo = kinds.find((x) => x.kind === k.kind);
+  const models = useMutation({
+    mutationFn: () => api<{ models: string[] }>(`/admin/ai/models${value.id ? `?provider_id=${value.id}` : ""}`, {
+      method: "POST", json: { kind: k.kind, base_url: k.base_url, api_key: k.api_key, proxy: k.proxy ?? "" } }),
+    onSuccess: (r) => {
+      if (!r.models.length) return toast.error("مدلی برای این کلید پیدا نشد.");
+      if (!r.models.includes(k.default_model)) setK((cur: any) => ({ ...cur, default_model: r.models.find((m) => m.includes("flash")) ?? r.models[0] }));
+      toast.success(`${r.models.length} مدل پیدا شد`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
   const save = useMutation({
     mutationFn: () => api(value.id ? `/admin/ai/providers/${value.id}` : "/admin/ai/providers", { method: value.id ? "PUT" : "POST", json: k }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["ai-providers"] }); qc.invalidateQueries({ queryKey: ["ai-status"] }); toast.success("ذخیره شد"); onClose(); },
@@ -35,7 +45,19 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
         <Field label="پروکسی (اختیاری)" hint={k.kind === "metis" ? "متیس از داخل ایران پروکسی لازم ندارد." : "گوگل، OpenAI و Anthropic درخواست ایران را رد می‌کنند؛ اگر سرور داخل ایران است: http://user:pass@host:port یا socks5://host:port"}>
           <Input dir="ltr" className="text-left font-mono text-[13px]" value={k.proxy ?? ""} onChange={(e) => setK({ ...k, proxy: e.target.value })} placeholder="socks5://127.0.0.1:1080" />
         </Field>
-        <Field label="مدل پیش‌فرض"><Input dir="ltr" className="text-left" value={k.default_model} placeholder="gemini-2.5-flash" onChange={(e) => setK({ ...k, default_model: e.target.value })} /></Field>
+        <Field label="مدل پیش‌فرض" hint="«دریافت مدل‌ها» فهرست مدل‌هایی را می‌آورد که این کلید واقعاً به آن‌ها دسترسی دارد.">
+          <div className="flex gap-2">
+            {models.data?.models.length ? (
+              <Select dir="ltr" className="text-left" value={k.default_model} onChange={(e) => setK({ ...k, default_model: e.target.value })}>
+                {!models.data.models.includes(k.default_model) && k.default_model && <option value={k.default_model}>{k.default_model}</option>}
+                {models.data.models.map((m) => <option key={m} value={m}>{m}</option>)}
+              </Select>
+            ) : (
+              <Input dir="ltr" className="text-left" value={k.default_model} placeholder="gemini-3.8-flash" onChange={(e) => setK({ ...k, default_model: e.target.value })} />
+            )}
+            <Button type="button" variant="secondary" loading={models.isPending} disabled={!value.id && !k.api_key} onClick={() => models.mutate()}>دریافت مدل‌ها</Button>
+          </div>
+        </Field>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Field label="قیمت ورودی/۱M توکن"><Input dir="ltr" type="number" value={k.input_price_per_m} onChange={(e) => setK({ ...k, input_price_per_m: Number(e.target.value) })} /></Field>
           <Field label="قیمت خروجی/۱M توکن"><Input dir="ltr" type="number" value={k.output_price_per_m} onChange={(e) => setK({ ...k, output_price_per_m: Number(e.target.value) })} /></Field>

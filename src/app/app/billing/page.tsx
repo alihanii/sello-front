@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Clock } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { faNum, jDate } from "@/lib/format";
@@ -14,11 +15,46 @@ const LIMIT_LABELS: Record<string, string> = {
   monthly_ai_credits: "اعتبار AI در ماه",
 };
 
+/** Sends the browser to the bank: a plain redirect for GET gateways, an auto-submitted form for POST ones. */
+function goToBank(g: { url: string; method: string; params: Record<string, string> }) {
+  if ((g.method || "GET").toUpperCase() === "GET") {
+    const u = new URL(g.url);
+    Object.entries(g.params || {}).forEach(([k, v]) => u.searchParams.set(k, String(v)));
+    window.location.href = u.toString();
+    return;
+  }
+  const f = document.createElement("form");
+  f.method = "POST";
+  f.action = g.url;
+  Object.entries(g.params || {}).forEach(([k, v]) => {
+    const i = document.createElement("input");
+    i.type = "hidden"; i.name = k; i.value = String(v);
+    f.appendChild(i);
+  });
+  document.body.appendChild(f);
+  f.submit();
+}
+
 export default function Billing() {
   const router = useRouter();
   const qc = useQueryClient();
   const { data: plans } = useQuery({ queryKey: ["plans"], queryFn: () => api<any[]>("/plans") });
   const { data: sub } = useQuery({ queryKey: ["subscription"], queryFn: () => api("/me/subscription") });
+  const params = useSearchParams();
+  const { data: payCfg } = useQuery({ queryKey: ["payments-config"], queryFn: () => api("/payments/config") });
+  useEffect(() => {
+    const r = params.get("payment");
+    if (!r) return;
+    if (r === "success") toast.success("پرداخت موفق بود و اشتراک فعال شد.");
+    else toast.error("پرداخت انجام نشد یا لغو شد. اگر مبلغی کم شده، طبق قانون بانک ظرف ۷۲ ساعت برمی‌گردد.");
+    qc.invalidateQueries({ queryKey: ["subscription"] });
+    router.replace("/app/billing");
+  }, [params, qc, router]);
+  const pay = useMutation({
+    mutationFn: (plan: any) => api("/payments/start", { method: "POST", json: { plan_id: plan.id } }),
+    onSuccess: (g: any) => goToBank(g),
+    onError: (e: any) => toast.error(e.message),
+  });
   const request = useMutation({
     mutationFn: (plan: any) => api("/plan-requests", { method: "POST", json: { plan_id: plan.id } }),
     onSuccess: (r) => { toast.success(r.message); qc.invalidateQueries({ queryKey: ["subscription"] }); },
@@ -48,10 +84,13 @@ export default function Billing() {
         ) : <Skeleton className="h-16 w-full" />}
       </Card>
       {plans ? (
-        <PlanCards plans={plans} onSelect={(p) => request.mutate(p)} loadingId={request.variables?.id}
+        <PlanCards plans={plans} onSelect={(p) => (payCfg?.enabled ? pay.mutate(p) : request.mutate(p))}
+          loadingId={payCfg?.enabled ? (pay.isPending || pay.isSuccess ? pay.variables?.id : undefined) : request.variables?.id}
           currentPlanId={sub?.subscription?.plan?.id} />
       ) : <Skeleton className="h-96" />}
-      <p className="text-center text-muted text-[13px] mt-8">پس از ثبت درخواست، پلن توسط پشتیبانی فعال می‌شود. پرداخت آنلاین به‌زودی اضافه می‌شود.</p>
+      <p className="text-center text-muted text-[13px] mt-8">
+        {payCfg?.enabled ? `پرداخت امن از طریق درگاه ${payCfg.label}؛ اشتراک بلافاصله بعد از پرداخت فعال می‌شود.` : "پس از ثبت درخواست، پلن توسط پشتیبانی فعال می‌شود."}
+      </p>
     </div>
   );
 }

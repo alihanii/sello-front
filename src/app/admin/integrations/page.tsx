@@ -5,7 +5,7 @@ import { Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Skeleton, Switch } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Select, Skeleton, Switch } from "@/components/ui/primitives";
 
 const STEPS = [
   "در developers.facebook.com یک اپ از نوع Business بساز و محصول «Instagram» › «API setup with Instagram login» را اضافه کن.",
@@ -15,6 +15,45 @@ const STEPS = [
   "دامنه‌های اینستاگرام در ایران فیلتر است؛ اگر سرور داخل ایران است، یک پروکسی HTTP/SOCKS خارج از ایران وارد کن.",
   "SELLO_PUBLIC_BASE_URL باید آدرس عمومی بک‌اند باشد؛ اینستاگرام عکس‌ها را مستقیم از همین آدرس دانلود می‌کند.",
 ];
+
+function PaymentCard() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["admin-pay"], queryFn: () => api<any>("/admin/integrations/payment") });
+  const [f, setF] = useState<any>(null);
+  useEffect(() => { if (data) setF({ enabled: data.enabled, bank: data.bank, gateways: data.gateways }); }, [data]);
+  const save = useMutation({
+    mutationFn: () => api("/admin/integrations/payment", { method: "PUT", json: f }),
+    onSuccess: (d: any) => { qc.setQueryData(["admin-pay"], d); qc.invalidateQueries({ queryKey: ["payments-config"] }); toast.success("درگاه ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  if (!f || !data) return <Skeleton className="h-64" />;
+  const bank = data.banks[f.bank];
+  const g = f.gateways[f.bank] ?? {};
+  const setG = (k: string, v: any) => setF({ ...f, gateways: { ...f.gateways, [f.bank]: { ...g, [k]: v } } });
+  const LABELS: Record<string, string> = { MERCHANT_CODE: "مرچنت کد", TERMINAL_CODE: "شمارهٔ ترمینال", SECRET_KEY: "کلید امنیتی", USERNAME: "نام کاربری", PASSWORD: "رمز عبور" };
+  return (
+    <Card>
+      <CardHeader title="درگاه پرداخت" subtitle="خرید آنلاین پلن با az-iranian-bank-gateways"
+        action={<Chip tone={data.enabled ? "success" : "neutral"}>{data.enabled ? "فعال" : "غیرفعال"}</Chip>} />
+      <div className="px-4 sm:px-5 pb-5 space-y-4">
+        <label className="flex items-center gap-3 text-[14px]"><Switch checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} />پرداخت آنلاین برای خرید پلن</label>
+        <Field label="درگاه"><Select value={f.bank} onChange={(e) => setF({ ...f, bank: e.target.value })}>
+          {Object.entries(data.banks).map(([code, b]: any) => <option key={code} value={code}>{b.label}</option>)}</Select></Field>
+        {bank.fields.map((k: string) => (
+          <Field key={k} label={LABELS[k] ?? k} hint={String(g[k] ?? "").startsWith("••••") ? "ذخیره شده؛ برای تغییر مقدار جدید وارد کن." : undefined}>
+            <Input dir="ltr" className="text-left font-mono text-[13px]" type={k === "PASSWORD" || k === "SECRET_KEY" ? "password" : "text"}
+              value={g[k] ?? ""} onFocus={(e) => String(g[k] ?? "").startsWith("••••") && (setG(k, ""), e.currentTarget.select())} onChange={(e) => setG(k, e.target.value)} />
+          </Field>
+        ))}
+        {bank.sandbox && <label className="flex items-center gap-3 text-[14px]"><Switch checked={!!g.SANDBOX} onChange={(v) => setG("SANDBOX", v)} />حالت آزمایشی (Sandbox)</label>}
+        <Field label="آدرس بازگشت از بانک" hint="باید از اینترنت در دسترس باشد؛ در بعضی درگاه‌ها باید در پنل درگاه هم ثبت شود.">
+          <Input dir="ltr" readOnly className="text-left font-mono text-[13px]" value={data.callback_url} />
+        </Field>
+        <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ درگاه</Button>
+      </div>
+    </Card>
+  );
+}
 
 export default function Integrations() {
   const qc = useQueryClient();
@@ -32,8 +71,9 @@ export default function Integrations() {
 
   return (
     <>
-      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="اتصال اپ Meta برای انتشار در اینستاگرام."
-        actions={<Button loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button>} />
+      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="درگاه پرداخت و اتصال اپ Meta برای اینستاگرام."
+        actions={<Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ اینستاگرام</Button>} />
+      <div className="mb-4 max-w-3xl"><PaymentCard /></div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
           <CardHeader title="اینستاگرام" subtitle="Instagram API with Instagram Login"
