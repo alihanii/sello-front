@@ -11,6 +11,7 @@ import { useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon, StatusChip } from "@/components/ui/status";
 import { Button, Card, CardHeader, Chip, Dialog, EmptyState, Field, Input, PageHeader, Select } from "@/components/ui/primitives";
+import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 
 const SCHEDULE: Record<string, string> = { manual: "دستی", hourly: "هر ساعت", daily: "روزانه", weekly: "هفتگی" };
 const MODE: Record<string, string> = { auto: "خودکار (قاعده، سپس AI)", regex: "فقط قاعده‌محور", llm: "فقط AI" };
@@ -45,6 +46,7 @@ export default function Crawl() {
     <>
       <PageHeader title="کرال" subtitle="محصولات را از پست‌های کانال، پنل دیجی‌کالا یا یک لینک بیرون بکش."
         actions={<Button icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>منبع جدید</Button>} />
+      <AiSetupBanner />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <Card>

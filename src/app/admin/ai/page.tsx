@@ -6,44 +6,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago, ms, toman } from "@/lib/format";
-import { Button, Card, CardHeader, Chip, Dialog, EmptyState, Field, Input, PageHeader, Select, Switch } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, EmptyState, Input, PageHeader, Select } from "@/components/ui/primitives";
 
-const KIND_LABEL: Record<string, string> = { gemini: "Gemini / متیس", openai: "OpenAI سازگار", anthropic: "Claude" };
-
-function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[]; onClose: () => void }) {
-  const qc = useQueryClient();
-  const [k, setK] = useState<any>({ api_key: "", ...value });
-  const kindInfo = kinds.find((x) => x.kind === k.kind);
-  const save = useMutation({
-    mutationFn: () => api(value.id ? `/admin/ai/providers/${value.id}` : "/admin/ai/providers", { method: value.id ? "PUT" : "POST", json: k }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["ai-providers"] }); toast.success("ذخیره شد"); onClose(); },
-    onError: (e: any) => toast.error(e.message),
-  });
-  return (
-    <Dialog open onClose={onClose} title={value.id ? "ویرایش کلید" : "افزودن کلید AI"}>
-      <div className="space-y-3">
-        <Field label="نام نمایشی"><Input value={k.name} onChange={(e) => setK({ ...k, name: e.target.value })} placeholder="مثلاً متیس اصلی" /></Field>
-        <Field label="نوع سرویس"><Select value={k.kind} onChange={(e) => setK({ ...k, kind: e.target.value, base_url: "" })}>
-          {kinds.map((x) => <option key={x.kind} value={x.kind}>{x.label}</option>)}</Select></Field>
-        <Field label="آدرس پایه (Base URL)" hint={kindInfo?.hint || `پیش‌فرض: ${kindInfo?.base_url}`}>
-          <Input dir="ltr" className="text-left" value={k.base_url} placeholder={kindInfo?.base_url} onChange={(e) => setK({ ...k, base_url: e.target.value })} />
-        </Field>
-        <Field label="کلید API" hint={value.id ? `کلید فعلی: ••••${value.key_hint}؛ برای تغییر، کلید جدید وارد کنید` : "رمزنگاری‌شده ذخیره می‌شود و دیگر نمایش داده نمی‌شود"}>
-          <Input dir="ltr" type="password" className="text-left font-mono" value={k.api_key} onChange={(e) => setK({ ...k, api_key: e.target.value })} autoComplete="off" />
-        </Field>
-        <Field label="مدل پیش‌فرض"><Input dir="ltr" className="text-left" value={k.default_model} placeholder="gemini-2.5-flash" onChange={(e) => setK({ ...k, default_model: e.target.value })} /></Field>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <Field label="قیمت ورودی/۱M توکن"><Input dir="ltr" type="number" value={k.input_price_per_m} onChange={(e) => setK({ ...k, input_price_per_m: Number(e.target.value) })} /></Field>
-          <Field label="قیمت خروجی/۱M توکن"><Input dir="ltr" type="number" value={k.output_price_per_m} onChange={(e) => setK({ ...k, output_price_per_m: Number(e.target.value) })} /></Field>
-          <Field label="بودجهٔ ماهانه"><Input dir="ltr" type="number" value={k.monthly_budget_toman} onChange={(e) => setK({ ...k, monthly_budget_toman: Number(e.target.value) })} /></Field>
-        </div>
-        <p className="text-[12px] text-muted">قیمت‌ها به تومان و فقط برای تخمین هزینه در مانیتورینگ استفاده می‌شوند.</p>
-        <label className="flex items-center gap-2 text-[14px]"><Switch checked={k.is_active} onChange={(v) => setK({ ...k, is_active: v })} />فعال</label>
-        <Button className="w-full" loading={save.isPending} disabled={!k.name || (!value.id && !k.api_key)} onClick={() => save.mutate()}>ذخیره</Button>
-      </div>
-    </Dialog>
-  );
-}
+import { EMPTY_KEY, KIND_LABEL, KeyEditor } from "@/components/admin/AiKeyEditor";
 
 export default function AiKeys() {
   const qc = useQueryClient();
@@ -61,7 +26,7 @@ export default function AiKeys() {
   });
   const providers: any[] = data?.providers ?? [];
   const active = providers.filter((p) => p.is_active);
-  const empty = { name: "", kind: "gemini", base_url: "https://api.metisai.ir", default_model: "gemini-2.5-flash", input_price_per_m: 0, output_price_per_m: 0, monthly_budget_toman: 0, is_active: true };
+  const empty = EMPTY_KEY;
 
   return (
     <>

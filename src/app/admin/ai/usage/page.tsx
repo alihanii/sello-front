@@ -7,6 +7,7 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate, jDateTime, ms, toman } from "@/lib/format";
 import { Card, CardHeader, Chip, PageHeader, Select, Skeleton } from "@/components/ui/primitives";
+import { AddAiKeyButton } from "@/components/admin/AiKeyEditor";
 
 export default function AiUsage() {
   const [days, setDays] = useState("30");
@@ -20,6 +21,7 @@ export default function AiUsage() {
     <>
       <PageHeader title="مانیتورینگ AI" subtitle="مصرف، هزینه و خطای هر کلید"
         actions={<>
+          <AddAiKeyButton />
           <Select className="w-auto" value={provider} onChange={(e) => setProvider(e.target.value)}><option value="">همهٔ کلیدها</option>{data.providers.map((p: any) => <option key={p.provider.id} value={p.provider.id}>{p.provider.name}</option>)}</Select>
           <Select className="w-auto" value={days} onChange={(e) => setDays(e.target.value)}><option value="1">۲۴ ساعت</option><option value="7">۷ روز</option><option value="30">۳۰ روز</option><option value="90">۹۰ روز</option></Select>
         </>} />

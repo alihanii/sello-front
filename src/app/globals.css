@@ -224,7 +224,8 @@ body {
 @keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
-.page-in { animation: page-in 260ms cubic-bezier(.2, .8, .2, 1) both; }
+/* "backwards", not "both": a filled transform would trap fixed dialogs under the sticky header. */
+.page-in { animation: page-in 260ms cubic-bezier(.2, .8, .2, 1) backwards; }
 .pop-in { animation: pop-in 160ms cubic-bezier(.2, .8, .2, 1) both; transform-origin: top; }
 .fade-in { animation: fade-in 180ms ease-out both; }
 .sheet-up { animation: sheet-up 240ms cubic-bezier(.2, .8, .2, 1) both; }

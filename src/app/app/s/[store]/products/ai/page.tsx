@@ -11,6 +11,7 @@ import { useStoreId } from "@/lib/hooks";
 import { ImageUploader } from "@/components/products/ImageUploader";
 import { OperationWatcher } from "@/components/OperationWatcher";
 import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Switch, Textarea } from "@/components/ui/primitives";
+import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 
 export default function AiCreate() {
   const sid = useStoreId();
@@ -45,6 +46,7 @@ export default function AiCreate() {
   return (
     <>
       <PageHeader title="ساخت محصول با AI" subtitle="عکس، لینک یا سبک محصولات قبلی‌ات را بده؛ AI محصول کامل می‌سازد و قبل از ذخیره بازبینی می‌کنی." />
+      <AiSetupBanner />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <div className="lg:col-span-2 space-y-4">
           <Card>

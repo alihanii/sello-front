@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { faDigits, faNum, jDate } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
 import { Button, Card, CardHeader, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 
 function Stat({ icon: Icon, label, value, hint }: any) {
   return (
@@ -44,6 +45,7 @@ export default function Dashboard() {
           <Link href={`/app/s/${sid}/products/ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت محصول با AI</Button></Link>
           <Link href={`/app/s/${sid}/products/new`}><Button variant="secondary">افزودن دستی</Button></Link>
         </>} />
+      <AiSetupBanner />
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <Stat icon={Package} label="کل محصولات" value={faNum(k.products)} hint={`${faNum(k.unpublished)} منتشرنشده`} />
         <Stat icon={Send} label="منتشرشده" value={faNum(k.published_any)} hint={`امروز ${faNum(k.published_today)} انتشار`} />

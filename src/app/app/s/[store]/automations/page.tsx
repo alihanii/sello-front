@@ -13,6 +13,7 @@ import { TRIGGERS } from "@/lib/meta";
 import { ImageUploader } from "@/components/products/ImageUploader";
 import { PlatformIcon } from "@/components/ui/status";
 import { Button, Card, Chip, Dialog, EmptyState, Field, Input, NumberInput, PageHeader, Select, Switch, Tabs, Textarea, cn } from "@/components/ui/primitives";
+import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 
 const WEEKDAYS = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
 const SOURCES: [string, string][] = [["manual", "دستی"], ["crawl", "کرال"], ["ai", "AI"]];
@@ -314,6 +315,7 @@ export default function Automations() {
           <Button icon={<Sparkles className="size-4" />} onClick={() => setOpen("ai")}>تولید محتوای AI</Button>
           <Button variant="secondary" icon={<Plus className="size-4" />} onClick={() => setOpen("rule")}>قانون انتشار</Button>
         </>} />
+      <AiSetupBanner />
       <div className="mb-4">
         <Tabs value={tab} onChange={setTab} items={[{ value: "rules", label: `اتوماسیون‌ها (${faNum(rules.length)})` }, { value: "approvals", label: `منتظر تأیید (${faNum(approvals.length)})` }]} />
       </div>

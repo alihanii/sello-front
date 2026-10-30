@@ -8,6 +8,7 @@ import { faNum, toman } from "@/lib/format";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon } from "@/components/ui/status";
 import { Card, CardHeader, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { AddAiKeyButton } from "@/components/admin/AiKeyEditor";
 
 function Stat({ icon: I, label, value, hint, href }: any) {
   const body = (
@@ -25,7 +26,7 @@ export default function AdminHome() {
   if (!s) return <Skeleton className="h-96" />;
   return (
     <>
-      <PageHeader title="داشبورد ادمین" subtitle="نمای کلی کاربران، فروشگاه‌ها و درآمد" />
+      <PageHeader title="داشبورد ادمین" subtitle="نمای کلی کاربران، فروشگاه‌ها و درآمد" actions={<AddAiKeyButton />} />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat icon={Users} label="کاربران" value={faNum(s.users)} hint={`${faNum(s.active_users_7d)} فعال در ۷ روز`} href="/admin/users" />
         <Stat icon={Store} label="فروشگاه‌ها" value={faNum(s.stores)} href="/admin/stores" />
