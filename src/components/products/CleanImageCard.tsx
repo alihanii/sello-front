@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
 import { OperationWatcher } from "@/components/OperationWatcher";
+import { NO_STYLE, StyleSamples } from "@/components/products/StyleSamples";
 import { Button, Card, Select } from "@/components/ui/primitives";
 
 const CATEGORIES = [
@@ -21,9 +22,11 @@ export function CleanImageCard({ product, storeId, onDone }: { product: any; sto
   const { data: status } = useQuery({ queryKey: ["ai-status"], queryFn: () => api("/ai/status") });
   const [category, setCategory] = useState("general");
   const [opId, setOpId] = useState<number | null>(null);
+  const [style, setStyle] = useState(NO_STYLE);
+  const [showStyle, setShowStyle] = useState(false);
   const main = product.images?.[0];
   const run = useMutation({
-    mutationFn: () => api(`/products/${product.id}/clean-image`, { method: "POST", json: { image_id: main?.id ?? null, category } }),
+    mutationFn: () => api(`/products/${product.id}/clean-image`, { method: "POST", json: { image_id: main?.id ?? null, category, style_images: style.images, style_product_ids: style.productIds } }),
     onSuccess: (op) => setOpId(op.id),
     onError: (e: any) => toast.error(e.message),
   });
@@ -46,10 +49,12 @@ export function CleanImageCard({ product, storeId, onDone }: { product: any; sto
             <Select className="h-9 text-[13px]" value={category} onChange={(e) => setCategory(e.target.value)} aria-label="نوع کالا">
               {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
             </Select>
+            <Button variant="ghost" size="sm" onClick={() => setShowStyle(!showStyle)}>نمونهٔ سبک</Button>
             <Button variant="ai" size="sm" loading={run.isPending} disabled={!!opId && !run.isError} onClick={() => run.mutate()}>{main ? "تمیز کن" : "بساز"}</Button>
           </div>
         )}
       </div>
+      {showStyle && status.image_edit && <div className="mt-3"><StyleSamples storeId={storeId} value={style} onChange={setStyle} excludeId={product.id} /></div>}
       {opId && (
         <div className="mt-3">
           <OperationWatcher opId={opId} storeId={storeId} onDone={(o) => { onDone(); qc.invalidateQueries({ queryKey: ["ai-status"] }); if (o.status !== "succeeded") setOpId(null); }} />

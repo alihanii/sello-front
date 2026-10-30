@@ -9,6 +9,7 @@ import { api, mediaUrl } from "@/lib/api";
 import { faNum } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
 import { ImageUploader } from "@/components/products/ImageUploader";
+import { NO_STYLE, StyleSamples } from "@/components/products/StyleSamples";
 import { OperationWatcher } from "@/components/OperationWatcher";
 import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Switch, Textarea } from "@/components/ui/primitives";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
@@ -24,6 +25,7 @@ export default function AiCreate() {
   const [useStyle, setUseStyle] = useState(true);
   const [bulk, setBulk] = useState(false);
   const [clean, setClean] = useState(true);
+  const [style, setStyle] = useState(NO_STYLE);
   const { data: aiStatus } = useQuery({ queryKey: ["ai-status"], queryFn: () => api("/ai/status") });
   const canClean = !!aiStatus?.image_edit;
   const [samples, setSamples] = useState<number[]>([]);
@@ -35,7 +37,7 @@ export default function AiCreate() {
   const go = useMutation({
     mutationFn: () => api(`/stores/${sid}/reference-sets`, { method: "POST", json: {
       images, urls, note, price: Number(price.replace(/\D/g, "") || 0), stock_qty: Number(stock || 0), use_style_profile: useStyle,
-      product_ids: samples, bulk, clean_image: clean && canClean } }),
+      product_ids: samples, bulk, clean_image: clean && canClean, style_images: style.images, style_product_ids: style.productIds } }),
     onSuccess: (r) => { setOps(r); setDone({}); },
     onError: (e: any) => toast.error(e.message),
   });
@@ -112,6 +114,7 @@ export default function AiCreate() {
               </span>
               <Switch checked={clean && canClean} onChange={setClean} label="ساخت یا تمیز کردن عکس" disabled={!canClean} />
             </label>
+            {clean && canClean && <StyleSamples storeId={sid} value={style} onChange={setStyle} />}
             <label className="flex items-center justify-between gap-3 text-[14px]">
               <span>تولید گروهی<span className="block text-muted text-[12px]">برای هر عکس یا لینک یک محصول جدا</span></span>
               <Switch checked={bulk} onChange={setBulk} label="تولید گروهی" />
