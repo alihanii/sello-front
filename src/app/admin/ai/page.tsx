@@ -14,6 +14,7 @@ export default function AiKeys() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["ai-providers"], queryFn: () => api("/admin/ai/providers") });
   const { data: routes = [] } = useQuery({ queryKey: ["ai-routes"], queryFn: () => api<any[]>("/admin/ai/routes") });
+  const { data: aiStatus } = useQuery({ queryKey: ["ai-status"], queryFn: () => api("/ai/status") });
   const [edit, setEdit] = useState<any>(null);
   const test = useMutation({
     mutationFn: (id: number) => api(`/admin/ai/providers/${id}/test`, { method: "POST" }),
@@ -60,6 +61,12 @@ export default function AiKeys() {
             </Card>
           ))}
         </div>
+      )}
+      {aiStatus && !aiStatus.image_edit && aiStatus.image_edit_problem && (
+        <Card className="p-4 mb-4 bg-warning/10 text-[13px] leading-6">
+          <div className="font-semibold text-warning">ساخت و تمیز کردن عکس محصول غیرفعال است (فروشنده‌ها این بخش را نمی‌بینند)</div>
+          <div className="mt-1">{aiStatus.image_edit_problem}</div>
+        </Card>
       )}
       <Card strong>
         <CardHeader title="مسیردهی کارها" subtitle="هر کار از کدام کلید و مدل استفاده کند؛ اگر کلید اصلی خطا داد، کلید پشتیبان امتحان می‌شود. بدون مسیر، اولین کلید فعال استفاده می‌شود." />

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Wand2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
@@ -31,6 +32,16 @@ export function CleanImageCard({ product, storeId, onDone }: { product: any; sto
     onError: (e: any) => toast.error(e.message),
   });
   if (!status?.available) return null;
+  if (!status.image_edit) {
+    // Sellers never see setup details; the admin gets one line pointing to where it is fixed.
+    if (!status.image_edit_problem) return null;
+    return (
+      <Card className="p-3 mb-4 text-[13px] text-muted flex flex-wrap items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5"><Wand2 className="size-4" />ساخت عکس با AI فعلاً غیرفعال است (فقط ادمین این را می‌بیند).</span>
+        <Link href="/admin/ai" className="text-primary font-semibold">تنظیم در پنل ادمین</Link>
+      </Card>
+    );
+  }
   return (
     <Card className="p-4 mb-4">
       <div className="flex flex-wrap items-center gap-4">
@@ -39,9 +50,7 @@ export function CleanImageCard({ product, storeId, onDone }: { product: any; sto
         <div className="flex-1 min-w-52">
           <div className="font-semibold text-[14px] flex items-center gap-1.5"><Wand2 className="size-4 text-ai" />{main ? "تمیز کردن عکس اصلی با AI" : "ساخت عکس محصول با AI"}</div>
           <div className="text-[12px] text-muted mt-0.5">
-            {status.image_edit
-              ? `${main ? "همان محصول، مرتب و وسط کادر؛ عکس فعلی بعد از آن می‌ماند." : "از روی عنوان و توضیحات محصول یک عکس ساخته می‌شود."} سبک عکس از محصولات قبلی فروشگاهت گرفته می‌شود.`
-              : status.image_edit_problem}
+            {main ? "همان محصول، مرتب و وسط کادر؛ عکس فعلی هم می‌ماند." : "از روی عنوان و توضیحات محصول یک عکس ساخته می‌شود."}
           </div>
         </div>
         {status.image_edit && (

@@ -106,14 +106,14 @@ export default function AiCreate() {
               <Field label="قیمت (تومان)"><Input dir="ltr" className="text-left tnum" value={price} onChange={(e) => setPrice(e.target.value)} /></Field>
               <Field label="موجودی"><Input dir="ltr" className="text-left tnum" value={stock} onChange={(e) => setStock(e.target.value)} /></Field>
             </div>
-            <label className="flex items-center justify-between gap-3 text-[14px]">
-              <span>{images.length ? "تمیز کردن عکس اصلی" : "ساخت عکس محصول با AI"}
-                <span className="block text-muted text-[12px] leading-5">{canClean
-                  ? `${images.length ? "همان محصول، مرتب و وسط کادر؛ عکس خودت هم کنارش می‌ماند." : "از روی توضیحات، یک عکس برای محصول ساخته می‌شود."} پس‌زمینه، نور و کادر از عکس محصولات قبلی فروشگاهت گرفته می‌شود.`
-                  : aiStatus?.image_edit_problem || "مدل تصویری تنظیم نشده"}</span>
-              </span>
-              <Switch checked={clean && canClean} onChange={setClean} label="ساخت یا تمیز کردن عکس" disabled={!canClean} />
-            </label>
+            {canClean && (
+              <label className="flex items-center justify-between gap-3 text-[14px]">
+                <span>{images.length ? "تمیز کردن عکس اصلی" : "ساخت عکس محصول با AI"}
+                  <span className="block text-muted text-[12px] leading-5">{images.length ? "همان محصول، مرتب و وسط کادر؛ عکس خودت هم می‌ماند." : "از روی توضیحات یک عکس برای محصول ساخته می‌شود."}</span>
+                </span>
+                <Switch checked={clean} onChange={setClean} label="ساخت یا تمیز کردن عکس" />
+              </label>
+            )}
             {clean && canClean && <StyleSamples storeId={sid} value={style} onChange={setStyle} />}
             <label className="flex items-center justify-between gap-3 text-[14px]">
               <span>تولید گروهی<span className="block text-muted text-[12px]">برای هر عکس یا لینک یک محصول جدا</span></span>
