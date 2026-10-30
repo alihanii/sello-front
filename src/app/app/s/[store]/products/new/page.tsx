@@ -47,9 +47,21 @@ function AiCreate({ storeId }: { storeId: number }) {
   const [images, setImages] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [opId, setOpId] = useState<number | null>(null);
+  const [kind, setKind] = useState<"product" | "design">("product");
   const { data: status } = useQuery({ queryKey: ["ai-status"], queryFn: () => api("/ai/status") });
+  const canImage = !!status?.image_edit;
+  // AI's first guess for the main photo; the seller only changes it when it's wrong.
+  const main = images[0];
+  useEffect(() => {
+    if (!main || !canImage) return;
+    setKind("product");
+    let live = true;
+    api<{ kind: "product" | "design" }>(`/stores/${storeId}/photo-kind`, { method: "POST", json: { url: main } })
+      .then((r) => live && setKind(r.kind)).catch(() => {});
+    return () => { live = false; };
+  }, [main, canImage, storeId]);
   const go = useMutation({
-    mutationFn: () => api<any[]>(`/stores/${storeId}/reference-sets`, { method: "POST", json: { images, note, clean_image: !!status?.image_edit } }),
+    mutationFn: () => api<any[]>(`/stores/${storeId}/reference-sets`, { method: "POST", json: { images, note, clean_image: canImage, photo_kind: kind } }),
     onSuccess: (ops) => setOpId(ops[0].id),
     onError: () => toast.error("ساخت محصول شروع نشد؛ دوباره امتحان کن."),
   });
@@ -81,6 +93,14 @@ function AiCreate({ storeId }: { storeId: number }) {
         <Field label="عکس محصول" hint="عکس خام کافی است؛ با گوشی هم بگیری خوب است.">
           <ImageUploader storeId={storeId} value={images} onChange={setImages} max={5} />
         </Field>
+        {main && canImage && (
+          <div className="grid grid-cols-2 gap-2 text-[13px]">
+            {([["product", "این عکس محصولمه؛ مرتبش کن"], ["design", "این طرحه؛ عکس محصول رو بساز"]] as const).map(([v, label]) => (
+              <button key={v} type="button" onClick={() => setKind(v)}
+                className={`rounded-xl border p-3 cursor-pointer text-start ${kind === v ? "border-ai bg-ai/8 font-semibold" : "border-edge text-muted"}`}>{label}</button>
+            ))}
+          </div>
+        )}
         <Field label="توضیح کوتاه">
           <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="مثلاً: هودی مشکی دورس، سایز L و XL، چاپ رنگی جلو" />
         </Field>
