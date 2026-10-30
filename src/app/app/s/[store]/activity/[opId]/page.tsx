@@ -70,6 +70,12 @@ export default function OperationDetail() {
             {["help", "info", "admin_ai"].includes(op.suggested_action?.type) && <Chip tone="warning">{op.suggested_action.label}</Chip>}
           </div>
         )}
+        {op.type === "crawl" && op.status === "succeeded" && op.result?.seen === 0 && (
+          <div className="mt-4 rounded-xl bg-warning/10 p-4 text-[14px]">
+            <div className="font-semibold text-warning">هیچ پستی پیدا نشد</div>
+            <div className="mt-1 leading-7">{op.result.note}</div>
+          </div>
+        )}
       </Card>
       <Card className="mb-4">
         <CardHeader title="مراحل" subtitle="روی هر مرحله بزن تا درخواست و پاسخ کامل را ببینی" />

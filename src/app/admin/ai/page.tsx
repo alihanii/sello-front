@@ -23,6 +23,7 @@ export default function AiKeys() {
   const setRoute = useMutation({
     mutationFn: (r: any) => api(`/admin/ai/routes/${r.task}`, { method: "PUT", json: r }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["ai-routes"] }); toast.success("مسیر ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
   });
   const providers: any[] = data?.providers ?? [];
   const active = providers.filter((p) => p.is_active);
@@ -74,9 +75,33 @@ export default function AiKeys() {
   );
 }
 
+/** Models the chosen key can use, filtered to what this task needs (text/JSON vs image output). */
+function useTaskModels(providerId: number | null, providers: any[], needs: string) {
+  const p = providers.find((x) => x.id === providerId);
+  const { data } = useQuery({
+    queryKey: ["ai-models", providerId], enabled: !!p, staleTime: 10 * 60_000, retry: false,
+    queryFn: () => api<{ models: string[]; image_models: string[] }>(`/admin/ai/models?provider_id=${p.id}`, {
+      method: "POST", json: { kind: p.kind, base_url: p.base_url, api_key: "", proxy: p.proxy ?? "" } }),
+  });
+  return (needs === "image" ? data?.image_models : data?.models) ?? [];
+}
+
+function ModelPick({ value, models, needs, onChange }: { value: string; models: string[]; needs: string; onChange: (v: string) => void }) {
+  if (!models.length) return <Input dir="ltr" className="h-9 text-[13px]" placeholder={needs === "image" ? "gemini-…-image" : "پیش‌فرض کلید"} value={value} onChange={(e) => onChange(e.target.value)} />;
+  return (
+    <Select dir="ltr" className="h-9 text-[13px] text-left" value={value} onChange={(e) => onChange(e.target.value)}>
+      <option value="">{needs === "image" ? "— انتخاب مدل تصویری —" : "پیش‌فرض کلید"}</option>
+      {value && !models.includes(value) && <option value={value}>{value} (نامناسب)</option>}
+      {models.map((m) => <option key={m} value={m}>{m}</option>)}
+    </Select>
+  );
+}
+
 function RouteRow({ route, providers, onSave }: { route: any; providers: any[]; onSave: (r: any) => void }) {
   const [r, setR] = useState(route);
   const dirty = JSON.stringify(r) !== JSON.stringify(route);
+  const models = useTaskModels(r.provider_id, providers, route.needs);
+  const fbModels = useTaskModels(r.fallback_provider_id, providers, route.needs);
   const sel = (k: string) => (
     <Select className="h-9 text-[13px]" value={r[k] ?? ""} onChange={(e) => setR({ ...r, [k]: e.target.value ? Number(e.target.value) : null })}>
       <option value="">—</option>{providers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -84,11 +109,11 @@ function RouteRow({ route, providers, onSave }: { route: any; providers: any[]; 
   );
   return (
     <tr className="border-b border-edge last:border-0">
-      <td className="p-3 font-semibold">{route.label}</td>
+      <td className="p-3 font-semibold">{route.label}{route.needs === "image" && <div className="text-[11px] text-muted font-normal mt-0.5">فقط مدل‌هایی که عکس می‌سازند</div>}</td>
       <td className="p-2">{sel("provider_id")}</td>
-      <td className="p-2"><Input dir="ltr" className="h-9 text-[13px]" placeholder="پیش‌فرض کلید" value={r.model} onChange={(e) => setR({ ...r, model: e.target.value })} /></td>
+      <td className="p-2"><ModelPick value={r.model} models={models} needs={route.needs} onChange={(v) => setR({ ...r, model: v })} /></td>
       <td className="p-2">{sel("fallback_provider_id")}</td>
-      <td className="p-2"><Input dir="ltr" className="h-9 text-[13px]" value={r.fallback_model} onChange={(e) => setR({ ...r, fallback_model: e.target.value })} /></td>
+      <td className="p-2"><ModelPick value={r.fallback_model} models={fbModels} needs={route.needs} onChange={(v) => setR({ ...r, fallback_model: v })} /></td>
       <td className="p-2"><Input dir="ltr" type="number" className="h-9 w-20 text-[13px]" value={r.temperature / 100} step={0.1} min={0} max={1} onChange={(e) => setR({ ...r, temperature: Math.round(Number(e.target.value) * 100) })} /></td>
       <td className="p-2"><Button size="sm" disabled={!dirty} onClick={() => onSave(r)}>ذخیره</Button></td>
     </tr>

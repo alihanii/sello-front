@@ -87,6 +87,7 @@ export default function Crawl() {
                       </span>
                     )}
                     {o.error_message_fa && <span className="text-danger text-[13px] w-full">{o.error_message_fa}</span>}
+                    {o.status === "succeeded" && o.result?.seen === 0 && o.result?.note && <span className="text-warning text-[13px] w-full leading-6">{o.result.note}</span>}
                     <span className="text-muted text-[12px]">{ago(o.created_at)}</span>
                   </Link>
                 </li>

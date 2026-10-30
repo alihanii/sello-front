@@ -9,7 +9,7 @@ import { useMe } from "@/lib/hooks";
 import { Button, Dialog, Field, Input, Select, Switch } from "@/components/ui/primitives";
 
 export const KIND_LABEL: Record<string, string> = { gemini: "Google Gemini", metis: "Gemini از طریق متیس", openai: "OpenAI سازگار", anthropic: "Claude" };
-export const EMPTY_KEY = { name: "", kind: "gemini", base_url: "", proxy: "", default_model: "gemini-3.8-flash", input_price_per_m: 0, output_price_per_m: 0, monthly_budget_toman: 0, is_active: true };
+export const EMPTY_KEY = { name: "", kind: "gemini", base_url: "", proxy: "", default_model: "gemini-3.6-flash", input_price_per_m: 0, output_price_per_m: 0, monthly_budget_toman: 0, is_active: true };
 
 export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[]; onClose: () => void }) {
   const qc = useQueryClient();
@@ -20,7 +20,7 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
       method: "POST", json: { kind: k.kind, base_url: k.base_url, api_key: k.api_key, proxy: k.proxy ?? "" } }),
     onSuccess: (r) => {
       if (!r.models.length) return toast.error("مدلی برای این کلید پیدا نشد.");
-      if (!r.models.includes(k.default_model)) setK((cur: any) => ({ ...cur, default_model: r.models.find((m) => m.includes("flash")) ?? r.models[0] }));
+      if (!r.models.includes(k.default_model)) setK((cur: any) => ({ ...cur, default_model: r.models.find((m) => m === "gemini-3.6-flash") ?? r.models.find((m) => m.includes("flash")) ?? r.models[0] }));
       toast.success(`${r.models.length} مدل پیدا شد`);
     },
     onError: (e: any) => toast.error(e.message),
@@ -45,7 +45,7 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
         <Field label="پروکسی (اختیاری)" hint={k.kind === "metis" ? "متیس از داخل ایران پروکسی لازم ندارد." : "گوگل، OpenAI و Anthropic درخواست ایران را رد می‌کنند؛ اگر سرور داخل ایران است: http://user:pass@host:port یا socks5://host:port"}>
           <Input dir="ltr" className="text-left font-mono text-[13px]" value={k.proxy ?? ""} onChange={(e) => setK({ ...k, proxy: e.target.value })} placeholder="socks5://127.0.0.1:1080" />
         </Field>
-        <Field label="مدل پیش‌فرض" hint="«دریافت مدل‌ها» فهرست مدل‌هایی را می‌آورد که این کلید واقعاً به آن‌ها دسترسی دارد.">
+        <Field label="مدل پیش‌فرض" hint="«دریافت مدل‌ها» فقط مدل‌های متنی مناسب را می‌آورد (مدل‌های صوتی، TTS و تصویری حذف می‌شوند). مدل تصویری را در «مسیردهی کارها» برای تمیز کردن عکس انتخاب کن.">
           <div className="flex gap-2">
             {models.data?.models.length ? (
               <Select dir="ltr" className="text-left" value={k.default_model} onChange={(e) => setK({ ...k, default_model: e.target.value })}>
@@ -53,7 +53,7 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
                 {models.data.models.map((m) => <option key={m} value={m}>{m}</option>)}
               </Select>
             ) : (
-              <Input dir="ltr" className="text-left" value={k.default_model} placeholder="gemini-3.8-flash" onChange={(e) => setK({ ...k, default_model: e.target.value })} />
+              <Input dir="ltr" className="text-left" value={k.default_model} placeholder="gemini-3.6-flash" onChange={(e) => setK({ ...k, default_model: e.target.value })} />
             )}
             <Button type="button" variant="secondary" loading={models.isPending} disabled={!value.id && !k.api_key} onClick={() => models.mutate()}>دریافت مدل‌ها</Button>
           </div>

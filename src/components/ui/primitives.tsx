@@ -119,15 +119,16 @@ export function Select({ className, children, ...p }: React.SelectHTMLAttributes
   );
 }
 
-export function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
+export function Switch({ checked, onChange, label, disabled }: { checked: boolean; onChange: (v: boolean) => void; label?: string; disabled?: boolean }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn("relative h-7 w-12 rounded-full transition-colors cursor-pointer shrink-0", checked ? "bg-primary" : "bg-subtle border border-edge")}
+      className={cn("relative h-7 w-12 rounded-full transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed", checked ? "bg-primary" : "bg-subtle border border-edge")}
     >
       <span className={cn("absolute top-0.5 size-6 rounded-full bg-white shadow transition-all", checked ? "start-[22px]" : "start-0.5")} />
     </button>

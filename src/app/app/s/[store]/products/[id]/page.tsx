@@ -11,6 +11,7 @@ import { ago, faNum, jDateTime } from "@/lib/format";
 import { useChannels, useStoreId } from "@/lib/hooks";
 import { OP_TYPES, PLATFORMS } from "@/lib/meta";
 import { ProductForm } from "@/components/products/ProductForm";
+import { CleanImageCard } from "@/components/products/CleanImageCard";
 import { PublishDialog } from "@/components/products/PublishDialog";
 import { JsonViewer } from "@/components/ui/timeline";
 import { PlatformIcon, PublisherIcon, SourceBadge, StatusChip } from "@/components/ui/status";
@@ -64,8 +65,11 @@ export default function ProductDetail() {
       </div>
 
       {tab === "info" && (
-        <ProductForm key={p.updated_at} storeId={sid} initial={draft} onSubmit={(d) => save.mutate(d)} submitting={save.isPending}
+        <>
+        <CleanImageCard product={p} storeId={sid} onDone={() => qc.invalidateQueries({ queryKey: ["product", id] })} />
+        <ProductForm key={`${p.updated_at}-${p.images.length}`} storeId={sid} initial={draft} onSubmit={(d) => save.mutate(d)} submitting={save.isPending}
           fieldSources={p.source === "ai" ? p.source_ref?.field_sources : undefined} />
+        </>
       )}
 
       {tab === "channels" && (
