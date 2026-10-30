@@ -1,8 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useStoreId } from "@/lib/hooks";
-import { RedesignPlaceholder } from "@/components/products/RedesignPlaceholder";
 
 export default function Page() {
-  return <RedesignPlaceholder storeId={useStoreId()} title="ساخت محصول با AI" />;
+  const sid = useStoreId();
+  const router = useRouter();
+  useEffect(() => { router.replace(`/app/s/${sid}/products/new?mode=ai`); }, [router, sid]);
+  return null;
 }

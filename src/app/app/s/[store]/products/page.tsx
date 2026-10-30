@@ -67,8 +67,8 @@ export default function Products() {
         actions={<>
           <Button variant="ghost" size="sm" icon={<Download className="size-4" />} onClick={exportCsv}>خروجی CSV</Button>
           <Link href={`/app/s/${sid}/crawl`}><Button variant="secondary">کرال</Button></Link>
-          <Link href={`/app/s/${sid}/products/ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت با AI</Button></Link>
-          <Link href={`/app/s/${sid}/products/new`}><Button icon={<Plus className="size-4" />}>افزودن دستی</Button></Link>
+          <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت با AI</Button></Link>
+          <Link href={`/app/s/${sid}/products/new?mode=manual`}><Button icon={<Plus className="size-4" />}>افزودن دستی</Button></Link>
         </>} />
 
       <Card className="p-3 mb-4 flex flex-wrap gap-2 items-center">
@@ -99,7 +99,7 @@ export default function Products() {
       {isLoading ? <Skeleton className="h-96" /> : items.length === 0 ? (
         <Card><EmptyState icon={<Plus className="size-6" />} title="محصولی پیدا نشد"
           text="محصول دستی اضافه کن، از کانالت کرال کن یا با AI بساز."
-          action={<Link href={`/app/s/${sid}/products/ai`}><Button variant="ai">ساخت اولین محصول با AI</Button></Link>} /></Card>
+          action={<Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai">ساخت اولین محصول با AI</Button></Link>} /></Card>
       ) : view === "table" ? (
         <Card strong className="overflow-x-auto">
           <table className="w-full text-[14px] min-w-[900px]">

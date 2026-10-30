@@ -42,8 +42,8 @@ export default function Dashboard() {
     <>
       <PageHeader title="داشبورد" subtitle="خلاصهٔ کار Sello برای این فروشگاه"
         actions={<>
-          <Link href={`/app/s/${sid}/products/ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت محصول با AI</Button></Link>
-          <Link href={`/app/s/${sid}/products/new`}><Button variant="secondary">افزودن دستی</Button></Link>
+          <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت محصول با AI</Button></Link>
+          <Link href={`/app/s/${sid}/products/new?mode=manual`}><Button variant="secondary">افزودن دستی</Button></Link>
         </>} />
       <AiSetupBanner />
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
