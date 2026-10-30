@@ -1,0 +1,13 @@
+# Sello Frontend — Next.js (فاز ۱)
+
+بک‌اند: https://github.com/alihanii/sello-back
+
+```bash
+npm install
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL=http://localhost:8000
+npm run dev                  # http://localhost:3000
+```
+
+Next.js 15 (App Router) + Tailwind v4، طراحی شیشه‌ای مینیمال (سبک Glassmorphism از ui-ux-pro-max)، RTL با فونت وزیرمتن، حالت روشن/تیره، کاملاً ریسپانسیو (نوار پایین در موبایل)، TanStack Query و به‌روزرسانی زندهٔ عملیات با SSE.
+
+ورود دمو (بک‌اند با `scripts.demo_seed`): فروشنده `09121234567`، ادمین `09120000000`؛ در حالت توسعه کد تأیید روی صفحهٔ ورود نمایش داده می‌شود.

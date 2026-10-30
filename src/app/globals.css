@@ -1,0 +1,202 @@
+@import "tailwindcss";
+
+/* Sello design tokens — glassmorphism over a vivid mesh scene (ui-ux-pro-max: "glassmorphism" style,
+   blur 10–20px, translucent 15–45% surfaces, 1px light border, vibrant background, 4.5:1 text). */
+:root {
+  --bg: #eef1f5;
+  --orb-1: rgba(45, 212, 191, 0.32);
+  --orb-2: rgba(148, 163, 184, 0.35);
+  --glass: rgba(255, 255, 255, 0.44);
+  --glass-strong: rgba(255, 255, 255, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-edge: rgba(15, 23, 42, 0.08);
+  --sheen: rgba(255, 255, 255, 0.55);
+  --fg: #0b1220;
+  --muted-fg: #3d4a5c;
+  --subtle: rgba(15, 23, 42, 0.06);
+  --primary: #0f766e;
+  --primary-fg: #ffffff;
+  --ink: #0b1220;
+  --ink-fg: #ffffff;
+  --ai: #c2410c;
+  --crawl: #0369a1;
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #dc2626;
+  --neutral: #64748b;
+  --ring: #0f766e;
+  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.85), 0 0 0 1px inset rgba(255, 255, 255, 0.25), 0 10px 40px -12px rgba(15, 35, 60, 0.18);
+  --heat-0: rgba(15, 23, 42, 0.06);
+  --heat-1: #ccfbf1;
+  --heat-2: #5eead4;
+  --heat-3: #14b8a6;
+  --heat-4: #0f766e;
+  --heat-5: #134e4a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #07090d;
+    --orb-1: rgba(13, 148, 136, 0.28);
+    --orb-2: rgba(71, 85, 105, 0.35);
+        --glass: rgba(255, 255, 255, 0.06);
+    --glass-strong: rgba(17, 24, 38, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.11);
+    --glass-edge: rgba(255, 255, 255, 0.08);
+    --sheen: rgba(255, 255, 255, 0.09);
+    --fg: #eef2f7;
+    --muted-fg: #a6b0c0;
+    --subtle: rgba(255, 255, 255, 0.07);
+    --primary: #2dd4bf;
+    --primary-fg: #042f2b;
+    --ink: #f4f7fb;
+    --ink-fg: #0b1220;
+    --ai: #fb923c;
+    --crawl: #38bdf8;
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --neutral: #8391a5;
+    --ring: #2dd4bf;
+    --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.08), 0 12px 40px -12px rgba(0, 0, 0, 0.6);
+    --heat-0: rgba(255, 255, 255, 0.06);
+    --heat-1: #134e4a;
+    --heat-2: #0f766e;
+    --heat-3: #0d9488;
+    --heat-4: #2dd4bf;
+    --heat-5: #99f6e4;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #07090d;
+  --orb-1: rgba(13, 148, 136, 0.28);
+  --orb-2: rgba(71, 85, 105, 0.35);
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-strong: rgba(17, 24, 38, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.11);
+  --glass-edge: rgba(255, 255, 255, 0.08);
+  --sheen: rgba(255, 255, 255, 0.09);
+  --fg: #eef2f7;
+  --muted-fg: #a6b0c0;
+  --subtle: rgba(255, 255, 255, 0.07);
+  --primary: #2dd4bf;
+  --primary-fg: #042f2b;
+  --ink: #f4f7fb;
+  --ink-fg: #0b1220;
+  --ai: #fb923c;
+  --crawl: #38bdf8;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --neutral: #8391a5;
+  --ring: #2dd4bf;
+  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.08), 0 12px 40px -12px rgba(0, 0, 0, 0.6);
+  --heat-0: rgba(255, 255, 255, 0.06);
+  --heat-1: #134e4a;
+  --heat-2: #0f766e;
+  --heat-3: #0d9488;
+  --heat-4: #2dd4bf;
+  --heat-5: #99f6e4;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted-fg);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-ink: var(--ink);
+  --color-ink-fg: var(--ink-fg);
+  --color-ai: var(--ai);
+  --color-crawl: var(--crawl);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-neutral: var(--neutral);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-edge: var(--glass-edge);
+  --font-sans: var(--font-vazir), system-ui, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
+  --radius-card: 24px;
+}
+
+html {
+  background: var(--bg);
+}
+body {
+  min-height: 100dvh;
+  color: var(--fg);
+  background: var(--bg);
+  font-feature-settings: "ss01";
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* Fixed colour field the glass sits on; without it frosted surfaces read as flat grey. */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.scene .orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+}
+.scene .orb:nth-child(1) { width: 60vmax; height: 60vmax; top: -24vmax; inset-inline-start: -18vmax; background: var(--orb-1); }
+.scene .orb:nth-child(2) { width: 54vmax; height: 54vmax; bottom: -26vmax; inset-inline-end: -18vmax; background: var(--orb-2); }
+
+@layer components {
+.glass,
+.glass-strong {
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+}
+.glass {
+  background: linear-gradient(140deg, var(--sheen), transparent 42%), var(--glass);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+}
+.glass-strong {
+  background: linear-gradient(140deg, var(--sheen), transparent 50%), var(--glass-strong);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { background: var(--glass-strong); }
+}
+}
+
+/* Thin, scrollable rows (tabs, chips) on narrow screens without a visible scrollbar. */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.pb-safe { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+
+.tnum { font-variant-numeric: tabular-nums; }
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes shimmer { 100% { transform: translateX(-100%); } }
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  animation: shimmer 1.4s infinite;
+}
