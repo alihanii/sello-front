@@ -1,102 +1,116 @@
 @import "tailwindcss";
 
-/* Sello design tokens — glassmorphism over a vivid mesh scene (ui-ux-pro-max: "glassmorphism" style,
-   blur 10–20px, translucent 15–45% surfaces, 1px light border, vibrant background, 4.5:1 text). */
+/* Sello tokens. Palette from ui-ux-pro-max (E-commerce / Inventory rows): slate text, emerald
+   "commerce green" as the single brand colour, warm orange only for AI. Minimal glass: light
+   frosted surfaces on a near-neutral field, AA contrast (emerald-700 on white 5.5:1). */
 :root {
-  --bg: #eef1f5;
-  --orb-1: rgba(45, 212, 191, 0.32);
-  --orb-2: rgba(148, 163, 184, 0.35);
-  --glass: rgba(255, 255, 255, 0.44);
-  --glass-strong: rgba(255, 255, 255, 0.74);
-  --glass-border: rgba(255, 255, 255, 0.7);
+  --bg: #f3f5f4;
+  --orb-1: rgba(16, 185, 129, 0.20);
+  --orb-2: rgba(245, 158, 11, 0.13);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.85);
   --glass-edge: rgba(15, 23, 42, 0.08);
-  --sheen: rgba(255, 255, 255, 0.55);
-  --fg: #0b1220;
-  --muted-fg: #3d4a5c;
-  --subtle: rgba(15, 23, 42, 0.06);
-  --primary: #0f766e;
+  --sheen: rgba(255, 255, 255, 0.6);
+  --fg: #0f172a;
+  --muted-fg: #475569;
+  --subtle: rgba(15, 23, 42, 0.05);
+  --line: rgba(15, 23, 42, 0.08);
+  --raised: #ffffff;
+  --primary: #047857;
+  --primary-hover: #065f46;
   --primary-fg: #ffffff;
-  --ink: #0b1220;
+  --primary-soft: rgba(4, 120, 87, 0.10);
+  --ink: #0f172a;
   --ink-fg: #ffffff;
   --ai: #c2410c;
-  --crawl: #0369a1;
-  --success: #15803d;
+  --crawl: #1d4ed8;
+  --success: #047857;
   --warning: #b45309;
   --danger: #dc2626;
   --neutral: #64748b;
-  --ring: #0f766e;
-  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.85), 0 0 0 1px inset rgba(255, 255, 255, 0.25), 0 10px 40px -12px rgba(15, 35, 60, 0.18);
+  --ring: #059669;
+  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.9), 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px -16px rgba(15, 23, 42, 0.16);
   --heat-0: rgba(15, 23, 42, 0.06);
-  --heat-1: #ccfbf1;
-  --heat-2: #5eead4;
-  --heat-3: #14b8a6;
-  --heat-4: #0f766e;
-  --heat-5: #134e4a;
+  --heat-1: #d1fae5;
+  --heat-2: #6ee7b7;
+  --heat-3: #10b981;
+  --heat-4: #047857;
+  --heat-5: #064e3b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #07090d;
-    --orb-1: rgba(13, 148, 136, 0.28);
-    --orb-2: rgba(71, 85, 105, 0.35);
-        --glass: rgba(255, 255, 255, 0.06);
-    --glass-strong: rgba(17, 24, 38, 0.78);
-    --glass-border: rgba(255, 255, 255, 0.11);
+    --bg: #0a0f0d;
+    --orb-1: rgba(16, 185, 129, 0.16);
+    --orb-2: rgba(245, 158, 11, 0.07);
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-strong: rgba(18, 26, 23, 0.86);
+    --glass-border: rgba(255, 255, 255, 0.09);
     --glass-edge: rgba(255, 255, 255, 0.08);
-    --sheen: rgba(255, 255, 255, 0.09);
-    --fg: #eef2f7;
-    --muted-fg: #a6b0c0;
-    --subtle: rgba(255, 255, 255, 0.07);
-    --primary: #2dd4bf;
-    --primary-fg: #042f2b;
-    --ink: #f4f7fb;
-    --ink-fg: #0b1220;
+    --sheen: rgba(255, 255, 255, 0.06);
+    --fg: #ecf2ef;
+    --muted-fg: #9aa8a2;
+    --subtle: rgba(255, 255, 255, 0.06);
+    --line: rgba(255, 255, 255, 0.08);
+    --raised: rgba(255, 255, 255, 0.12);
+  --raised: rgba(255, 255, 255, 0.12);
+    --primary: #34d399;
+    --primary-hover: #6ee7b7;
+    --primary-fg: #022c22;
+    --primary-soft: rgba(52, 211, 153, 0.12);
+    --ink: #ecf2ef;
+    --ink-fg: #0a0f0d;
     --ai: #fb923c;
-    --crawl: #38bdf8;
-    --success: #4ade80;
+    --crawl: #60a5fa;
+    --success: #34d399;
     --warning: #fbbf24;
     --danger: #f87171;
-    --neutral: #8391a5;
-    --ring: #2dd4bf;
-    --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.08), 0 12px 40px -12px rgba(0, 0, 0, 0.6);
+    --neutral: #8b9893;
+    --ring: #34d399;
+    --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.06), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
     --heat-0: rgba(255, 255, 255, 0.06);
-    --heat-1: #134e4a;
-    --heat-2: #0f766e;
-    --heat-3: #0d9488;
-    --heat-4: #2dd4bf;
-    --heat-5: #99f6e4;
+    --heat-1: #064e3b;
+    --heat-2: #047857;
+    --heat-3: #10b981;
+    --heat-4: #34d399;
+    --heat-5: #a7f3d0;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #07090d;
-  --orb-1: rgba(13, 148, 136, 0.28);
-  --orb-2: rgba(71, 85, 105, 0.35);
-  --glass: rgba(255, 255, 255, 0.06);
-  --glass-strong: rgba(17, 24, 38, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.11);
+  --bg: #0a0f0d;
+  --orb-1: rgba(16, 185, 129, 0.16);
+  --orb-2: rgba(245, 158, 11, 0.07);
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-strong: rgba(18, 26, 23, 0.86);
+  --glass-border: rgba(255, 255, 255, 0.09);
   --glass-edge: rgba(255, 255, 255, 0.08);
-  --sheen: rgba(255, 255, 255, 0.09);
-  --fg: #eef2f7;
-  --muted-fg: #a6b0c0;
-  --subtle: rgba(255, 255, 255, 0.07);
-  --primary: #2dd4bf;
-  --primary-fg: #042f2b;
-  --ink: #f4f7fb;
-  --ink-fg: #0b1220;
+  --sheen: rgba(255, 255, 255, 0.06);
+  --fg: #ecf2ef;
+  --muted-fg: #9aa8a2;
+  --subtle: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.08);
+  --raised: rgba(255, 255, 255, 0.12);
+  --primary: #34d399;
+  --primary-hover: #6ee7b7;
+  --primary-fg: #022c22;
+  --primary-soft: rgba(52, 211, 153, 0.12);
+  --ink: #ecf2ef;
+  --ink-fg: #0a0f0d;
   --ai: #fb923c;
-  --crawl: #38bdf8;
-  --success: #4ade80;
+  --crawl: #60a5fa;
+  --success: #34d399;
   --warning: #fbbf24;
   --danger: #f87171;
-  --neutral: #8391a5;
-  --ring: #2dd4bf;
-  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.08), 0 12px 40px -12px rgba(0, 0, 0, 0.6);
+  --neutral: #8b9893;
+  --ring: #34d399;
+  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.06), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
   --heat-0: rgba(255, 255, 255, 0.06);
-  --heat-1: #134e4a;
-  --heat-2: #0f766e;
-  --heat-3: #0d9488;
-  --heat-4: #2dd4bf;
-  --heat-5: #99f6e4;
+  --heat-1: #064e3b;
+  --heat-2: #047857;
+  --heat-3: #10b981;
+  --heat-4: #34d399;
+  --heat-5: #a7f3d0;
 }
 
 @theme inline {
@@ -106,6 +120,10 @@
   --color-subtle: var(--subtle);
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-line: var(--line);
+  --color-raised: var(--raised);
   --color-ink: var(--ink);
   --color-ink-fg: var(--ink-fg);
   --color-ai: var(--ai);
@@ -200,3 +218,18 @@ body {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
   animation: shimmer 1.4s infinite;
 }
+
+/* Motion: short, eased, transform/opacity only (ui-ux-pro-max: 150–300ms, respect reduced motion). */
+@keyframes page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.page-in { animation: page-in 260ms cubic-bezier(.2, .8, .2, 1) both; }
+.pop-in { animation: pop-in 160ms cubic-bezier(.2, .8, .2, 1) both; transform-origin: top; }
+.fade-in { animation: fade-in 180ms ease-out both; }
+.sheet-up { animation: sheet-up 240ms cubic-bezier(.2, .8, .2, 1) both; }
+@media (min-width: 640px) { .sheet-up { animation-name: pop-in; } }
+
+a, button, input, select, textarea { transition-property: color, background-color, border-color, box-shadow, opacity, transform; transition-duration: 160ms; transition-timing-function: ease-out; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+::selection { background: var(--primary-soft); }

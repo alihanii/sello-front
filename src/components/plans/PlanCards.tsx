@@ -1,62 +1,73 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 import { faDigits, toman } from "@/lib/format";
-import { Button, Card, Chip, Tabs, cn } from "@/components/ui/primitives";
+import { Button, Card, cn } from "@/components/ui/primitives";
 
+const LABEL: Record<number, string> = { 1: "یک‌ماهه", 3: "سه‌ماهه", 12: "یک‌ساله" };
+
+/** One plan, one feature list; the buyer only picks the billing period. */
 export function PlanCards({ plans, onSelect, currentPlanId, loadingId }: {
   plans: any[]; onSelect: (plan: any) => void; currentPlanId?: number; loadingId?: number;
 }) {
-  const [period, setPeriod] = useState<"1" | "3" | "12">("1");
-  const visible = useMemo(() => plans.filter((p) => String(p.duration_months) === period), [plans, period]);
-  const label = { "1": "یک‌ماهه", "3": "سه‌ماهه", "12": "یک‌ساله" };
-  const maxDiscount = (m: string) => {
-    const ps = plans.filter((p) => String(p.duration_months) === m && p.compare_at_toman);
-    const d = Math.max(0, ...ps.map((p) => Math.round(100 - (100 * p.price_toman) / p.compare_at_toman)));
-    return d ? ` (تا ${faDigits(d)}٪ تخفیف)` : "";
-  };
+  const options = [...plans].sort((a, b) => a.duration_months - b.duration_months);
+  const [selectedId, setSelectedId] = useState<number | undefined>();
+  useEffect(() => {
+    if (selectedId == null && options.length) setSelectedId((options.find((p) => p.is_featured) ?? options[0]).id);
+  }, [options, selectedId]);
+  const selected = options.find((p) => p.id === selectedId) ?? options[0];
+  if (!selected) return null;
+  const discount = (p: any) => (p.compare_at_toman ? Math.round(100 - (100 * p.price_toman) / p.compare_at_toman) : 0);
+
   return (
-    <div>
-      <div className="flex justify-center mb-8">
-        <Tabs value={period} onChange={setPeriod} items={(["1", "3", "12"] as const).map((v) => ({ value: v, label: label[v] + maxDiscount(v) }))} />
+    <Card strong className="max-w-4xl mx-auto p-5 sm:p-8 grid grid-cols-1 md:grid-cols-[1fr_1.1fr] gap-6 md:gap-10">
+      <div>
+        <h3 className="text-[22px] font-black tracking-tight">{selected.name}</h3>
+        <p className="text-muted text-[14px] mt-1">{selected.description}</p>
+        <ul className="mt-5 space-y-3">
+          {selected.features.map((f: string) => (
+            <li key={f} className="flex items-start gap-2.5 text-[14px]">
+              <span className="size-5 rounded-full bg-primary/15 text-primary grid place-items-center mt-0.5 shrink-0"><Check className="size-3" /></span>{f}
+            </li>
+          ))}
+        </ul>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
-        {visible.map((p) => {
-          const monthly = Math.round(p.price_toman / p.duration_months);
-          const discount = p.compare_at_toman ? Math.round(100 - (100 * p.price_toman) / p.compare_at_toman) : 0;
-          return (
-            <Card key={p.id} strong={p.is_featured} className={cn("p-6 flex flex-col relative", p.is_featured && "md:-my-3 ring-2 ring-primary/50")}>
-              {p.is_featured && <Chip tone="primary" className="absolute -top-3 start-6" icon={<Sparkles className="size-3" />}>پیشنهادی</Chip>}
-              <h3 className="text-[18px] font-extrabold">{p.name}</h3>
-              <p className="text-muted text-[13px] min-h-10">{p.description}</p>
-              <div className="mt-4">
-                {p.compare_at_toman > 0 && (
-                  <div className="flex items-center gap-2 text-[13px]">
-                    <span className="line-through text-muted tnum">{toman(p.compare_at_toman)}</span>
-                    <Chip tone="success">{faDigits(discount)}٪ تخفیف</Chip>
-                  </div>
-                )}
-                <div className="text-[28px] font-black tnum leading-10">{toman(p.price_toman)}</div>
-                <div className="text-muted text-[13px]">
-                  {p.duration_months > 1 ? <>معادل ماهی <span className="tnum">{toman(monthly)}</span></> : "ماهانه"}
-                </div>
-              </div>
-              <ul className="mt-5 space-y-2.5 flex-1">
-                {p.features.map((f: string) => (
-                  <li key={f} className="flex items-start gap-2 text-[14px]">
-                    <Check className="size-4 text-success mt-1 shrink-0" /> {f}
-                  </li>
-                ))}
-              </ul>
-              <Button className="mt-6 w-full" variant={p.is_featured ? "primary" : "secondary"} size="lg"
-                onClick={() => onSelect(p)} loading={loadingId === p.id} disabled={currentPlanId === p.id}>
-                {currentPlanId === p.id ? "پلن فعلی شما" : "انتخاب این پلن"}
-              </Button>
-            </Card>
-          );
-        })}
+      <div className="flex flex-col gap-3">
+        <div className="text-[13px] font-bold text-muted">مدت اشتراک</div>
+        <div role="radiogroup" aria-label="مدت اشتراک" className="flex flex-col gap-2">
+          {options.map((p) => {
+            const active = p.id === selected.id;
+            const d = discount(p);
+            return (
+              <button key={p.id} role="radio" aria-checked={active} onClick={() => setSelectedId(p.id)}
+                className={cn("flex items-center gap-3 rounded-2xl border p-4 text-start cursor-pointer transition-all duration-200",
+                  active ? "border-primary bg-primary/8 shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)]" : "border-edge hover:border-primary/40 hover:bg-subtle")}>
+                <span className={cn("size-5 rounded-full border-2 grid place-items-center shrink-0 transition", active ? "border-primary" : "border-edge")}>
+                  <span className={cn("size-2.5 rounded-full bg-primary transition-transform duration-200", active ? "scale-100" : "scale-0")} />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="flex items-center gap-2 font-bold text-[15px]">
+                    {LABEL[p.duration_months] ?? `${faDigits(p.duration_months)} ماهه`}
+                    {d > 0 && <span className="text-[11px] font-bold rounded-full px-2 py-0.5 bg-primary text-primary-fg">{faDigits(d)}٪ تخفیف</span>}
+                  </span>
+                  <span className="block text-[12px] text-muted tnum">
+                    {p.duration_months > 1 ? <>ماهی {toman(Math.round(p.price_toman / p.duration_months))}</> : "پرداخت ماهانه"}
+                  </span>
+                </span>
+                <span className="text-end">
+                  {p.compare_at_toman > 0 && <span className="block text-[12px] text-muted line-through tnum">{toman(p.compare_at_toman)}</span>}
+                  <span className="block font-black text-[16px] tnum">{toman(p.price_toman)}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <Button size="lg" className="mt-2 w-full" onClick={() => onSelect(selected)} loading={loadingId === selected.id}
+          disabled={currentPlanId === selected.id}>
+          {currentPlanId === selected.id ? "اشتراک فعلی شما" : `خرید اشتراک ${LABEL[selected.duration_months] ?? ""}`}
+        </Button>
       </div>
-    </div>
+    </Card>
   );
 }

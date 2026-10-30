@@ -37,6 +37,7 @@ export const OP_TYPES: Record<string, string> = {
   reference: "ساخت با AI",
   style_profile: "پروفایل سبک",
   automation: "اتوماسیون",
+  ai_post: "پست AI",
 };
 
 export const TRIGGERS: Record<string, string> = {
@@ -44,4 +45,5 @@ export const TRIGGERS: Record<string, string> = {
   product_updated: "محصول ویرایش شد",
   stock_changed: "موجودی تغییر کرد",
   schedule: "هر روز در ساعت مشخص",
+  ai_content: "تولید محتوای AI",
 };

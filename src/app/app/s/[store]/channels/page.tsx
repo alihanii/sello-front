@@ -20,12 +20,18 @@ const HEALTH: Record<string, { label: string; tone: string }> = {
 const HELP: Record<string, string[]> = {
   telegram: ["در تلگرام به ‎@BotFather پیام بده و یک ربات بساز؛ توکن را کپی کن.", "ربات را به کانالت اضافه کن و ادمین کن (با دسترسی ارسال پیام).", "توکن و آیدی کانال (مثلاً ‎@myshop) را اینجا وارد کن."],
   bale: ["در بله به ‎@botfather پیام بده و ربات بساز.", "ربات را ادمین کانالت کن.", "توکن و آیدی کانال را وارد کن."],
-  digikala: ["شمارهٔ موبایل حساب فروشندگی دیجی‌کالا را وارد کن.", "کد تأییدی که دیجی‌کالا پیامک می‌کند را وارد کن.", "فعلاً کرال لیست محصولات فعال است؛ انتشار خودکار به‌زودی."],
-  instagram: ["حساب باید Business یا Creator و متصل به صفحهٔ فیسبوک باشد.", "توکن بلندمدت Graph API و شناسهٔ حساب اینستاگرام را وارد کن."],
+  digikala: ["شمارهٔ موبایل حساب فروشندگی دیجی‌کالا را وارد کن.", "کد تأییدی که دیجی‌کالا پیامک می‌کند را وارد کن.", "بعد از اتصال، محصولات با دسته، ویژگی‌ها و عکس‌ها در دیجی‌کالا ثبت و برای بررسی ارسال می‌شوند. قیمت و موجودی بعد از تأیید دیجی‌کالا در پنل خودشان ثبت می‌شود."],
+  instagram: ["حساب اینستاگرام باید Business یا Creator باشد (تنظیمات اینستاگرام › نوع حساب). صفحهٔ فیسبوک لازم نیست.", "روی «ورود با اینستاگرام» بزن و دسترسی انتشار را تأیید کن.", "اینستاگرام روزانه حداکثر ۱۰۰ پست از طریق API قبول می‌کند؛ کاروسل تا ۱۰ عکس."],
 };
 
-function ConnectDialog({ platform, channelId, onClose }: { platform: string; channelId?: number; onClose: () => void }) {
+function ConnectDialog({ platform, channelId, oauth, onClose }: { platform: string; channelId?: number; oauth?: boolean; onClose: () => void }) {
   const sid = useStoreId();
+  const [manual, setManual] = useState(!oauth);
+  const igLogin = useMutation({
+    mutationFn: () => api(`/stores/${sid}/channels/instagram/oauth-url${channelId ? `?channel_id=${channelId}` : ""}`),
+    onSuccess: (r) => { window.location.href = r.url; },
+    onError: (e: any) => toast.error(e.message),
+  });
   const qc = useQueryClient();
   const [data, setData] = useState<Record<string, string>>({});
   const [opId, setOpId] = useState<number | null>(null);
@@ -60,13 +66,22 @@ function ConnectDialog({ platform, channelId, onClose }: { platform: string; cha
             <Field label="موبایل حساب فروشندگی"><Input dir="ltr" className="text-left tnum" placeholder="09…" onChange={set("phone")} required disabled={codeSent} /></Field>
             {codeSent && <Field label="کد تأیید دیجی‌کالا"><Input dir="ltr" className="text-left tnum" onChange={set("code")} required autoFocus /></Field>}
           </>}
-          {platform === "instagram" && <>
-            <Field label="Access Token"><Input dir="ltr" className="text-left font-mono text-[13px]" onChange={set("access_token")} required /></Field>
-            <Field label="Instagram User ID"><Input dir="ltr" className="text-left tnum" onChange={set("ig_user_id")} required /></Field>
-          </>}
-          <Button type="submit" className="w-full" loading={connect.isPending || sendCode.isPending}>
-            {platform === "digikala" && !codeSent ? "ارسال کد تأیید" : "اتصال"}
-          </Button>
+          {platform === "instagram" && oauth && (
+            <Button type="button" className="w-full" loading={igLogin.isPending} onClick={() => igLogin.mutate()}>ورود با اینستاگرام</Button>
+          )}
+          {platform === "instagram" && oauth && !manual && (
+            <button type="button" className="block mx-auto text-[13px] text-muted hover:text-fg transition-colors" onClick={() => setManual(true)}>یا وارد کردن دستی توکن</button>
+          )}
+          {platform === "instagram" && manual && (
+            <Field label="توکن بلندمدت اینستاگرام" hint="Instagram User Access Token با دسترسی instagram_business_content_publish">
+              <Input dir="ltr" className="text-left font-mono text-[13px]" onChange={set("access_token")} required />
+            </Field>
+          )}
+          {(platform !== "instagram" || manual) && (
+            <Button type="submit" className="w-full" variant={platform === "instagram" && oauth ? "secondary" : "primary"} loading={connect.isPending || sendCode.isPending}>
+              {platform === "digikala" && !codeSent ? "ارسال کد تأیید" : "اتصال"}
+            </Button>
+          )}
         </form>
       )}
     </Dialog>
@@ -120,14 +135,14 @@ export default function Channels() {
             <div className="font-bold mt-3">{p.label}</div>
             <div className="text-[12px] text-muted flex flex-wrap gap-1 mt-1">
               {p.can_publish && <Chip>انتشار</Chip>}{p.can_crawl && <Chip>کرال</Chip>}
-              {p.platform === "digikala" && <Chip tone="warning">انتشار به‌زودی</Chip>}
             </div>
             <Button className="mt-4" variant="secondary" size="sm" icon={<Plus className="size-4" />} disabled={!p.enabled}
               onClick={() => setConnect({ platform: p.platform })}>{p.enabled ? "اتصال" : "به‌زودی"}</Button>
           </Card>
         ))}
       </div>
-      {connect && <ConnectDialog platform={connect.platform} channelId={connect.channelId} onClose={() => setConnect(null)} />}
+      {connect && <ConnectDialog platform={connect.platform} channelId={connect.channelId} oauth={platforms.find((p: any) => p.platform === "instagram")?.oauth}
+        onClose={() => setConnect(null)} />}
     </>
   );
 }

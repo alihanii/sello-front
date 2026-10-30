@@ -3,7 +3,7 @@
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { faNum } from "@/lib/format";
-import { Button, Card, CardHeader, Field, Input, Switch, Textarea } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Field, Input, NumberInput, Switch, Textarea } from "@/components/ui/primitives";
 import { ImageUploader } from "./ImageUploader";
 
 export type ProductDraft = {
@@ -17,7 +17,6 @@ export const emptyDraft: ProductDraft = {
   attributes: {}, tags: [], images: [], status: "ready", is_golden_sample: false,
 };
 
-const num = (v: string) => Number(v.replace(/[۰-۹]/g, (c) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(c))).replace(/\D/g, "") || 0);
 
 export function ProductForm({ storeId, initial, onSubmit, submitting, submitLabel = "ذخیره", fieldSources }: {
   storeId: number; initial: ProductDraft; onSubmit: (d: ProductDraft) => void; submitting?: boolean; submitLabel?: string;
@@ -37,7 +36,7 @@ export function ProductForm({ storeId, initial, onSubmit, submitting, submitLabe
         <Card className="p-5 space-y-4">
           <Field label="عکس‌ها"><ImageUploader storeId={storeId} value={d.images} onChange={(v) => set("images", v)} /></Field>
           <Field label={<>عنوان {src("title")}</>}><Input value={d.title} onChange={(e) => set("title", e.target.value)} required maxLength={300} /></Field>
-          <Field label={<>توضیحات {src("description")}</>} hint={`${faNum(d.description.length)} کاراکتر (دیجی‌کالا حداقل ۱۵۰ کاراکتر می‌خواهد)`}>
+          <Field label={<>توضیحات {src("description")}</>} hint={`${faNum(d.description.length)} کاراکتر؛ برای ثبت توضیح در دیجی‌کالا حداقل ۱۵۰ کاراکتر`}>
             <Textarea rows={7} value={d.description} onChange={(e) => set("description", e.target.value)} />
           </Field>
         </Card>
@@ -62,10 +61,10 @@ export function ProductForm({ storeId, initial, onSubmit, submitting, submitLabe
       </div>
       <div className="space-y-4 lg:sticky lg:top-24">
         <Card className="p-5 space-y-4">
-          <Field label={<>قیمت (تومان) {src("price")}</>}><Input dir="ltr" className="text-left tnum" value={d.price ? d.price.toLocaleString("en") : ""} onChange={(e) => set("price", num(e.target.value))} /></Field>
-          <Field label="قیمت قبل از تخفیف"><Input dir="ltr" className="text-left tnum" value={d.compare_at_price ? d.compare_at_price.toLocaleString("en") : ""} onChange={(e) => set("compare_at_price", num(e.target.value))} /></Field>
+          <Field label={<>قیمت (تومان) {src("price")}</>}><NumberInput value={d.price} onChange={(v) => set("price", v)} /></Field>
+          <Field label="قیمت قبل از تخفیف"><NumberInput value={d.compare_at_price} onChange={(v) => set("compare_at_price", v)} /></Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="موجودی"><Input dir="ltr" className="text-left tnum" type="number" value={d.stock_qty} onChange={(e) => set("stock_qty", Number(e.target.value))} /></Field>
+            <Field label="موجودی"><NumberInput grouping={false} value={d.stock_qty} onChange={(v) => set("stock_qty", v)} /></Field>
             <Field label="شناسه (SKU)"><Input dir="ltr" className="text-left" value={d.sku} onChange={(e) => set("sku", e.target.value)} /></Field>
           </div>
           <Field label="برند"><Input value={d.brand} onChange={(e) => set("brand", e.target.value)} /></Field>

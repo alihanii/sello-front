@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { API_URL, api, getToken, mediaUrl } from "@/lib/api";
-import { ago, faNum, toman } from "@/lib/format";
+import { ago, faDigits, faNum, toman } from "@/lib/format";
 import { useChannels, useStoreId } from "@/lib/hooks";
 import { ChannelStatusStrip, SourceBadge } from "@/components/ui/status";
 import { PublishDialog } from "@/components/products/PublishDialog";
@@ -132,10 +132,10 @@ export default function Products() {
                   </td>
                   <td className="p-3 tnum whitespace-nowrap">{toman(p.price)}</td>
                   <td className="p-3">
-                    <input type="number" defaultValue={p.stock_qty} aria-label="موجودی"
+                    <input inputMode="numeric" dir="ltr" defaultValue={faDigits(p.stock_qty)} key={p.stock_qty} aria-label="موجودی"
                       className={cn("w-20 h-9 rounded-lg bg-subtle px-2 text-center tnum outline-none focus:ring-2 focus:ring-primary/30",
                         p.stock_qty <= 0 ? "text-danger" : p.stock_qty <= 3 ? "text-warning" : "")}
-                      onBlur={(e) => { const v = Number(e.target.value); if (v !== p.stock_qty) stockMut.mutate({ id: p.id, qty: v }); }} />
+                      onBlur={(e) => { const v = Number(e.target.value.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/\D/g, "")); if (v !== p.stock_qty) stockMut.mutate({ id: p.id, qty: v }); }} />
                   </td>
                   <td className="p-3"><SourceBadge source={p.source} /></td>
                   <td className="p-3"><ChannelStatusStrip channels={channels} listings={p.listings} /></td>
