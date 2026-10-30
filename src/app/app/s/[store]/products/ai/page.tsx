@@ -35,7 +35,7 @@ export default function AiCreate() {
   const go = useMutation({
     mutationFn: () => api(`/stores/${sid}/reference-sets`, { method: "POST", json: {
       images, urls, note, price: Number(price.replace(/\D/g, "") || 0), stock_qty: Number(stock || 0), use_style_profile: useStyle,
-      product_ids: samples, bulk, clean_image: clean && canClean && images.length > 0 } }),
+      product_ids: samples, bulk, clean_image: clean && canClean } }),
     onSuccess: (r) => { setOps(r); setDone({}); },
     onError: (e: any) => toast.error(e.message),
   });
@@ -104,14 +104,14 @@ export default function AiCreate() {
               <Field label="قیمت (تومان)"><Input dir="ltr" className="text-left tnum" value={price} onChange={(e) => setPrice(e.target.value)} /></Field>
               <Field label="موجودی"><Input dir="ltr" className="text-left tnum" value={stock} onChange={(e) => setStock(e.target.value)} /></Field>
             </div>
-            {images.length > 0 && (
-              <label className="flex items-center justify-between gap-3 text-[14px]">
-                <span>تمیز کردن عکس اصلی
-                  <span className="block text-muted text-[12px]">{canClean ? "همان محصول، با پس‌زمینهٔ سفید و وسط کادر؛ عکس خودت هم کنارش می‌ماند" : aiStatus?.image_edit_problem || "مدل تصویری تنظیم نشده"}</span>
-                </span>
-                <Switch checked={clean && canClean} onChange={setClean} label="تمیز کردن عکس اصلی" disabled={!canClean} />
-              </label>
-            )}
+            <label className="flex items-center justify-between gap-3 text-[14px]">
+              <span>{images.length ? "تمیز کردن عکس اصلی" : "ساخت عکس محصول با AI"}
+                <span className="block text-muted text-[12px] leading-5">{canClean
+                  ? `${images.length ? "همان محصول، مرتب و وسط کادر؛ عکس خودت هم کنارش می‌ماند." : "از روی توضیحات، یک عکس برای محصول ساخته می‌شود."} پس‌زمینه، نور و کادر از عکس محصولات قبلی فروشگاهت گرفته می‌شود.`
+                  : aiStatus?.image_edit_problem || "مدل تصویری تنظیم نشده"}</span>
+              </span>
+              <Switch checked={clean && canClean} onChange={setClean} label="ساخت یا تمیز کردن عکس" disabled={!canClean} />
+            </label>
             <label className="flex items-center justify-between gap-3 text-[14px]">
               <span>تولید گروهی<span className="block text-muted text-[12px]">برای هر عکس یا لینک یک محصول جدا</span></span>
               <Switch checked={bulk} onChange={setBulk} label="تولید گروهی" />

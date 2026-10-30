@@ -38,7 +38,7 @@ export const OP_TYPES: Record<string, string> = {
   style_profile: "پروفایل سبک",
   automation: "اتوماسیون",
   ai_post: "پست AI",
-  image_clean: "تمیز کردن عکس با AI",
+  image_clean: "ساخت/تمیز کردن عکس با AI",
 };
 
 export const TRIGGERS: Record<string, string> = {
