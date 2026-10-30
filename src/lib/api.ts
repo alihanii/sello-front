@@ -18,11 +18,15 @@ export function getToken(): string | null {
   }
 }
 
+export const AUTH_EVENT = "sello-auth";
+
+/** Stores the token and tells the app the signed-in account changed, so cached data of the previous one is dropped. */
 export function setToken(token: string | null) {
   try {
     if (token) localStorage.setItem("sello-token", token);
     else localStorage.removeItem("sello-token");
   } catch {}
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(AUTH_EVENT));
 }
 
 export async function api<T = any>(path: string, init: RequestInit & { json?: unknown } = {}): Promise<T> {
