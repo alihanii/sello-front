@@ -36,15 +36,5 @@ export const OP_TYPES: Record<string, string> = {
   crawl: "کرال",
   reference: "ساخت با AI",
   style_profile: "پروفایل سبک",
-  automation: "اتوماسیون",
-  ai_post: "پست AI",
   image_clean: "ساخت/تمیز کردن عکس با AI",
-};
-
-export const TRIGGERS: Record<string, string> = {
-  product_created: "محصول جدید ساخته شد",
-  product_updated: "محصول ویرایش شد",
-  stock_changed: "موجودی تغییر کرد",
-  schedule: "هر روز در ساعت مشخص",
-  ai_content: "تولید محتوای AI",
 };

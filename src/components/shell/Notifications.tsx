@@ -1,15 +1,15 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Bell, CheckCheck, PlugZap, Sparkles } from "lucide-react";
+import { AlertTriangle, Bell, CheckCheck, PlugZap } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { api, mediaUrl } from "@/lib/api";
 import { ago, faNum } from "@/lib/format";
 import { Button, cn } from "@/components/ui/primitives";
 
-const ICON: Record<string, any> = { approval: Sparkles, publish_failed: AlertTriangle, channel_error: PlugZap };
-const TONE: Record<string, string> = { approval: "text-primary bg-primary/12", publish_failed: "text-danger bg-danger/12", channel_error: "text-warning bg-warning/14" };
+const ICON: Record<string, any> = { publish_failed: AlertTriangle, channel_error: PlugZap };
+const TONE: Record<string, string> = { publish_failed: "text-danger bg-danger/12", channel_error: "text-warning bg-warning/14" };
 
 export function NotificationBell({ storeId }: { storeId: number }) {
   const qc = useQueryClient();

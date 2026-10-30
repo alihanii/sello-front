@@ -47,7 +47,7 @@ export default function OperationDetail() {
             <div className="flex flex-wrap items-center gap-2"><h1 className="text-[20px] font-extrabold">{op.title_fa}</h1><StatusChip status={op.status} kind="op" /></div>
             <div className="text-[13px] text-muted mt-1 flex flex-wrap gap-x-3">
               <span>{OP_TYPES[op.type]}</span>
-              <span>شروع‌کننده: {op.trigger === "automation" ? "اتوماسیون" : op.trigger === "schedule" ? "زمان‌بند" : op.trigger === "retry" ? `تلاش دوباره (${faNum(op.attempt)})` : "کاربر"}</span>
+              <span>شروع‌کننده: {op.trigger === "schedule" ? "زمان‌بند" : op.trigger === "retry" ? `تلاش دوباره (${faNum(op.attempt)})` : "کاربر"}</span>
               <span>{jDateTime(op.created_at)}</span>
               <span className="tnum">مدت: {ms(total)}</span>
             </div>

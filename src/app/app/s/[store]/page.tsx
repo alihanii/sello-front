@@ -23,7 +23,7 @@ function Stat({ icon: Icon, label, value, hint }: any) {
 }
 
 const ATTENTION_LINK: Record<string, string> = {
-  channel: "channels", operations: "activity?status=failed", approvals: "automations", stock: "products?stock=out", inbox: "crawl",
+  channel: "channels", operations: "activity?status=failed", stock: "products?stock=out", inbox: "crawl",
 };
 
 export default function Dashboard() {
