@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Download, Grid2X2, ImageOff, List, Plus, Search, Send, Sparkles, Tag } from "lucide-react";
+import { Archive, Download, FileSpreadsheet, Grid2X2, ImageOff, List, Plus, Search, Send, Sparkles, Tag } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import { ago, faDigits, faNum, toman } from "@/lib/format";
 import { useChannels, useStoreId } from "@/lib/hooks";
 import { ChannelStatusStrip, SourceBadge } from "@/components/ui/status";
 import { PublishDialog } from "@/components/products/PublishDialog";
+import { ImportDialog } from "@/components/products/ImportDialog";
 import { Button, Card, EmptyState, Input, PageHeader, Select, Skeleton, Tabs, cn } from "@/components/ui/primitives";
 
 export default function Products() {
@@ -28,6 +29,7 @@ export default function Products() {
   useEffect(() => { if (window.matchMedia("(max-width: 767px)").matches) setView("grid"); }, []);
   const [selected, setSelected] = useState<number[]>([]);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const { data: channels = [] } = useChannels(sid);
 
   const params = new URLSearchParams({ q, source, stock, status, page: String(page), size: "25" });
@@ -52,6 +54,11 @@ export default function Products() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products", sid] }),
     onError: (e: any) => toast.error(e.message),
   });
+  const priceMut = useMutation({
+    mutationFn: ({ id, price }: any) => api(`/products/${id}`, { method: "PATCH", json: { price } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["products", sid] }); toast.success("قیمت ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const items: any[] = data?.items ?? [];
   const allSel = items.length > 0 && items.every((p) => selected.includes(p.id));
 
@@ -66,6 +73,7 @@ export default function Products() {
       <PageHeader title="محصولات" subtitle={data ? `${faNum(data.total)} محصول` : undefined}
         actions={<>
           <Button variant="ghost" size="sm" icon={<Download className="size-4" />} onClick={exportCsv}>خروجی CSV</Button>
+          <Button variant="secondary" size="sm" icon={<FileSpreadsheet className="size-4" />} onClick={() => setImportOpen(true)}>ورود از اکسل</Button>
           <Link href={`/app/s/${sid}/crawl`}><Button variant="secondary">کرال</Button></Link>
           <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت با AI</Button></Link>
           <Link href={`/app/s/${sid}/products/new?mode=manual`}><Button icon={<Plus className="size-4" />}>افزودن دستی</Button></Link>
@@ -130,7 +138,7 @@ export default function Products() {
                       </span>
                     </Link>
                   </td>
-                  <td className="p-3 tnum whitespace-nowrap">{toman(p.price)}</td>
+                  <td className="p-3"><PriceCell price={p.price} onSave={(price) => priceMut.mutate({ id: p.id, price })} /></td>
                   <td className="p-3">
                     <input inputMode="numeric" dir="ltr" defaultValue={faDigits(p.stock_qty)} key={p.stock_qty} aria-label="موجودی"
                       className={cn("w-20 h-9 rounded-lg bg-subtle px-2 text-center tnum outline-none focus:ring-2 focus:ring-primary/30",
@@ -187,8 +195,34 @@ export default function Products() {
           </Card>
         </div>
       )}
+      <ImportDialog storeId={sid} open={importOpen} onClose={() => setImportOpen(false)} />
       <PublishDialog open={publishOpen} onClose={() => setPublishOpen(false)} channels={channels} loading={bulk.isPending}
         onConfirm={(ids: number[]) => bulk.mutate({ action: "publish", channel_ids: ids })} />
     </>
+  );
+}
+
+const toLatinDigits = (v: string) => v.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+const groupFa = (n: number) => faDigits(n.toLocaleString("en").replace(/,/g, "٬"));
+
+/** Price edited right in the table: type, then Enter or click away to save; Escape puts it back. */
+function PriceCell({ price, onSave }: { price: number; onSave: (price: number) => void }) {
+  const [text, setText] = useState(groupFa(price));
+  useEffect(() => setText(groupFa(price)), [price]);
+  const commit = () => {
+    const v = Number(toLatinDigits(text).replace(/\D/g, "")) || 0;
+    setText(groupFa(v));
+    if (v !== price) onSave(v);
+  };
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+      <input inputMode="numeric" dir="ltr" value={text} aria-label="قیمت (تومان)"
+        className="w-28 h-9 rounded-lg bg-subtle px-2 text-center tnum outline-none focus:ring-2 focus:ring-primary/30"
+        onFocus={(e) => e.target.select()}
+        onChange={(e) => { const v = Number(toLatinDigits(e.target.value).replace(/\D/g, "")); setText(v ? groupFa(v) : ""); }}
+        onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); if (e.key === "Escape") { setText(groupFa(price)); setTimeout(() => (e.target as HTMLInputElement).blur()); } }}
+        onBlur={commit} />
+      <span className="text-[12px] text-muted">تومان</span>
+    </span>
   );
 }
