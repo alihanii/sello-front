@@ -35,5 +35,4 @@ export const OP_TYPES: Record<string, string> = {
   publish: "انتشار",
   crawl: "کرال",
   ai_product: "ساخت با AI",
-  image_clean: "ساخت/تمیز کردن عکس با AI",
 };

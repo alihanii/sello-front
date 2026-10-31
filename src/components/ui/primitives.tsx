@@ -227,6 +227,4 @@ export function Tabs<T extends string>({ value, onChange, items }: { value: T; o
 }
 
 /** Wide tables scroll inside their card on small screens instead of pushing the page sideways. */
-export function TableWrap({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("overflow-x-auto no-scrollbar", className)}>{children}</div>;
-}
+

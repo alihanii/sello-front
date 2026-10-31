@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { ms } from "@/lib/format";
 import { cn } from "./primitives";
 
-export function JsonViewer({ value }: { value: unknown }) {
+function JsonViewer({ value }: { value: unknown }) {
   const text = JSON.stringify(value ?? {}, null, 2);
   const html = text
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")

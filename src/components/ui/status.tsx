@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Hand, Sparkles, UserRound, Globe, MessageCircle, ShoppingBag, Store } from "lucide-react";
+import { Bot, Hand, Sparkles, Globe, MessageCircle, ShoppingBag, Store } from "lucide-react";
 import { LISTING_STATUS, OP_STATUS, PLATFORMS, SOURCES } from "@/lib/meta";
 import { ago } from "@/lib/format";
 import { Chip, cn } from "./primitives";
@@ -47,15 +47,6 @@ export function StatusChip({ status, kind = "listing" }: { status: string; kind?
       {(status === "running" || status === "publishing") && <span className="size-1.5 rounded-full bg-current animate-pulse" />}
       {s.label}
     </Chip>
-  );
-}
-
-export function PublisherIcon({ by }: { by: string }) {
-  if (!by) return null;
-  return by === "user" ? (
-    <span title="منتشرشده توسط کاربر" className="inline-flex text-muted"><UserRound className="size-3.5" aria-label="کاربر" /></span>
-  ) : (
-    <span title="منتشرشده توسط AI" className="inline-flex text-ai"><Sparkles className="size-3.5" aria-label="AI" /></span>
   );
 }
 
