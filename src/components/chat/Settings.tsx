@@ -40,6 +40,65 @@ function Row({ title, text, children }: { title: string; text?: string; children
   );
 }
 
+const RULE_IDEAS = [
+  "تخفیف یا قیمت توافقی پیشنهاد نده",
+  "به فروشگاه یا برند دیگری اشاره نکن",
+  "زمان دقیق تحویل را قول نده",
+  "شماره تماس یا آیدی شخصی ادمین را نده",
+  "همیشه مشتری را «شما» خطاب کن",
+];
+const MAX_RULES = 15;
+
+/** Rules every AI answer must follow; stock visibility is enforced in code (the number never reaches the model). */
+function AnswerRules({ draft, set }: { draft: any; set: (p: any) => void }) {
+  const ap = draft.answer_policy || { stock: "exact", rules: [] };
+  const rules: string[] = ap.rules;
+  const setAp = (p: any) => set({ answer_policy: { ...ap, ...p } });
+  const ideas = RULE_IDEAS.filter((r) => !rules.includes(r));
+  return (
+    <Card className="p-5 space-y-4">
+      <div>
+        <div className="font-bold text-[15px]">قوانین پاسخ‌دهی</div>
+        <div className="text-[13px] text-muted mt-0.5">دستیار در همهٔ جواب‌ها این‌ها را رعایت می‌کند؛ مهم‌تر از لحن و سبک.</div>
+      </div>
+      <div>
+        <div className="text-[13px] font-semibold mb-2">موجودی محصول</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {[["exact", "تعداد دقیق را بگو", "مثلاً «۳ تا ازش مونده»"], ["available", "فقط موجود / ناموجود", "تعداد هیچ‌وقت گفته نمی‌شود؛ حتی به خود دستیار داده نمی‌شود."]].map(([v, l, t]) => (
+            <button key={v} type="button" onClick={() => setAp({ stock: v })}
+              className={cn("text-start p-3 rounded-2xl border transition cursor-pointer", ap.stock === v ? "border-primary bg-primary-soft" : "border-edge hover:bg-subtle")}>
+              <div className="font-bold text-[14px]">{l}</div>
+              <div className="text-[12px] text-muted mt-1">{t}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-[13px] font-semibold">قوانین شما</div>
+        {rules.map((r, i) => (
+          <div key={i} className="flex gap-2 items-center">
+            <span className="text-muted text-[13px] w-5 text-center tnum">{faDigits(i + 1)}</span>
+            <Input className="flex-1" maxLength={200} value={r} placeholder="مثلاً: دربارهٔ ارسال خارج از ایران جواب نده"
+              onChange={(e) => setAp({ rules: rules.map((x, j) => (j === i ? e.target.value : x)) })} />
+            <Button variant="ghost" aria-label="حذف قانون" onClick={() => setAp({ rules: rules.filter((_, j) => j !== i) })}><Trash2 className="size-4" /></Button>
+          </div>
+        ))}
+        <Button size="sm" variant="secondary" icon={<Plus className="size-4" />} disabled={rules.length >= MAX_RULES}
+          onClick={() => setAp({ rules: [...rules, ""] })}>قانون جدید</Button>
+        {ideas.length > 0 && rules.length < MAX_RULES && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            <span className="text-[12px] text-muted self-center">پیشنهاد:</span>
+            {ideas.map((r) => (
+              <button key={r} type="button" onClick={() => setAp({ rules: [...rules, r] })}
+                className="text-[12px] px-3 py-1.5 rounded-full border border-edge hover:bg-subtle cursor-pointer">+ {r}</button>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export function AssistantSettings() {
   const { draft, set, save, dirty } = useDraft();
   if (!draft) return <Skeleton className="h-96" />;
@@ -66,6 +125,7 @@ export function AssistantSettings() {
             <Textarea maxLength={500} value={draft.custom_instructions} onChange={(e) => set({ custom_instructions: e.target.value })} />
           </Field>
         </Card>
+        <AnswerRules draft={draft} set={set} />
         <Card className="p-5 space-y-4">
           <Field label="پیام اولیهٔ خودکار" hint="اولین پیام هر مشتری جدید؛ بدون هزینهٔ AI. {store} با نام فروشگاه جایگزین می‌شود.">
             <Textarea maxLength={1000} placeholder={draft.defaults.welcome_message} value={draft.welcome_message} onChange={(e) => set({ welcome_message: e.target.value })} />
@@ -75,7 +135,7 @@ export function AssistantSettings() {
           </Field>
         </Card>
         <Card className="px-5 py-2 divide-y divide-[var(--line)]">
-          <Row title="دسترسی به محصولات فروشگاه" text="دستیار عنوان، قیمت، موجودی و ویژگی‌های محصولات همین فروشگاه را می‌بیند و فقط چند محصول مرتبط با هر سؤال را می‌خواند.">
+          <Row title="دسترسی به محصولات فروشگاه" text="دستیار عنوان، قیمت، موجودی (طبق قوانین پاسخ‌دهی) و ویژگی‌های محصولات همین فروشگاه را می‌بیند و فقط چند محصول مرتبط با هر سؤال را می‌خواند.">
             <Switch checked={draft.catalog_enabled} onChange={(v) => set({ catalog_enabled: v })} label="دسترسی به محصولات" />
           </Row>
           <Row title="سکوت دستیار بعد از پیام ادمین" text="وقتی خودت در گفتگو جواب بدهی یا دستیار گفتگو را به تو بسپارد، تا این مدت ساکت می‌ماند.">
