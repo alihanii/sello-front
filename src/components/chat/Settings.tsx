@@ -40,6 +40,12 @@ function Row({ title, text, children }: { title: string; text?: string; children
   );
 }
 
+const BUSINESS_SAMPLES = [
+  { label: "چاپ طرح دلخواه روی لباس", text: "ما هودی و تیشرت با طرح دلخواه مشتری چاپ می‌کنیم. مشتری مدل و رنگ و سایز لباس را انتخاب می‌کند و عکس طرحش را همین‌جا می‌فرستد. طرح باید با کیفیت باشد. آماده‌سازی هر سفارش بعد از دریافت طرح ۵ تا ۷ روز کاری است و سفارش چاپی مرجوع نمی‌شود." },
+  { label: "پوشاک آماده", text: "پوشاک آماده می‌فروشیم. هر محصول کد دارد (در پست‌های کانال)؛ اگر مشتری کد فرستاد همان محصول را پیدا کن. قبل از ثبت، رنگ و سایز را حتماً بپرس." },
+  { label: "محصول سفارشی/دست‌ساز", text: "محصولات ما دست‌ساز و سفارشی است. مشتری سفارش را با توضیح سلیقه‌اش ثبت می‌کند و زمان ساخت هر سفارش حدود ۱۰ روز است." },
+];
+
 const RULE_IDEAS = [
   "تخفیف یا قیمت توافقی پیشنهاد نده",
   "به فروشگاه یا برند دیگری اشاره نکن",
@@ -121,9 +127,18 @@ export function AssistantSettings() {
               ))}
             </div>
           </div>
-          <Field label="توضیح سبک و نکات فروشگاه" hint={`${draft.custom_instructions.length}/۵۰۰ — مثل «مشتری را خانم/آقا خطاب نکن» یا «همهٔ لباس‌ها نخی هستند». این متن موضوع پاسخ‌ها را گسترش نمی‌دهد.`}>
-            <Textarea maxLength={500} value={draft.custom_instructions} onChange={(e) => set({ custom_instructions: e.target.value })} />
+          <Field label="کسب‌وکارت را برای دستیار توضیح بده" hint={`${faDigits(draft.custom_instructions.length)}/۱۵۰۰ — چه می‌فروشی، فرایند سفارش چطور است، چه نکته‌ای را همیشه بگوید. موضوع پاسخ‌ها را گسترش نمی‌دهد.`}>
+            <Textarea className="min-h-32" maxLength={1500} value={draft.custom_instructions} onChange={(e) => set({ custom_instructions: e.target.value })} />
           </Field>
+          {!draft.custom_instructions && (
+            <div className="flex flex-wrap gap-2 -mt-2">
+              <span className="text-[12px] text-muted self-center">نمونه:</span>
+              {BUSINESS_SAMPLES.map((b) => (
+                <button key={b.label} type="button" onClick={() => set({ custom_instructions: b.text })}
+                  className="text-[12px] px-3 py-1.5 rounded-full border border-edge hover:bg-subtle cursor-pointer">{b.label}</button>
+              ))}
+            </div>
+          )}
         </Card>
         <AnswerRules draft={draft} set={set} />
         <Card className="p-5 space-y-4">
@@ -388,6 +403,47 @@ export function KnowledgeSettings() {
 
 // ---------- orders & payment ----------
 
+const FIELD_IDEAS = [
+  { label: "طرح چاپ", kind: "image", required: true, hint: "عکس یا فایل طرحی که می‌خواهید چاپ شود" },
+  { label: "متن روی لباس", kind: "text", required: false, hint: "اسم یا جمله‌ای که باید چاپ شود" },
+  { label: "تاریخ تحویل مدنظر", kind: "text", required: false, hint: "" },
+];
+
+/** The seller's own order questions — a custom-print shop asks for the design picture, another for an engraving text. */
+function OrderFields({ draft, set }: { draft: any; set: (p: any) => void }) {
+  const fields: any[] = draft.order_fields || [];
+  const put = (next: any[]) => set({ order_fields: next });
+  const edit = (i: number, p: any) => put(fields.map((f, j) => (j === i ? { ...f, ...p } : f)));
+  const ideas = FIELD_IDEAS.filter((x) => !fields.some((f) => f.label === x.label));
+  return (
+    <Card className={cn("p-5 space-y-3", !draft.orders_enabled && "opacity-60")}>
+      <div>
+        <h3 className="font-extrabold text-[15px]">سؤال‌های اختصاصی سفارش</h3>
+        <p className="text-[13px] text-muted mt-0.5">هر چیزی که کسب‌وکارت برای هر سفارش لازم دارد؛ مثلاً اگر طرح مشتری را روی هودی چاپ می‌کنی، «طرح چاپ» از نوع عکس. دستیار قبل از ثبت سفارش می‌پرسد و عکس یا جواب را کنار سفارش ذخیره می‌کند.</p>
+      </div>
+      {fields.map((f, i) => (
+        <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1.4fr_auto_auto_auto] gap-2 items-center rounded-2xl bg-subtle p-3">
+          <Input maxLength={40} placeholder="عنوان، مثلاً طرح چاپ" value={f.label} onChange={(e) => edit(i, { label: e.target.value })} />
+          <Input maxLength={150} placeholder="توضیح برای مشتری (اختیاری)" value={f.hint ?? ""} onChange={(e) => edit(i, { hint: e.target.value })} />
+          <Select className="w-28" value={f.kind} onChange={(e) => edit(i, { kind: e.target.value })}>
+            <option value="text">متن</option><option value="image">عکس</option>
+          </Select>
+          <label className="flex items-center gap-1.5 text-[13px]"><Switch checked={f.required !== false} onChange={(v) => edit(i, { required: v })} label="اجباری" />اجباری</label>
+          <Button variant="ghost" aria-label="حذف" onClick={() => put(fields.filter((_, j) => j !== i))}><Trash2 className="size-4" /></Button>
+        </div>
+      ))}
+      <div className="flex flex-wrap gap-2 items-center">
+        <Button size="sm" variant="secondary" icon={<Plus className="size-4" />} disabled={fields.length >= 5}
+          onClick={() => put([...fields, { label: "", kind: "text", required: true, hint: "" }])}>سؤال جدید</Button>
+        {fields.length < 5 && ideas.map((x) => (
+          <button key={x.label} type="button" onClick={() => put([...fields, x])}
+            className="text-[12px] px-3 py-1.5 rounded-full border border-edge hover:bg-subtle cursor-pointer">+ {x.label}{x.kind === "image" ? " (عکس)" : ""}</button>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export function OrderSettings() {
   const { draft, set, save, dirty } = useDraft();
   if (!draft) return <Skeleton className="h-96" />;
@@ -415,6 +471,7 @@ export function OrderSettings() {
             <Switch checked={pay.require_receipt !== false} onChange={(v) => setPay({ require_receipt: v })} label="دریافت فیش" />
           </Row>
         </Card>
+        <OrderFields draft={draft} set={set} />
         <Card className={cn("p-5", !draft.orders_enabled && "opacity-60")}>
           <h3 className="font-extrabold text-[15px] mb-2">اطلاعاتی که از مشتری گرفته می‌شود</h3>
           {[["name", "نام و نام خانوادگی"], ["phone", "شمارهٔ موبایل"], ["address", "آدرس کامل (برای محصول فیزیکی)"]].map(([k, l]) => (

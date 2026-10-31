@@ -47,6 +47,12 @@ function OrderCard({ o, highlight, go }: { o: any; highlight: boolean; go: (t: a
         {o.customer_phone && <div className="flex items-center gap-1.5 text-muted tnum"><Phone className="size-3.5" /><a href={`tel:${o.customer_phone}`} dir="ltr">{faDigits(o.customer_phone)}</a></div>}
         {o.customer_address && <div className="flex items-start gap-1.5 text-muted"><MapPin className="size-3.5 mt-1 shrink-0" />{o.customer_address}</div>}
         {o.note && <div className="text-muted">یادداشت مشتری: {o.note}</div>}
+        {Object.entries(o.extras || {}).map(([k, v]: [string, any]) => (
+          String(v).startsWith("/media/") || String(v).startsWith("http")
+            ? <div key={k} className="flex items-center gap-2"><span className="text-muted">{k}:</span>
+                <a href={mediaUrl(String(v))} target="_blank" rel="noreferrer"><img src={mediaUrl(String(v))} alt={k} className="size-16 rounded-xl object-cover" /></a></div>
+            : <div key={k}><span className="text-muted">{k}:</span> {String(v)}</div>
+        ))}
       </div>
       {(o.receipt_url || o.payment_ref || o.receipt_text) && (
         <div className="mt-3 rounded-2xl bg-subtle p-3 flex gap-3">
