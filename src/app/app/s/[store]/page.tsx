@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Package, Radar, Send, Sparkles, TrendingUp } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MessageCircle, Package, Radar, Send, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "@/lib/api";
@@ -24,7 +24,28 @@ function Stat({ icon: Icon, label, value, hint }: any) {
 
 const ATTENTION_LINK: Record<string, string> = {
   channel: "channels", operations: "activity?status=failed", stock: "products?stock=out", inbox: "crawl",
+  ai_orders: "chat?tab=orders", chat: "chat?tab=conversations",
 };
+
+function ChatCard({ sid }: { sid: number }) {
+  const { data } = useQuery({ queryKey: ["chat-overview", sid], queryFn: () => api(`/stores/${sid}/chat/overview`) });
+  if (!data) return null;
+  return (
+    <Link href={`/app/s/${sid}/chat`}>
+      <Card className="p-5 hover:bg-glass-strong transition">
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="font-bold flex items-center gap-2"><MessageCircle className="size-4 text-primary" />دستیار چت</span>
+          <span className={data.enabled ? "text-success font-bold" : "text-muted"}>{data.enabled ? "روشن" : "خاموش"}</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+          <div><div className="text-[18px] font-black tnum">{faNum(data.today.customer_messages)}</div><div className="text-[11px] text-muted">پیام امروز</div></div>
+          <div><div className="text-[18px] font-black tnum">{faNum(data.orders.payment_submitted)}</div><div className="text-[11px] text-muted">فیش منتظر</div></div>
+          <div><div className="text-[18px] font-black tnum">{faNum(data.month.tokens)}</div><div className="text-[11px] text-muted">توکن ماه</div></div>
+        </div>
+      </Card>
+    </Link>
+  );
+}
 
 export default function Dashboard() {
   const sid = useStoreId();
@@ -82,6 +103,7 @@ export default function Dashboard() {
               ))}
             </div>
           </Card>
+          <ChatCard sid={sid} />
           <Card className="p-5">
             <div className="flex justify-between text-[13px]"><span className="font-bold">مصرف پلن</span><span className="text-muted">{data.usage.plan ?? "رایگان"}</span></div>
             <div className="mt-3 text-[13px] text-muted tnum">{faNum(data.usage.publishes_month)} از {faNum(lim.monthly_publishes)} انتشار این ماه</div>

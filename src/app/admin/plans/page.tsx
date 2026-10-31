@@ -8,7 +8,7 @@ import { faDigits, toman } from "@/lib/format";
 import { PlanCards } from "@/components/plans/PlanCards";
 import { Button, Card, CardHeader, Field, Input, NumberInput, PageHeader, Select, Skeleton, Switch, Textarea } from "@/components/ui/primitives";
 
-const LIMITS: [string, string][] = [["max_stores", "حداکثر فروشگاه"], ["max_channels", "حداکثر کانال"], ["max_products", "حداکثر محصول"], ["monthly_publishes", "انتشار در ماه"], ["monthly_ai_credits", "اعتبار AI در ماه"]];
+const LIMITS: [string, string][] = [["max_stores", "حداکثر فروشگاه"], ["max_channels", "حداکثر کانال"], ["max_products", "حداکثر محصول"], ["monthly_publishes", "انتشار در ماه"], ["monthly_ai_credits", "اعتبار AI در ماه"], ["monthly_chat_messages", "پیام AI دستیار چت در ماه"]];
 const LABEL: Record<number, string> = { 1: "یک‌ماهه", 3: "سه‌ماهه", 12: "یک‌ساله" };
 
 export default function AdminPlans() {
