@@ -197,7 +197,7 @@ export default function Products() {
       )}
       <ImportDialog storeId={sid} open={importOpen} onClose={() => setImportOpen(false)} />
       <PublishDialog open={publishOpen} onClose={() => setPublishOpen(false)} channels={channels} loading={bulk.isPending}
-        onConfirm={(ids: number[]) => bulk.mutate({ action: "publish", channel_ids: ids })} />
+        onConfirm={(ids: number[], showPrice: boolean) => bulk.mutate({ action: "publish", channel_ids: ids, show_price: showPrice })} />
     </>
   );
 }
