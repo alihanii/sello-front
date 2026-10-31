@@ -1,11 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Clock, ImagePlus, Plus, Save, Trash2 } from "lucide-react";
+import { BookOpen, Clock, FileUp, ImagePlus, Plus, Save, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
 import { useStoreId } from "@/lib/hooks";
+import { faDigits } from "@/lib/format";
 import { TONES, WEEK, useAgent, useSaveAgent } from "@/lib/chat";
 import { Button, Card, CardHeader, Dialog, EmptyState, Field, Input, Select, Skeleton, Switch, Textarea, cn } from "@/components/ui/primitives";
 
@@ -210,16 +211,98 @@ function Hours({ draft, set }: { draft: any; set: (p: any) => void }) {
   );
 }
 
+const MAX_FAQS = 40;
+
+/** Paste text or drop a file; AI suggests Q&A pairs; the seller ticks/edits them and they are added and saved. */
+function FaqImport({ existing, onClose, onAdd }: { existing: number; onClose: () => void; onAdd: (items: { q: string; a: string }[]) => void }) {
+  const sid = useStoreId();
+  const [text, setText] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [items, setItems] = useState<{ q: string; a: string; on: boolean }[] | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const room = MAX_FAQS - existing;
+  const extract = useMutation({
+    mutationFn: async () => {
+      const fd = new FormData();
+      fd.append("text", text);
+      if (file) fd.append("file", file);
+      return api(`/stores/${sid}/chat/faq/extract`, { method: "POST", body: fd });
+    },
+    onSuccess: (r: any) => {
+      setItems(r.items.map((it: any, i: number) => ({ ...it, on: i < room })));
+      if (!r.items.length) toast.info("سؤال تازه‌ای پیدا نشد؛ شاید همه از قبل در لیست هستند.");
+      if (r.truncated) toast.info("متن طولانی بود؛ فقط بخش اول آن خوانده شد.");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const picked = (items || []).filter((x) => x.on && x.q.trim() && x.a.trim());
+  const edit = (i: number, p: any) => setItems((xs) => xs!.map((x, j) => (j === i ? { ...x, ...p } : x)));
+  return (
+    <Dialog open wide onClose={onClose} title="افزودن سؤالات متداول با هوش مصنوعی">
+      {!items ? (
+        <div className="space-y-4">
+          <p className="text-[13px] text-muted">متن سؤالات متداول، قوانین ارسال و مرجوعی یا هر توضیحی دربارهٔ فروشگاه را کپی کن یا فایلش را بگذار. هوش مصنوعی سؤال و جواب‌ها را درمی‌آورد و قبل از ذخیره نشانت می‌دهد.</p>
+          <Textarea className="min-h-48" maxLength={24000} placeholder="مثلاً: ارسال به تهران ۲ تا ۴ روز کاری… هزینهٔ ارسال ۵۰ هزار تومان… تا ۷ روز امکان مرجوعی هست…"
+            value={text} onChange={(e) => setText(e.target.value)} />
+          <div className="flex flex-wrap items-center gap-2">
+            <input ref={fileRef} type="file" hidden accept=".txt,.md,.csv,.tsv,.pdf,.docx,.html,.htm,.json"
+              onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            <Button variant="ghost" icon={<FileUp className="size-4" />} onClick={() => fileRef.current?.click()}>{file ? file.name : "انتخاب فایل (txt، pdf، docx، csv)"}</Button>
+            {file && <Button variant="ghost" size="sm" aria-label="حذف فایل" onClick={() => { setFile(null); if (fileRef.current) fileRef.current.value = ""; }}><Trash2 className="size-4" /></Button>}
+            <div className="flex-1" />
+            <Button variant="ai" icon={<Sparkles className="size-4" />} loading={extract.isPending} disabled={!file && text.trim().length < 20}
+              onClick={() => extract.mutate()}>استخراج سؤال و جواب‌ها</Button>
+          </div>
+          {room <= 0 && <p className="text-[13px] text-danger">لیست پر است (حداکثر {faDigits(MAX_FAQS)} سؤال)؛ اول چندتا را حذف کن.</p>}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-[13px] text-muted">{items.length ? `${faDigits(items.length)} سؤال پیدا شد. هرکدام را که نمی‌خواهی تیکش را بردار یا متنش را درست کن.` : "سؤال تازه‌ای پیدا نشد."}
+            {room < items.length && ` جای ${faDigits(room)} سؤال دیگر در لیست هست.`}</p>
+          <div className="space-y-2 max-h-[55dvh] overflow-auto">
+            {items.map((x, i) => (
+              <label key={i} className={cn("grid grid-cols-[auto_1fr] gap-3 rounded-2xl bg-subtle p-3 items-start", !x.on && "opacity-55")}>
+                <input type="checkbox" className="mt-3 size-4 accent-[var(--primary)]" checked={x.on} onChange={(e) => edit(i, { on: e.target.checked })} />
+                <div className="grid gap-2">
+                  <Input maxLength={300} value={x.q} onChange={(e) => edit(i, { q: e.target.value })} />
+                  <Textarea className="!min-h-11" rows={2} maxLength={1000} value={x.a} onChange={(e) => edit(i, { a: e.target.value })} />
+                </div>
+              </label>
+            ))}
+          </div>
+          <div className="flex justify-between gap-2 pt-1">
+            <Button variant="ghost" onClick={() => setItems(null)}>برگشت</Button>
+            <Button icon={<Plus className="size-4" />} disabled={!picked.length || picked.length > room}
+              onClick={() => onAdd(picked.map(({ q, a }) => ({ q: q.trim(), a: a.trim() })))}>
+              {picked.length > room ? `حداکثر ${faDigits(room)} تا را انتخاب کن` : `افزودن و ذخیرهٔ ${faDigits(picked.length)} سؤال`}
+            </Button>
+          </div>
+        </div>
+      )}
+    </Dialog>
+  );
+}
+
 export function KnowledgeSettings() {
   const { draft, set, save, dirty } = useDraft();
+  const [importing, setImporting] = useState(false);
   if (!draft) return <Skeleton className="h-96" />;
   const faqs: any[] = draft.faqs;
   const setFaq = (i: number, p: any) => set({ faqs: faqs.map((f, j) => (j === i ? { ...f, ...p } : f)) });
   return (
     <div className="space-y-4">
+      {importing && <FaqImport existing={faqs.length} onClose={() => setImporting(false)} onAdd={(items) => {
+          const next = { ...draft, faqs: [...faqs, ...items].slice(0, MAX_FAQS) };
+          set({ faqs: next.faqs });
+          save.mutate(next);
+          setImporting(false);
+        }} />}
       <Card>
         <CardHeader title="سؤالات متداول" subtitle="اگر سؤال مشتری با یکی از این‌ها یکی باشد، همین جواب بدون هزینهٔ AI فرستاده می‌شود؛ بقیه هم مبنای جواب‌های دستیار است."
-          action={<Button size="sm" icon={<Plus className="size-4" />} disabled={faqs.length >= 40} onClick={() => set({ faqs: [...faqs, { q: "", a: "" }] })}>سؤال جدید</Button>} />
+          action={<div className="flex gap-2">
+            <Button size="sm" variant="ghost" icon={<Sparkles className="size-4" />} onClick={() => setImporting(true)}>از متن یا فایل</Button>
+            <Button size="sm" icon={<Plus className="size-4" />} disabled={faqs.length >= MAX_FAQS} onClick={() => set({ faqs: [...faqs, { q: "", a: "" }] })}>سؤال جدید</Button>
+          </div>} />
         <div className="px-5 pb-5 space-y-3">
           {faqs.length === 0 && <EmptyState icon={<BookOpen className="size-7" />} title="سؤال متداولی نداری" text="مثل: هزینهٔ ارسال چقدر است؟ چند روزه می‌رسد؟ امکان مرجوعی هست؟" />}
           {faqs.map((f, i) => (
