@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { HeartPulse, Plug, Plus, Unplug } from "lucide-react";
+import { HeartPulse, Plug, Plus, Radar, Unplug } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
@@ -10,7 +11,7 @@ import { useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { OperationWatcher } from "@/components/OperationWatcher";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, Chip, Dialog, Field, Input, PageHeader } from "@/components/ui/primitives";
+import { Button, Card, Chip, Dialog, Field, Input, PageHeader, Switch } from "@/components/ui/primitives";
 
 const HEALTH: Record<string, { label: string; tone: string }> = {
   connected: { label: "وصل", tone: "success" }, error: { label: "خطا", tone: "danger" },
@@ -88,12 +89,52 @@ function ConnectDialog({ platform, channelId, oauth, onClose }: { platform: stri
   );
 }
 
+function InstagramCrawlDialog({ onClose }: { onClose: () => void }) {
+  const sid = useStoreId();
+  const qc = useQueryClient();
+  const [username, setUsername] = useState("");
+  const [reels, setReels] = useState(false);
+  const [done, setDone] = useState(false);
+  const add = useMutation({
+    mutationFn: () => api(`/stores/${sid}/crawl-sources`, { method: "POST", json: { type: "instagram_profile", url: username, include_reels: reels, schedule: "manual", extraction_mode: "auto" } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["crawl-sources", sid] }); setDone(true); toast.success("پیج اینستاگرام اضافه شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  return (
+    <Dialog open onClose={onClose} title="افزودن پیج اینستاگرام">
+      <div className="rounded-xl bg-subtle p-3 text-[13px] text-muted leading-6 mb-5">
+        فعلاً اینستاگرام فقط برای <b className="text-fg">کرال</b> باز است: محصولات پیجت از پست‌ها خوانده می‌شوند. انتشار در اینستاگرام هنوز فعال نیست.
+      </div>
+      {done ? (
+        <div className="space-y-3">
+          <p className="text-[14px]">پیج ‎@{username.replace(/^@/, "")} اضافه شد. از صفحهٔ کرال می‌توانی کرال را شروع کنی.</p>
+          <Link href={`/app/s/${sid}/crawl`} className="block"><Button className="w-full" icon={<Radar className="size-4" />}>رفتن به کرال</Button></Link>
+          <Button variant="secondary" className="w-full" onClick={onClose}>بستن</Button>
+        </div>
+      ) : (
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); add.mutate(); }}>
+          <Field label="آیدی پیج اینستاگرام" hint="۲۵ پست آخر کرال می‌شود؛ پستی که قبلاً کرال شده دوباره بارگذاری نمی‌شود.">
+            <Input dir="ltr" className="text-left" placeholder="@mystore" value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus />
+          </Field>
+          <label className="flex items-center gap-3 text-[14px]">
+            <Switch checked={reels} onChange={setReels} />
+            <span>ریلزها هم کرال شوند؟<span className="block text-[12px] text-muted">فقط عکس کاور ریلز برداشته می‌شود. خاموش باشد، فقط پست‌های عکس‌دار کرال می‌شوند.</span></span>
+          </label>
+          <Button type="submit" className="w-full" loading={add.isPending}>افزودن پیج</Button>
+        </form>
+      )}
+    </Dialog>
+  );
+}
+
 export default function Channels() {
   const sid = useStoreId();
   const qc = useQueryClient();
   const { data: channels = [] } = useChannels(sid);
   const { data: platforms = [] } = useQuery({ queryKey: ["platforms"], queryFn: () => api<any[]>("/platforms") });
-  const [connect, setConnect] = useState<{ platform: string; channelId?: number } | null>(null);
+  const { data: sources = [] } = useQuery({ queryKey: ["crawl-sources", sid], queryFn: () => api<any[]>(`/stores/${sid}/crawl-sources`) });
+  const igPages = sources.filter((s: any) => s.type === "instagram_profile");
+  const [connect, setConnect] = useState<{ platform: string; channelId?: number; crawlOnly?: boolean } | null>(null);
   const [healthOp, setHealthOp] = useState<number | null>(null);
   const health = useMutation({ mutationFn: (id: number) => api(`/channels/${id}/health`, { method: "POST" }), onSuccess: (op) => setHealthOp(op.id) });
   const disconnect = useMutation({
@@ -103,8 +144,24 @@ export default function Channels() {
   return (
     <>
       <PageHeader title="کانال‌ها" subtitle="کانال‌هایی که این فروشگاه در آن‌ها محصول منتشر می‌کند یا از آن‌ها کرال می‌کند." />
-      {channels.length > 0 && (
+      {(channels.length > 0 || igPages.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+          {igPages.map((s: any) => (
+            <Card key={`ig-${s.id}`} className="p-5">
+              <div className="flex items-center gap-3">
+                <PlatformIcon platform="instagram" size={40} />
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold truncate">اینستاگرام</div>
+                  <div className="text-muted text-[12px]" dir="ltr">@{s.url}</div>
+                </div>
+                <Chip tone="crawl">فقط کرال</Chip>
+              </div>
+              <div className="text-[12px] text-muted mt-3">آخرین کرال: {ago(s.last_run_at)}</div>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <Link href={`/app/s/${sid}/crawl`}><Button size="sm" variant="secondary" icon={<Radar className="size-4" />}>مدیریت کرال</Button></Link>
+              </div>
+            </Card>
+          ))}
           {channels.map((c: any) => (
             <Card key={c.id} className="p-5">
               <div className="flex items-center gap-3">
@@ -134,14 +191,17 @@ export default function Channels() {
             <PlatformIcon platform={p.platform} size={44} />
             <div className="font-bold mt-3">{p.label}</div>
             <div className="text-[12px] text-muted flex flex-wrap gap-1 mt-1">
-              {p.can_publish && <Chip>انتشار</Chip>}{p.can_crawl && <Chip>کرال</Chip>}
+              {p.can_publish && (p.crawl_only ? <Chip className="line-through opacity-60">انتشار</Chip> : <Chip>انتشار</Chip>)}
+              {p.can_crawl && <Chip tone={p.crawl_only ? "crawl" : "neutral"}>کرال</Chip>}
             </div>
+            {p.crawl_only && <div className="text-[12px] text-muted mt-2">فعلاً فقط کرال؛ انتشار خاموش است.</div>}
             <Button className="mt-4" variant="secondary" size="sm" icon={<Plus className="size-4" />} disabled={!p.enabled}
-              onClick={() => setConnect({ platform: p.platform })}>{p.enabled ? "اتصال" : "به‌زودی"}</Button>
+              onClick={() => setConnect({ platform: p.platform, crawlOnly: !!p.crawl_only })}>{!p.enabled ? "به‌زودی" : p.crawl_only ? "افزودن پیج" : "اتصال"}</Button>
           </Card>
         ))}
       </div>
-      {connect && <ConnectDialog platform={connect.platform} channelId={connect.channelId} oauth={platforms.find((p: any) => p.platform === "instagram")?.oauth}
+      {connect?.crawlOnly && <InstagramCrawlDialog onClose={() => setConnect(null)} />}
+      {connect && !connect.crawlOnly && <ConnectDialog platform={connect.platform} channelId={connect.channelId} oauth={platforms.find((p: any) => p.platform === "instagram")?.oauth}
         onClose={() => setConnect(null)} />}
     </>
   );
