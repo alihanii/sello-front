@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Inbox, Play, Plus, Radar, Trash2, X } from "lucide-react";
+import { Check, Inbox, Lock, Play, Plus, Radar, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -23,8 +23,11 @@ export default function Crawl() {
   const { data: sources = [] } = useQuery({ queryKey: ["crawl-sources", sid], queryFn: () => api<any[]>(`/stores/${sid}/crawl-sources`) });
   const { data: runs } = useQuery({ queryKey: ["operations", sid, "crawl"], queryFn: () => api(`/stores/${sid}/operations?type=crawl&size=15`) });
   const { data: inbox = [] } = useQuery({ queryKey: ["products", sid, "inbox"], queryFn: () => api<any[]>(`/stores/${sid}/crawl-inbox`) });
+  const { data: caps } = useQuery({ queryKey: ["crawl-caps"], queryFn: () => api<any>("/crawl/capabilities") });
+  const ig = caps?.instagram_profile ?? { available: false, reason: "" };
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<any>({ type: "instagram_profile", schedule: "manual", extraction_mode: "auto", include_reels: false });
+  const [form, setForm] = useState<any>({ type: "", schedule: "manual", extraction_mode: "auto", include_reels: false });
+  const openNew = () => { setForm({ type: ig.available ? "instagram_profile" : "channel_posts", schedule: "manual", extraction_mode: "auto", include_reels: false }); setOpen(true); };
   const refresh = () => { qc.invalidateQueries({ queryKey: ["crawl-sources", sid] }); qc.invalidateQueries({ queryKey: ["operations", sid] }); };
   const create = useMutation({
     mutationFn: () => api(`/stores/${sid}/crawl-sources`, { method: "POST", json: { ...form, channel_id: form.channel_id ? Number(form.channel_id) : null } }),
@@ -50,7 +53,7 @@ export default function Crawl() {
   return (
     <>
       <PageHeader title="کرال" subtitle="محصولات را از پیج اینستاگرام، پست‌های کانال، پنل دیجی‌کالا یا یک لینک بیرون بکش."
-        actions={<Button icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>منبع جدید</Button>} />
+        actions={<Button icon={<Plus className="size-4" />} onClick={openNew}>منبع جدید</Button>} />
       <AiSetupBanner />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
@@ -72,7 +75,9 @@ export default function Crawl() {
                           <Switch checked={s.include_reels} disabled={reels.isPending} onChange={() => reels.mutate(s)} />ریلزها هم (فقط کاور)
                         </label>
                       )}
-                      <Button size="sm" icon={<Play className="size-4" />} loading={run.isPending && run.variables === s.id} onClick={() => run.mutate(s.id)}>الان کرال کن</Button>
+                      {s.type === "instagram_profile" && !ig.available
+                        ? <Chip icon={<Lock className="size-3" />}>قفل؛ ادمین کرال اینستاگرام را غیرفعال کرده</Chip>
+                        : <Button size="sm" icon={<Play className="size-4" />} loading={run.isPending && run.variables === s.id} onClick={() => run.mutate(s.id)}>الان کرال کن</Button>}
                       <Button size="sm" variant="ghost" aria-label="حذف" onClick={() => confirm("منبع حذف شود؟") && del.mutate(s.id)}><Trash2 className="size-4" /></Button>
                     </li>
                   );
@@ -131,12 +136,17 @@ export default function Crawl() {
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
           <Field label="نوع منبع">
             <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-              <option value="instagram_profile">پیج اینستاگرام (با آیدی)</option>
-              <option value="channel_posts">پست‌های کانال (تلگرام، بله، اینستاگرام)</option>
+              <option value="instagram_profile" disabled={!ig.available}>پیج اینستاگرام (با آیدی){ig.available ? "" : " 🔒"}</option>
+              <option value="channel_posts">پست‌های کانال تلگرام یا بله</option>
               <option value="marketplace_listing">لیست محصولات من در دیجی‌کالا</option>
               <option value="url">لینک صفحهٔ محصول</option>
             </Select>
           </Field>
+          {!ig.available && (
+            <div className="flex items-start gap-2 rounded-xl bg-subtle p-3 text-[13px] text-muted leading-6">
+              <Lock className="size-4 mt-1 shrink-0" />{ig.reason || "کرال اینستاگرام هنوز فعال نشده است."}
+            </div>
+          )}
           {form.type === "instagram_profile" ? (
             <>
               <Field label="آیدی پیج اینستاگرام" hint="۲۵ پست آخر کرال می‌شود؛ پستی که قبلاً کرال شده دوباره بارگذاری نمی‌شود.">
@@ -153,7 +163,7 @@ export default function Crawl() {
             <Field label="کانال">
               <Select value={form.channel_id ?? ""} onChange={(e) => setForm({ ...form, channel_id: e.target.value })} required>
                 <option value="">انتخاب کنید</option>
-                {channels.filter((c: any) => form.type === "marketplace_listing" ? c.platform === "digikala" : c.platform !== "digikala")
+                {channels.filter((c: any) => form.type === "marketplace_listing" ? c.platform === "digikala" : ["telegram", "bale"].includes(c.platform))
                   .map((c: any) => <option key={c.id} value={c.id}>{c.display_name} ({PLATFORMS[c.platform].label})</option>)}
               </Select>
             </Field>

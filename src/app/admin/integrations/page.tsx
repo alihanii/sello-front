@@ -63,7 +63,12 @@ function InstagramCrawlerCard() {
   const save = useMutation({
     mutationFn: () => api("/admin/integrations/instagram-crawler", { method: "PUT", json: {
       provider: f.provider, proxy: f.proxy, token: f.token ? f.token : null } }),
-    onSuccess: (d: any) => { qc.setQueryData(["admin-ig-crawler"], d); toast.success("ذخیره شد"); },
+    onSuccess: (d: any) => { qc.setQueryData(["admin-ig-crawler"], d); setF({ ...d, token: "" }); toast.success("ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const test = useMutation({
+    mutationFn: () => api<any>("/admin/integrations/instagram-crawler/test", { method: "POST" }),
+    onSuccess: (r: any) => (r.ok ? toast.success(r.message) : toast.error(r.message)),
     onError: (e: any) => toast.error(e.message),
   });
   if (error) return (
@@ -76,8 +81,8 @@ function InstagramCrawlerCard() {
   if (!f) return <Skeleton className="h-64" />;
   return (
     <Card>
-      <CardHeader title="کرال اینستاگرام با آیدی پیج" subtitle="فروشنده آیدی پیج را می‌دهد و ۲۵ پست آخرش کرال می‌شود."
-        action={<Chip tone={f.has_token ? "success" : "neutral"}>{f.has_token ? "فعال" : "کلید وارد نشده"}</Chip>} />
+      <CardHeader title="کرال اینستاگرام با آیدی پیج" subtitle="با ذخیرهٔ کلید، کرال اینستاگرام برای همهٔ فروشنده‌ها باز می‌شود؛ بدون کلید برایشان قفل است."
+        action={<Chip tone={f.has_token ? "success" : "neutral"}>{f.has_token ? "فعال برای همه" : "قفل (کلید وارد نشده)"}</Chip>} />
       <div className="px-4 sm:px-5 pb-5 space-y-4">
         <Field label="سرویس کرال">
           <Select value={f.provider} onChange={(e) => setF({ ...f, provider: e.target.value })}>
@@ -90,7 +95,10 @@ function InstagramCrawlerCard() {
         <Field label="پروکسی (اختیاری)" hint="برای رسیدن به Apify و دانلود عکس‌های اینستاگرام از داخل ایران؛ مثل socks5://host:port">
           <Input dir="ltr" className="text-left font-mono text-[13px]" value={f.proxy} onChange={(e) => setF({ ...f, proxy: e.target.value })} />
         </Field>
-        <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ کرال اینستاگرام</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button>
+          <Button variant="secondary" loading={test.isPending} disabled={!f.has_token} onClick={() => test.mutate()}>تست کلید</Button>
+        </div>
       </div>
     </Card>
   );
