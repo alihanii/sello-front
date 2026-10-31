@@ -119,7 +119,6 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
   useEffect(() => setMore(false), [path]);
 
   const base = `/app/s/${storeId}`;
-  const soon = <span className="text-[10px] font-bold text-ai bg-ai/12 rounded-full px-2">به‌زودی</span>;
   const items = [
     { href: base, icon: LayoutDashboard, label: "داشبورد", short: "خانه", exact: true, tab: true },
     { href: `${base}/products`, icon: Package, label: "محصولات", short: "محصولات", tab: true },
@@ -127,7 +126,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم", short: "تقویم", tab: true },
     { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
-    { href: `${base}/chat`, icon: MessageCircle, label: "چت", badge: soon },
+    { href: `${base}/chat`, icon: MessageCircle, label: "دستیار چت" },
   ];
   const secondary = [
     { href: `${base}/settings`, icon: Settings, label: "تنظیمات فروشگاه" },

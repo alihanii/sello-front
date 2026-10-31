@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Blocks, CreditCard, Gauge, Inbox, KeyRound, LineChart, Menu, Plug, ScrollText, Store, Users } from "lucide-react";
+import { ArrowRight, Blocks, CreditCard, Gauge, Inbox, KeyRound, LineChart, Menu, Plug, ScrollText, Store, Users, MessagesSquare } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/admin/users", icon: Users, label: "کاربران", short: "کاربران", tab: true },
   { href: "/admin/stores", icon: Store, label: "فروشگاه‌ها", short: "فروشگاه", tab: true },
   { href: "/admin/ai/usage", icon: LineChart, label: "مانیتورینگ AI", short: "مصرف AI", tab: true },
+  { href: "/admin/chat", icon: MessagesSquare, label: "مصرف دستیار چت" },
   { href: "/admin/channels", icon: Plug, label: "کانال‌ها" },
   { href: "/admin/plans", icon: CreditCard, label: "پلن‌ها" },
   { href: "/admin/requests", icon: Inbox, label: "خریدها و پرداخت‌ها" },

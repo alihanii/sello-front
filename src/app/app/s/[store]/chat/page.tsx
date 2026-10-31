@@ -1,52 +1,67 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellRing, Bot, Clock, Hand, MessageCircle, Send, ShoppingBag } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
-import { Button, Card, Chip, Input, PageHeader } from "@/components/ui/primitives";
+import { faNum } from "@/lib/format";
+import { useStoreId } from "@/lib/hooks";
+import { Chip, PageHeader, Switch, Tabs } from "@/components/ui/primitives";
+import { useAgent, useSaveAgent } from "@/lib/chat";
+import { ChatOverview } from "@/components/chat/Overview";
+import { ChatConnections } from "@/components/chat/Connections";
+import { AssistantSettings, KnowledgeSettings, OrderSettings } from "@/components/chat/Settings";
+import { TestChat } from "@/components/chat/TestChat";
+import { Conversations } from "@/components/chat/Conversations";
+import { AiOrders } from "@/components/chat/AiOrders";
+import { ChatUsage } from "@/components/chat/Usage";
 
-const SAMPLE = [
-  { name: "مریم", last: "سلام، سایز ۴۰ این مانتو موجوده؟", time: "۱۰:۴۲" },
-  { name: "علی", last: "هزینهٔ ارسال به شیراز چقدره؟", time: "۰۹:۱۵" },
-  { name: "سارا", last: "سفارش ثبت شد، ممنون 🙏", time: "دیروز" },
-];
+type Tab = "overview" | "connections" | "assistant" | "knowledge" | "orders-settings" | "test" | "conversations" | "orders" | "usage";
 
 export default function Chat() {
-  const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["interest", "ai_chat"], queryFn: () => api("/feature-interest/ai_chat") });
-  const notify = useMutation({ mutationFn: () => api("/feature-interest", { method: "POST", json: { feature: "ai_chat" } }), onSuccess: () => qc.invalidateQueries({ queryKey: ["interest"] }) });
+  const sid = useStoreId();
+  const sp = useSearchParams();
+  const router = useRouter();
+  const path = usePathname();
+  const tab = (sp.get("tab") as Tab) || "overview";
+  const go = (t: Tab, extra = "") => router.replace(`${path}?tab=${t}${extra}`, { scroll: false });
+  const { data: agent } = useAgent(sid);
+  const save = useSaveAgent(sid);
+  const { data: ov } = useQuery({ queryKey: ["chat-overview", sid], queryFn: () => api(`/stores/${sid}/chat/overview`), refetchInterval: 30_000 });
+  const badge = (n?: number) => (n ? <span className="ms-1.5 min-w-5 h-5 px-1 rounded-full bg-warning text-white text-[11px] inline-grid place-items-center tnum">{faNum(n)}</span> : null);
+
   return (
     <>
-      <PageHeader title="چت" subtitle="دستیار AI که جای ادمین با مشتری‌ها چت می‌کند" />
-      <Card strong className="p-6 md:p-8 mb-5 text-center">
-        <Chip tone="ai" className="mb-3">به‌زودی</Chip>
-        <h2 className="text-[22px] font-black">کانال‌هایت را وصل کن؛ AI جواب مشتری‌ها را می‌دهد و سفارش می‌گیرد</h2>
-        <p className="text-muted mt-2 max-w-2xl mx-auto">دستیار Sello بر اساس محصولات، قیمت و موجودی همین فروشگاه به پیام‌های دایرکت و کانال‌ها جواب می‌دهد، محصول پیشنهاد می‌کند و سفارش ثبت می‌کند. هر وقت بخواهی گفتگو را تحویل می‌گیری.</p>
-        <Button className="mt-5" variant={data?.registered ? "secondary" : "ai"} icon={data?.registered ? <BellRing className="size-4" /> : <Bell className="size-4" />}
-          disabled={data?.registered} loading={notify.isPending} onClick={() => notify.mutate()}>
-          {data?.registered ? "ثبت شد؛ وقتی آماده شد خبرت می‌کنیم" : "خبرم کن"}
-        </Button>
-      </Card>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-        {[[Clock, "پاسخ ۲۴ ساعته", "حتی ساعت ۳ صبح هم مشتری بی‌جواب نمی‌ماند."], [ShoppingBag, "ثبت سفارش در چت", "اطلاعات، آدرس و تعداد را می‌گیرد و سفارش ثبت می‌کند."], [Hand, "تحویل به فروشنده", "هر لحظه گفتگو را از AI تحویل بگیر."]].map(([I, t, d]: any) => (
-          <Card key={t} className="p-5"><I className="size-5 text-ai mb-3" /><div className="font-bold">{t}</div><div className="text-muted text-[14px]">{d}</div></Card>
-        ))}
+      <PageHeader title="دستیار چت فروش" subtitle="در تلگرام و بله به‌جای ادمین جواب مشتری را می‌دهد، محصول توضیح می‌دهد و سفارش می‌گیرد."
+        actions={agent && (
+          <label className="glass rounded-full h-11 ps-4 pe-2 flex items-center gap-3 text-[14px] font-bold cursor-pointer">
+            {agent.enabled ? <Chip tone="success">روشن</Chip> : <Chip>خاموش</Chip>}
+            <span>دستیار</span>
+            <Switch checked={agent.enabled} label="روشن/خاموش کردن دستیار" disabled={save.isPending}
+              onChange={(v) => save.mutate({ enabled: v })} />
+          </label>
+        )} />
+      <div className="mb-5 -mx-1 px-1 overflow-x-auto no-scrollbar">
+        <Tabs<Tab> value={tab} onChange={(t) => go(t)} items={[
+          { value: "overview", label: "نمای کلی" },
+          { value: "connections", label: "اتصال‌ها" },
+          { value: "assistant", label: "دستیار و لحن" },
+          { value: "knowledge", label: "دانش فروشگاه" },
+          { value: "orders-settings", label: "سفارش و پرداخت" },
+          { value: "test", label: "تست چت" },
+          { value: "conversations", label: <>گفتگوها{badge(ov?.needs_human)}</> },
+          { value: "orders", label: <>سفارش‌های AI{badge(ov?.orders?.payment_submitted)}</> },
+          { value: "usage", label: "مصرف و لاگ" },
+        ]} />
       </div>
-      <Card className="p-3 opacity-60 pointer-events-none select-none" aria-hidden>
-        <div className="grid grid-cols-1 md:grid-cols-[240px_1fr_220px] gap-3 min-h-[380px]">
-          <div className="space-y-1">{SAMPLE.map((s) => (
-            <div key={s.name} className="p-3 rounded-xl bg-subtle"><div className="flex justify-between text-[13px] font-bold">{s.name}<span className="text-muted font-normal">{s.time}</span></div><div className="text-[12px] text-muted truncate">{s.last}</div></div>
-          ))}</div>
-          <div className="rounded-xl bg-subtle p-4 flex flex-col">
-            <div className="space-y-3 flex-1">
-              <div className="max-w-[75%] rounded-2xl rounded-ss-sm bg-glass-strong p-3 text-[14px]">سلام، سایز ۴۰ این مانتو موجوده؟</div>
-              <div className="max-w-[75%] ms-auto rounded-2xl rounded-se-sm bg-ai/15 p-3 text-[14px] flex gap-2"><Bot className="size-4 text-ai shrink-0 mt-1" />سلام مریم جان! بله، سایز ۴۰ در رنگ کرم و مشکی موجوده. قیمت ۱٬۲۵۰٬۰۰۰ تومانه. ثبت سفارش کنم؟</div>
-            </div>
-            <div className="flex gap-2 mt-3"><Input placeholder="پیام…" /><Button aria-label="ارسال"><Send className="size-4" /></Button></div>
-          </div>
-          <div className="rounded-xl bg-subtle p-4 text-[13px] space-y-2"><MessageCircle className="size-5 text-muted" /><div className="font-bold">سفارش مشتری</div><div className="text-muted">مانتو لینن · سایز ۴۰ · کرم</div></div>
-        </div>
-      </Card>
+      {tab === "overview" && <ChatOverview data={ov} go={go} />}
+      {tab === "connections" && <ChatConnections />}
+      {tab === "assistant" && <AssistantSettings />}
+      {tab === "knowledge" && <KnowledgeSettings />}
+      {tab === "orders-settings" && <OrderSettings />}
+      {tab === "test" && <TestChat />}
+      {tab === "conversations" && <Conversations initial={Number(sp.get("c")) || undefined} go={go} />}
+      {tab === "orders" && <AiOrders go={go} />}
+      {tab === "usage" && <ChatUsage />}
     </>
   );
 }
