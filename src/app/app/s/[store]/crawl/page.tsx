@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Inbox, Lock, Play, Plus, Radar, Trash2, X } from "lucide-react";
+import { Check, Inbox, Lock, Pencil, Play, Plus, Radar, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,11 +28,19 @@ export default function Crawl() {
   const ig = caps?.instagram_profile ?? { available: false, reason: "" };
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<any>({ type: "", schedule: "manual", extraction_mode: "auto" });
-  const openNew = () => { setForm({ type: "channel_posts", schedule: "manual", extraction_mode: "auto"}); setOpen(true); };
+  const openNew = () => { setForm({ type: "channel_posts", schedule: "manual", extraction_mode: "auto" }); setOpen(true); };
+  const openEdit = (src: any) => {
+    setForm({ ...src, channel_id: src.channel_id ? String(src.channel_id) : "", url: src.type === "instagram_profile" ? `@${src.url}` : src.url });
+    setOpen(true);
+  };
+  const editing = !!form.id;
   const refresh = () => { qc.invalidateQueries({ queryKey: ["crawl-sources", sid] }); qc.invalidateQueries({ queryKey: ["operations", sid] }); };
   const create = useMutation({
-    mutationFn: () => api(`/stores/${sid}/crawl-sources`, { method: "POST", json: { ...form, channel_id: form.channel_id ? Number(form.channel_id) : null } }),
-    onSuccess: () => { refresh(); setOpen(false); toast.success("منبع کرال اضافه شد"); },
+    mutationFn: () => {
+      const json = { ...form, channel_id: form.channel_id ? Number(form.channel_id) : null };
+      return form.id ? api(`/crawl-sources/${form.id}`, { method: "PATCH", json }) : api(`/stores/${sid}/crawl-sources`, { method: "POST", json });
+    },
+    onSuccess: () => { refresh(); setOpen(false); toast.success(form.id ? "تنظیمات کرال ذخیره شد" : "منبع کرال اضافه شد"); },
     onError: (e: any) => toast.error(e.message),
   });
   const run = useMutation({
@@ -69,7 +77,7 @@ export default function Crawl() {
                       {ch ? <PlatformIcon platform={ch.platform} /> : s.type === "instagram_profile" ? <PlatformIcon platform="instagram" /> : <span className="size-7 rounded-lg bg-crawl/15 text-crawl grid place-items-center"><Radar className="size-4" /></span>}
                       <div className="flex-1 min-w-40">
                         <div className="font-semibold text-[14px]">{s.name}</div>
-                        <div className="text-[12px] text-muted">{SCHEDULE[s.schedule]} · {MODE[s.extraction_mode]} · آخرین اجرا {ago(s.last_run_at)}</div>
+                        <div className="text-[12px] text-muted">{SCHEDULE[s.schedule]}{s.schedule !== "manual" && !s.is_active && " (متوقف)"} · {MODE[s.extraction_mode]} · آخرین اجرا {ago(s.last_run_at)}</div>
                       </div>
                       {s.type === "instagram_profile" && (
                         <label className="flex items-center gap-2 text-[12px] text-muted">
@@ -79,6 +87,7 @@ export default function Crawl() {
                       {s.type === "instagram_profile" && !ig.available
                         ? <Chip icon={<Lock className="size-3" />}>قفل؛ ادمین کرال اینستاگرام را غیرفعال کرده</Chip>
                         : <Button size="sm" icon={<Play className="size-4" />} loading={run.isPending && run.variables === s.id} onClick={() => run.mutate(s.id)}>الان کرال کن</Button>}
+                      <Button size="sm" variant="ghost" aria-label="ویرایش" onClick={() => openEdit(s)}><Pencil className="size-4" /></Button>
                       <Button size="sm" variant="ghost" aria-label="حذف" onClick={() => confirm("منبع حذف شود؟") && del.mutate(s.id)}><Trash2 className="size-4" /></Button>
                     </li>
                   );
@@ -131,32 +140,54 @@ export default function Crawl() {
           )}
         </Card>
       </div>
-      <Dialog open={open} onClose={() => setOpen(false)} title="منبع کرال جدید">
+      <Dialog open={open} onClose={() => setOpen(false)} title={editing ? "ویرایش منبع کرال" : "منبع کرال جدید"}>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
-          <Field label="نوع منبع">
-            <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-              <option value="channel_posts">پست‌های کانال تلگرام یا بله</option>
-              <option value="marketplace_listing">لیست محصولات من در دیجی‌کالا</option>
-            </Select>
-          </Field>
-          <Field label="کانال">
-            <Select value={form.channel_id ?? ""} onChange={(e) => setForm({ ...form, channel_id: e.target.value })} required>
-              <option value="">انتخاب کنید</option>
-              {channels.filter((c: any) => form.type === "marketplace_listing" ? c.platform === "digikala" : ["telegram", "bale"].includes(c.platform))
-                .map((c: any) => <option key={c.id} value={c.id}>{c.display_name} ({PLATFORMS[c.platform].label})</option>)}
-            </Select>
-          </Field>
-          <p className="text-[12px] text-muted leading-6">
-            پیج اینستاگرام را از <Link href={`/app/s/${sid}/channels`} className="text-fg underline underline-offset-4">صفحهٔ کانال‌ها</Link> اضافه کن.
-          </p>
+          {form.type === "instagram_profile" ? (
+            <>
+              <Field label="آیدی پیج اینستاگرام" hint="۲۵ پست آخر کرال می‌شود؛ پستی که قبلاً کرال شده دوباره بارگذاری نمی‌شود.">
+                <Input dir="ltr" className="text-left" placeholder="@mystore" value={form.url ?? ""} onChange={(e) => setForm({ ...form, url: e.target.value })} required />
+              </Field>
+              <label className="flex items-center gap-3 text-[14px]">
+                <Switch checked={!!form.include_reels} onChange={(v) => setForm({ ...form, include_reels: v })} />
+                <span>ریلزها هم کرال شوند؟<span className="block text-[12px] text-muted">فقط عکس کاور ریلز برداشته می‌شود.</span></span>
+              </label>
+            </>
+          ) : (
+            <>
+            <Field label="نوع منبع">
+              <Select value={form.type} disabled={editing} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                <option value="channel_posts">پست‌های کانال تلگرام یا بله</option>
+                <option value="marketplace_listing">لیست محصولات من در دیجی‌کالا</option>
+              </Select>
+            </Field>
+            <Field label="کانال">
+              <Select value={form.channel_id ?? ""} onChange={(e) => setForm({ ...form, channel_id: e.target.value })} required>
+                <option value="">انتخاب کنید</option>
+                {channels.filter((c: any) => form.type === "marketplace_listing" ? c.platform === "digikala" : ["telegram", "bale"].includes(c.platform))
+                  .map((c: any) => <option key={c.id} value={c.id}>{c.display_name} ({PLATFORMS[c.platform].label})</option>)}
+              </Select>
+            </Field>
+            {!editing && (
+              <p className="text-[12px] text-muted leading-6">
+                پیج اینستاگرام را از <Link href={`/app/s/${sid}/channels`} className="text-fg underline underline-offset-4">صفحهٔ کانال‌ها</Link> اضافه کن.
+              </p>
+            )}
+            </>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="زمان‌بندی"><Select value={form.schedule} onChange={(e) => setForm({ ...form, schedule: e.target.value })}>
               {Object.entries(SCHEDULE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
             <Field label="روش استخراج"><Select value={form.extraction_mode} onChange={(e) => setForm({ ...form, extraction_mode: e.target.value })}>
               {Object.entries(MODE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
           </div>
-          <Field label="نام (اختیاری)"><Input onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-          <Button type="submit" className="w-full" loading={create.isPending}>افزودن</Button>
+          <Field label="نام (اختیاری)"><Input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+          {editing && form.schedule !== "manual" && (
+            <label className="flex items-center justify-between gap-3 text-[14px]">
+              <span>کرال زمان‌بندی‌شده فعال باشد<span className="block text-[12px] text-muted">خاموش باشد، فقط با «الان کرال کن» اجرا می‌شود.</span></span>
+              <Switch checked={form.is_active !== false} onChange={(v) => setForm({ ...form, is_active: v })} />
+            </label>
+          )}
+          <Button type="submit" className="w-full" loading={create.isPending}>{editing ? "ذخیرهٔ تغییرات" : "افزودن"}</Button>
         </form>
       </Dialog>
     </>
