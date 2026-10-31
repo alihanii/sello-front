@@ -55,6 +55,40 @@ function PaymentCard() {
   );
 }
 
+function InstagramCrawlerCard() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["admin-ig-crawler"], queryFn: () => api<any>("/admin/integrations/instagram-crawler") });
+  const [f, setF] = useState<any>(null);
+  useEffect(() => { if (data) setF({ ...data, token: "" }); }, [data]);
+  const save = useMutation({
+    mutationFn: () => api("/admin/integrations/instagram-crawler", { method: "PUT", json: {
+      provider: f.provider, proxy: f.proxy, token: f.token ? f.token : null } }),
+    onSuccess: (d: any) => { qc.setQueryData(["admin-ig-crawler"], d); toast.success("ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  if (!f) return <Skeleton className="h-64" />;
+  return (
+    <Card>
+      <CardHeader title="کرال اینستاگرام با آیدی پیج" subtitle="فروشنده آیدی پیج را می‌دهد و ۲۵ پست آخرش کرال می‌شود."
+        action={<Chip tone={f.has_token ? "success" : "neutral"}>{f.has_token ? "فعال" : "کلید وارد نشده"}</Chip>} />
+      <div className="px-4 sm:px-5 pb-5 space-y-4">
+        <Field label="سرویس کرال">
+          <Select value={f.provider} onChange={(e) => setF({ ...f, provider: e.target.value })}>
+            {f.providers.map((p: any) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </Select>
+        </Field>
+        <Field label="API token" hint={f.has_token ? `ذخیره شده (${f.token_hint})؛ برای تغییر مقدار جدید وارد کن.` : "از console.apify.com ← Settings ← API & Integrations بگیر."}>
+          <Input dir="ltr" type="password" className="text-left font-mono" placeholder={f.has_token ? "••••••••" : "apify_api_…"} value={f.token} onChange={(e) => setF({ ...f, token: e.target.value })} />
+        </Field>
+        <Field label="پروکسی (اختیاری)" hint="برای رسیدن به Apify و دانلود عکس‌های اینستاگرام از داخل ایران؛ مثل socks5://host:port">
+          <Input dir="ltr" className="text-left font-mono text-[13px]" value={f.proxy} onChange={(e) => setF({ ...f, proxy: e.target.value })} />
+        </Field>
+        <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ کرال اینستاگرام</Button>
+      </div>
+    </Card>
+  );
+}
+
 export default function Integrations() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["admin-ig"], queryFn: () => api<any>("/admin/integrations/instagram") });
@@ -71,9 +105,9 @@ export default function Integrations() {
 
   return (
     <>
-      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="درگاه پرداخت و اتصال اپ Meta برای اینستاگرام."
+      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="درگاه پرداخت، کرال اینستاگرام و اتصال اپ Meta برای اینستاگرام."
         actions={<Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ اینستاگرام</Button>} />
-      <div className="mb-4 max-w-3xl"><PaymentCard /></div>
+      <div className="mb-4 max-w-3xl space-y-4"><PaymentCard /><InstagramCrawlerCard /></div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
           <CardHeader title="اینستاگرام" subtitle="Instagram API with Instagram Login"
