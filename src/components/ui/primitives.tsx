@@ -2,7 +2,9 @@
 
 import clsx from "clsx";
 import { Loader2, X } from "lucide-react";
-import { forwardRef, useEffect } from "react";
+import { Children, Fragment, forwardRef, isValidElement, useEffect } from "react";
+import { Dropdown, type DropdownOption } from "./Dropdown";
+import { fieldCls, widthCls } from "./styles";
 
 export const cn = clsx;
 
@@ -16,7 +18,7 @@ const TONES: Record<string, string> = {
   crawl: "bg-crawl/12 text-crawl",
 };
 
-export function Card({ className, strong, ...p }: React.HTMLAttributes<HTMLDivElement> & { strong?: boolean }) {
+export function Card({ className, strong, ...p }: React.ComponentProps<"div"> & { strong?: boolean }) {
   return <div className={cn(strong ? "glass-strong" : "glass", "rounded-[24px]", className)} {...p} />;
 }
 
@@ -86,10 +88,7 @@ export function Field({ label, hint, error, children, className }: { label?: Rea
   );
 }
 
-// Callers that pass their own width (w-auto, w-40…) opt out of the full-width default.
-const widthCls = (className?: string) => (/(^|\s)w-/.test(className ?? "") ? "" : "w-full");
-const inputCls =
-  "rounded-2xl bg-glass border border-[var(--glass-border)] backdrop-blur-md px-4 text-[15px] sm:text-[14px] outline-none transition focus:bg-glass-strong focus:border-primary focus:ring-4 focus:ring-primary/15 placeholder:text-muted/80";
+const inputCls = fieldCls;
 
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...p }, ref) {
   return <input ref={ref} className={cn(inputCls, widthCls(className), "h-11", className)} {...p} />;
@@ -111,11 +110,28 @@ export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttrib
   return <textarea ref={ref} className={cn(inputCls, widthCls(className), "py-2.5 min-h-24 leading-7", className)} {...p} />;
 });
 
-export function Select({ className, children, ...p }: React.SelectHTMLAttributes<HTMLSelectElement>) {
+function optionsOf(children: React.ReactNode): DropdownOption[] {
+  const out: DropdownOption[] = [];
+  Children.toArray(children).forEach((c) => {
+    if (!isValidElement<{ value?: string | number; children?: React.ReactNode; disabled?: boolean }>(c)) return;
+    if (c.type === "option") out.push({ value: String(c.props.value ?? ""), label: c.props.children, disabled: c.props.disabled });
+    else if (c.type === "optgroup" || c.type === Fragment) out.push(...optionsOf(c.props.children));
+  });
+  return out;
+}
+
+/**
+ * Drop-in for a native <select>: write <option>s as children and read e.target.value in onChange.
+ * Renders the site's Dropdown (search from 8 options, virtualized list).
+ */
+export function Select({ className, children, value, onChange, disabled, required, name, id, dir, "aria-label": ariaLabel }: {
+  className?: string; children: React.ReactNode; value?: string | number | null; onChange?: (e: { target: { value: string } }) => void;
+  disabled?: boolean; required?: boolean; name?: string; id?: string; dir?: string; "aria-label"?: string;
+}) {
   return (
-    <select className={cn(inputCls, widthCls(className), "h-11 cursor-pointer pe-8", className)} {...p}>
-      {children}
-    </select>
+    <Dropdown className={className} options={optionsOf(children)} value={value == null ? "" : String(value)} disabled={disabled}
+      required={required} name={name} id={id} dir={dir} aria-label={ariaLabel}
+      onChange={(v) => onChange?.({ target: { value: v } })} />
   );
 }
 

@@ -10,6 +10,7 @@ import { ago, faNum, toman } from "@/lib/format";
 import { useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon, StatusChip } from "@/components/ui/status";
+import { VirtualList } from "@/components/ui/VirtualList";
 import { Button, Card, CardHeader, Chip, Dialog, EmptyState, Field, Input, PageHeader, Select, Switch } from "@/components/ui/primitives";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 
@@ -116,9 +117,8 @@ export default function Crawl() {
         <Card className="self-start">
           <CardHeader title={<span className="flex items-center gap-2"><Inbox className="size-4" />صندوق ورودی</span>} subtitle="پیش‌نویس‌های کرال و AI که منتظر تأیید تو هستند" />
           {inbox.length === 0 ? <p className="px-5 pb-5 text-muted text-[14px]">چیزی منتظر بررسی نیست.</p> : (
-            <ul className="px-3 pb-3 space-y-1">
-              {inbox.slice(0, 20).map((p: any) => (
-                <li key={p.id} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle">
+            <VirtualList className="px-3 pb-3" items={inbox} getKey={(p: any) => p.id} estimate={56} maxHeight={600} render={(p: any) => (
+                <div className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle">
                   <div className="size-10 rounded-lg bg-subtle overflow-hidden shrink-0">{p.images[0] && <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" />}</div>
                   <Link href={`/app/s/${sid}/products/${p.id}`} className="flex-1 min-w-0">
                     <div className="text-[13px] font-semibold truncate">{p.title}</div>
@@ -126,9 +126,8 @@ export default function Crawl() {
                   </Link>
                   <Button size="sm" variant="ghost" aria-label="تأیید" onClick={() => decide.mutate({ product_ids: [p.id], approve: true })}><Check className="size-4 text-success" /></Button>
                   <Button size="sm" variant="ghost" aria-label="رد" onClick={() => decide.mutate({ product_ids: [p.id], approve: false })}><X className="size-4 text-danger" /></Button>
-                </li>
-              ))}
-            </ul>
+                </div>
+              )} />
           )}
         </Card>
       </div>

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.105.0",
+    "@tanstack/react-virtual": "^3.14.24",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "date-fns-jalali": "^4.4.0-0",
