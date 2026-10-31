@@ -43,8 +43,8 @@ export default function Onboarding() {
     onError: (e: any) => toast.error(e.message),
   });
   const generate = useMutation({
-    mutationFn: () => api(`/stores/${storeId}/reference-sets`, { method: "POST", json: { images, note, price: Number(price.replace(/\D/g, "") || 0), use_style_profile: false } }),
-    onSuccess: (ops) => setAiOp(ops[0].id),
+    mutationFn: () => api(`/stores/${storeId}/ai-products`, { method: "POST", json: { images, note, price: Number(price.replace(/\D/g, "") || 0) } }),
+    onSuccess: (op) => setAiOp(op.id),
     onError: (e: any) => toast.error(e.message),
   });
   const manual = useMutation({

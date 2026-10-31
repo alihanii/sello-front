@@ -61,8 +61,8 @@ function AiCreate({ storeId }: { storeId: number }) {
     return () => { live = false; };
   }, [main, canImage, storeId]);
   const go = useMutation({
-    mutationFn: () => api<any[]>(`/stores/${storeId}/reference-sets`, { method: "POST", json: { images, note, clean_image: canImage, photo_kind: kind } }),
-    onSuccess: (ops) => setOpId(ops[0].id),
+    mutationFn: () => api<any>(`/stores/${storeId}/ai-products`, { method: "POST", json: { images, note, clean_image: canImage, photo_kind: kind } }),
+    onSuccess: (op) => setOpId(op.id),
     onError: () => toast.error("ساخت محصول شروع نشد؛ دوباره امتحان کن."),
   });
   const { data: op } = useQuery({

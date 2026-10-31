@@ -34,7 +34,6 @@ export const OP_TYPES: Record<string, string> = {
   health_check: "بررسی سلامت",
   publish: "انتشار",
   crawl: "کرال",
-  reference: "ساخت با AI",
-  style_profile: "پروفایل سبک",
+  ai_product: "ساخت با AI",
   image_clean: "ساخت/تمیز کردن عکس با AI",
 };

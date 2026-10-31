@@ -20,7 +20,7 @@ const jfa = (d: Date, f: string) => faDigits(jf(d, f, { locale: faIR }));
 const WEEKDAYS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 const LANES = [
   { type: "crawl", label: "کرال", color: "var(--crawl)" },
-  { type: "reference", label: "ساخت با AI", color: "var(--ai)" },
+  { type: "ai_product", label: "ساخت با AI", color: "var(--ai)" },
   { type: "publish", label: "انتشار", color: "var(--success)" },
   { type: "connect", label: "اتصال/سلامت", color: "var(--primary)" },
 ];

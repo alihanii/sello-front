@@ -97,7 +97,7 @@ export function AiSetupBanner() {
       <Sparkles className="size-5 text-ai shrink-0" aria-hidden />
       <p className="flex-1 min-w-48 text-[13px] leading-6">
         <b>هوش مصنوعی هنوز فعال نیست.</b>{" "}
-        {isAdmin ? "یک کلید AI اضافه کن تا ساخت محصول، کرال هوشمند و اتوماسیون محتوا کار کنند." : "ادمین باید کلید AI را در پنل ادمین اضافه کند."}
+        {isAdmin ? "یک کلید AI اضافه کن تا ساخت محصول با AI و کرال هوشمند کار کنند." : "ادمین باید کلید AI را در پنل ادمین اضافه کند."}
       </p>
       <AddAiKeyButton variant="primary" size="sm" />
     </div>
