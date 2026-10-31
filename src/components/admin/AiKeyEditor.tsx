@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { useMe } from "@/lib/hooks";
 import { Button, Dialog, Field, Input, Select, Switch } from "@/components/ui/primitives";
 
-export const KIND_LABEL: Record<string, string> = { gemini: "Google Gemini", metis: "Gemini از طریق متیس", openai: "OpenAI سازگار", anthropic: "Claude" };
+export const KIND_LABEL: Record<string, string> = { gemini: "Google Gemini", metis: "Gemini از طریق متیس", openai: "OpenAI سازگار", openrouter: "OpenRouter", anthropic: "Claude" };
 export const EMPTY_KEY = { name: "", kind: "gemini", base_url: "", proxy: "", default_model: "gemini-3.6-flash", input_price_per_m: 0, output_price_per_m: 0, monthly_budget_toman: 0, is_active: true };
 
 export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[]; onClose: () => void }) {
@@ -42,7 +42,7 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
         <Field label="کلید API" hint={value.id ? `کلید فعلی: ••••${value.key_hint}؛ برای تغییر، کلید جدید وارد کنید` : "رمزنگاری‌شده ذخیره می‌شود و دیگر نمایش داده نمی‌شود"}>
           <Input dir="ltr" type="password" className="text-left font-mono" value={k.api_key} onChange={(e) => setK({ ...k, api_key: e.target.value })} autoComplete="off" />
         </Field>
-        <Field label="پروکسی (اختیاری)" hint={k.kind === "metis" ? "متیس از داخل ایران پروکسی لازم ندارد." : "گوگل، OpenAI و Anthropic درخواست ایران را رد می‌کنند؛ اگر سرور داخل ایران است: http://user:pass@host:port یا socks5://host:port"}>
+        <Field label="پروکسی (اختیاری)" hint={k.kind === "metis" ? "متیس از داخل ایران پروکسی لازم ندارد." : "گوگل، OpenAI، OpenRouter و Anthropic درخواست ایران را رد می‌کنند؛ اگر سرور داخل ایران است: http://user:pass@host:port یا socks5://host:port"}>
           <Input dir="ltr" className="text-left font-mono text-[13px]" value={k.proxy ?? ""} onChange={(e) => setK({ ...k, proxy: e.target.value })} placeholder="socks5://127.0.0.1:1080" />
         </Field>
         <Field label="مدل پیش‌فرض" hint="«دریافت مدل‌ها» فقط مدل‌های متنی مناسب را می‌آورد (مدل‌های صوتی، TTS و تصویری حذف می‌شوند). مدل تصویری را در «مسیردهی کارها» برای تمیز کردن عکس انتخاب کن.">
