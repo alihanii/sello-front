@@ -57,7 +57,7 @@ function PaymentCard() {
 
 function InstagramCrawlerCard() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["admin-ig-crawler"], queryFn: () => api<any>("/admin/integrations/instagram-crawler") });
+  const { data, error } = useQuery({ queryKey: ["admin-ig-crawler"], queryFn: () => api<any>("/admin/integrations/instagram-crawler"), retry: 1 });
   const [f, setF] = useState<any>(null);
   useEffect(() => { if (data) setF({ ...data, token: "" }); }, [data]);
   const save = useMutation({
@@ -66,6 +66,13 @@ function InstagramCrawlerCard() {
     onSuccess: (d: any) => { qc.setQueryData(["admin-ig-crawler"], d); toast.success("ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
+  if (error) return (
+    <Card className="p-5 text-[14px] leading-7">
+      <div className="font-bold">کرال اینستاگرام با آیدی پیج</div>
+      <p className="text-danger">تنظیمات از سرور خوانده نشد: {(error as any).message}</p>
+      <p className="text-muted text-[13px]">اگر بک‌اند تازه به‌روز نشده، در پوشهٔ بک‌اند git pull بزن و دوباره اجرایش کن.</p>
+    </Card>
+  );
   if (!f) return <Skeleton className="h-64" />;
   return (
     <Card>
