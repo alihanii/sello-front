@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 import { useStoreId } from "@/lib/hooks";
 import { EMPTY_DETAILS, ProductDetails } from "@/components/products/ProductDetails";
 import { ImageUploader } from "@/components/products/ImageUploader";
-import { Button, Card, Field, PageHeader, Spinner, Switch, Tabs, Textarea } from "@/components/ui/primitives";
+import { Button, Card, Field, PageHeader, Spinner, Tabs, Textarea } from "@/components/ui/primitives";
 
 type Mode = "ai" | "manual";
 
@@ -47,22 +47,21 @@ function AiCreate({ storeId }: { storeId: number }) {
   const [images, setImages] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [opId, setOpId] = useState<number | null>(null);
-  const [kind, setKind] = useState<"product" | "design">("product");
+  const [kind, setKind] = useState<"product" | "design" | "keep">("product");
   const { data: status } = useQuery({ queryKey: ["ai-status"], queryFn: () => api("/ai/status") });
   const canImage = !!status?.image_edit;
-  // The seller decides whether AI also makes the photo; off keeps their own photos untouched.
-  const [makePhoto, setMakePhoto] = useState(true);
-  const withPhoto = canImage && makePhoto;
+  // "keep": the seller doesn't want an AI photo; their own photos stay as they are.
+  const withPhoto = canImage && kind !== "keep";
   // AI's first guess for the main photo; the seller only changes it when it's wrong.
   const main = images[0];
   useEffect(() => {
-    if (!main || !withPhoto) return;
+    if (!main || !canImage) return;
     setKind("product");
     let live = true;
     api<{ kind: "product" | "design" }>(`/stores/${storeId}/photo-kind`, { method: "POST", json: { url: main } })
-      .then((r) => live && setKind(r.kind)).catch(() => {});
+      .then((r) => live && setKind((k) => (k === "keep" ? k : r.kind))).catch(() => {});
     return () => { live = false; };
-  }, [main, withPhoto, storeId]);
+  }, [main, canImage, storeId]);
   const go = useMutation({
     mutationFn: () => api<any>(`/stores/${storeId}/ai-products`, { method: "POST", json: { images, note, clean_image: withPhoto, photo_kind: withPhoto ? kind : "product" } }),
     onSuccess: (op) => setOpId(op.id),
@@ -96,15 +95,9 @@ function AiCreate({ storeId }: { storeId: number }) {
         <Field label="عکس محصول" hint="عکس خام کافی است؛ با گوشی هم بگیری خوب است.">
           <ImageUploader storeId={storeId} value={images} onChange={setImages} max={5} />
         </Field>
-        {canImage && (
-          <label className="flex items-center gap-3 text-[14px]">
-            <Switch checked={makePhoto} onChange={setMakePhoto} />
-            <span>عکس محصول هم با AI ساخته شود؟<span className="block text-[12px] text-muted">{makePhoto ? "AI یک عکس مرتب و آمادهٔ فروش برای محصول می‌سازد." : "فقط متن و مشخصات ساخته می‌شود و عکس‌های خودت بدون تغییر می‌مانند."}</span></span>
-          </label>
-        )}
-        {main && withPhoto && (
-          <div className="grid grid-cols-2 gap-2 text-[13px]">
-            {([["product", "این عکس محصولمه؛ مرتبش کن"], ["design", "این طرحه؛ عکس محصول رو بساز"]] as const).map(([v, label]) => (
+        {main && canImage && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[13px]">
+            {([["product", "این عکس محصولمه؛ مرتبش کن"], ["design", "این طرحه؛ عکس محصول رو بساز"], ["keep", "عکس رو تغییر نده؛ همین خوبه"]] as const).map(([v, label]) => (
               <button key={v} type="button" onClick={() => setKind(v)}
                 className={`rounded-xl border p-3 cursor-pointer text-start ${kind === v ? "border-ai bg-ai/8 font-semibold" : "border-edge text-muted"}`}>{label}</button>
             ))}
