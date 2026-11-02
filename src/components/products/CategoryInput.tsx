@@ -13,7 +13,7 @@ export function CategoryInput({ storeId, value, onChange, className, autoFocus }
   const id = useId();
   return (
     <>
-      <Input list={id} maxLength={120} placeholder="مثلاً پوشاک زنانه" className={className} autoFocus={autoFocus}
+      <Input list={id} maxLength={120} placeholder="مثلاً هودی" className={className} autoFocus={autoFocus}
         value={value} onChange={(e) => onChange(e.target.value)} aria-label="دسته‌بندی" />
       <datalist id={id}>{data.map((c) => <option key={c.name} value={c.name} />)}</datalist>
     </>
