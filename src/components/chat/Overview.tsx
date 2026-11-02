@@ -4,7 +4,8 @@ import { Bot, CheckCircle2, Circle, Coins, MessageCircle, ShoppingBag, UserRound
 import { ago, faNum, toman } from "@/lib/format";
 import { BOT_STATUS, MODE_LABEL } from "@/lib/chat";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, CardHeader, Chip, Skeleton, cn } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, cn } from "@/components/ui/primitives";
+import { ChatOverviewSkeleton } from "@/components/ui/skeletons";
 
 const SETUP_TAB: Record<string, string> = {
   connect: "connections", welcome: "assistant", knowledge: "knowledge", orders: "orders-settings", test: "test",
@@ -21,7 +22,7 @@ function Stat({ icon: Icon, label, value, hint, onClick }: any) {
 }
 
 export function ChatOverview({ data, go }: { data: any; go: (t: any, extra?: string) => void }) {
-  if (!data) return <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-28" />)}</div>;
+  if (!data) return <ChatOverviewSkeleton />;
   const m = data.month;
   const pct = m.limit ? Math.min(100, Math.round((100 * m.ai_messages) / m.limit)) : 0;
   const done = data.setup.filter((s: any) => s.done).length;

@@ -1,9 +1,12 @@
-"use client";
+import { StoreLayout } from "@/components/shell/StoreLayout";
 
-import { AppShell } from "@/components/shell/AppShell";
-import { useStoreId } from "@/lib/hooks";
+// The store area is rendered entirely in the browser (see AuthGuard), so the server output of a store route depends on
+// nothing but the URL. Rendering it once per store and caching it (instead of on every request) keeps navigation light.
+export function generateStaticParams() {
+  return [];
+}
+export const dynamicParams = true;
 
-export default function StoreLayout({ children }: { children: React.ReactNode }) {
-  const id = useStoreId();
-  return <AppShell storeId={id}>{children}</AppShell>;
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <StoreLayout>{children}</StoreLayout>;
 }

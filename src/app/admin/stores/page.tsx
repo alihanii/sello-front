@@ -6,7 +6,8 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, toman } from "@/lib/format";
 import { PlatformIcon, SourceBadge } from "@/components/ui/status";
-import { Card, PageHeader, Sheet, Skeleton } from "@/components/ui/primitives";
+import { Card, PageHeader, Sheet } from "@/components/ui/primitives";
+import { InlineSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 
 export default function AdminStores() {
   const { data } = useQuery({ queryKey: ["admin-stores"], queryFn: () => api<any[]>("/admin/stores") });
@@ -14,9 +15,9 @@ export default function AdminStores() {
   const { data: products } = useQuery({ queryKey: ["admin-store-products", focus?.id], queryFn: () => api<any[]>(`/admin/stores/${focus.id}/products`), enabled: !!focus });
   return (
     <>
-      <PageHeader title="فروشگاه‌ها" subtitle={data && `${faNum(data.length)} فروشگاه`} />
+      <PageHeader title="فروشگاه‌ها" subtitle={data ? `${faNum(data.length)} فروشگاه` : <InlineSkeleton />} />
       <Card strong className="overflow-x-auto">
-        {!data ? <Skeleton className="h-80 m-4" /> : (
+        {!data ? <TableSkeleton rows={10} cols={5} /> : (
           <table className="w-full text-[14px] min-w-[760px]">
             <thead className="text-muted text-[12px]"><tr className="border-b border-edge">
               {["فروشگاه", "مالک", "کانال‌ها", "محصولات", "آخرین فعالیت"].map((h) => <th key={h} className="p-3 text-start font-semibold">{h}</th>)}
@@ -38,6 +39,7 @@ export default function AdminStores() {
       <Sheet open={!!focus} onClose={() => setFocus(null)} title={focus?.name ?? ""}>
         <div className="text-[13px] text-muted mb-3">محصولاتی که این فروشگاه اضافه کرده</div>
         <ul className="space-y-1">
+          {!products && [0, 1, 2, 3].map((i) => <li key={i} className="h-10 rounded-xl bg-subtle shimmer" aria-hidden />)}
           {products?.map((p) => (
             <li key={p.id} className="flex items-center gap-2 p-2 rounded-xl bg-subtle text-[13px]">
               <span className="flex-1 truncate">{p.title}</span><span className="tnum text-muted">{toman(p.price)}</span><SourceBadge source={p.source} />

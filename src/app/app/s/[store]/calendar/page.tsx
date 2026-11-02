@@ -13,7 +13,8 @@ import { faDigits, faNum } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
 import { OP_TYPES } from "@/lib/meta";
 import { StatusChip } from "@/components/ui/status";
-import { Button, Card, Chip, PageHeader, Select, Sheet, Tabs, cn } from "@/components/ui/primitives";
+import { Button, Card, Chip, PageHeader, Select, Sheet, Skeleton, Tabs, cn } from "@/components/ui/primitives";
+import { CalendarMonthSkeleton, SkLine } from "@/components/ui/skeletons";
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const jfa = (d: Date, f: string) => faDigits(jf(d, f, { locale: faIR }));
@@ -39,6 +40,7 @@ function heat(n: number) {
 function DayTimeline({ sid, day }: { sid: number; day: Date }) {
   const { data } = useQuery({ queryKey: ["calendar", sid, "day", iso(day)], queryFn: () => api(`/stores/${sid}/calendar/day/${iso(day)}`) });
   const ops = data?.operations ?? [];
+  const loading = !data;
   const pos = (d: string) => { const t = new Date(d.endsWith("Z") ? d : d + "Z"); return ((t.getHours() * 60 + t.getMinutes()) / 1440) * 100; };
   return (
     <Card className="p-5 overflow-x-auto">
@@ -52,6 +54,7 @@ function DayTimeline({ sid, day }: { sid: number; day: Date }) {
             <div key={lane.type} className="flex items-center h-12 border-t border-edge">
               <span className="w-28 text-[13px] font-semibold shrink-0">{lane.label}</span>
               <div className="relative flex-1 h-full" dir="ltr">
+                {loading && <Skeleton className="absolute top-2.5 h-7 rounded-md" style={{ left: `${10 + LANES.indexOf(lane) * 18}%`, width: "22%" }} />}
                 {items.map((o: any) => (
                   <Link key={o.id} href={`/app/s/${sid}/activity/${o.id}`} title={`${o.title_fa} (${jfa(new Date(o.created_at + "Z"), "HH:mm")})`}
                     className="absolute top-2.5 h-7 min-w-2.5 rounded-md ring-2 ring-[var(--glass-strong)] hover:scale-110 transition"
@@ -62,7 +65,7 @@ function DayTimeline({ sid, day }: { sid: number; day: Date }) {
           );
         })}
       </div>
-      {ops.length === 0 && <p className="text-muted text-[14px] mt-3">در این روز فعالیتی ثبت نشده.</p>}
+      {!loading && ops.length === 0 && <p className="text-muted text-[14px] mt-3">در این روز فعالیتی ثبت نشده.</p>}
     </Card>
   );
 }
@@ -111,7 +114,8 @@ export default function CalendarPage() {
         )}
       </Card>
 
-      {view === "month" && (
+      {view === "month" && !data && <CalendarMonthSkeleton />}
+      {view === "month" && data && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             {[["دیتای کرال‌شده", monthTotals.crawl_item, "crawl"], ["محصول جدید", monthTotals.product_created, "ai"],
@@ -167,7 +171,7 @@ export default function CalendarPage() {
       )}
 
       {view === "year" && (
-        <Card strong className="p-5 overflow-x-auto">
+        <Card strong className={cn("p-5 overflow-x-auto transition-opacity", !data && "opacity-60 animate-pulse")} aria-busy={!data}>
           <div className="text-[13px] text-muted mb-3">شدت رنگ = تعداد آیتم‌های دیتای کرال‌شده در هر روز. میانگین ۷ روز اخیر: <b className="tnum">{faNum(data?.avg_items_7d ?? 0)}</b></div>
           <div className="flex gap-4 flex-wrap">
             {Array.from({ length: 12 }, (_, m) => {
@@ -215,7 +219,15 @@ export default function CalendarPage() {
 
 function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimeline: () => void }) {
   const { data } = useQuery({ queryKey: ["calendar", sid, "day", iso(day)], queryFn: () => api(`/stores/${sid}/calendar/day/${iso(day)}`) });
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="space-y-4" aria-busy="true">
+        <div className="grid grid-cols-2 gap-2">{Array.from({ length: 6 }, (_, i) => <div key={i} className="rounded-xl bg-subtle p-3 space-y-2"><SkLine size={12} className="w-16" /><SkLine size={20} className="w-8" /></div>)}</div>
+        <Skeleton className="h-9 rounded-full" />
+        <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-8 rounded-xl" />)}</div>
+      </div>
+    );
+  }
   const s = data.stats;
   return (
     <div className="space-y-4">

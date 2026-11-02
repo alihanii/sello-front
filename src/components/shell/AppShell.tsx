@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, MessageCircle, Moon, Package,
   Plug, Radar, Settings, Shield, Store, Sun,
@@ -10,7 +10,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api, setToken } from "@/lib/api";
 import { faDigits, faNum } from "@/lib/format";
-import { useMe, useOperationsStream, useStores } from "@/lib/hooks";
+import { prefetchStorePage, useMe, useOperationsStream, useStores } from "@/lib/hooks";
 import { Button, Sheet, cn } from "@/components/ui/primitives";
 import { NotificationBell } from "./Notifications";
 
@@ -47,10 +47,18 @@ export function Logo({ className, compact }: { className?: string; compact?: boo
   );
 }
 
-function NavItem({ href, icon: Icon, label, active, badge }: { href: string; icon: any; label: string; active: boolean; badge?: React.ReactNode }) {
+/** Warms a page's data when the pointer/finger reaches its link, so it opens with content instead of a skeleton. */
+function useWarm(storeId?: number) {
+  const qc = useQueryClient();
+  return (href: string) => { if (storeId) prefetchStorePage(qc, storeId, href); };
+}
+
+function NavItem({ href, icon: Icon, label, active, badge, storeId }: { href: string; icon: any; label: string; active: boolean; badge?: React.ReactNode; storeId?: number }) {
+  const warm = useWarm(storeId);
   return (
     <Link
       href={href}
+      onMouseEnter={() => warm(href)} onFocus={() => warm(href)} onTouchStart={() => warm(href)}
       className={cn(
         "group flex items-center gap-3 h-11 px-3 rounded-2xl text-[14px] font-bold transition-all",
         active ? "bg-primary-soft text-primary" : "text-muted hover:text-fg hover:bg-subtle",
@@ -116,6 +124,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
   const { data: me } = useMe();
   const [more, setMore] = useState(false);
   useOperationsStream(storeId);
+  const warm = useWarm(storeId);
   useEffect(() => setMore(false), [path]);
 
   const base = `/app/s/${storeId}`;
@@ -144,10 +153,10 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
         <div className="px-1 pt-1"><Logo /></div>
         <StoreSwitcher storeId={storeId} />
         <nav className="flex flex-col gap-1 overflow-y-auto no-scrollbar" aria-label="منوی اصلی">
-          {items.map((it) => <NavItem key={it.href} {...it} active={isActive(it.href, it.exact)} />)}
+          {items.map((it) => <NavItem key={it.href} {...it} storeId={storeId} active={isActive(it.href, it.exact)} />)}
         </nav>
         <div className="mt-auto flex flex-col gap-1 border-t border-edge pt-3">
-          {secondary.map((it) => <NavItem key={it.href} {...it} active={isActive(it.href, it.exact)} />)}
+          {secondary.map((it) => <NavItem key={it.href} {...it} storeId={storeId} active={isActive(it.href, it.exact)} />)}
         </div>
       </aside>
 
@@ -174,7 +183,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
           {items.filter((i) => i.tab).map((it) => {
             const active = isActive(it.href, it.exact);
             return (
-              <Link key={it.href} href={it.href} aria-current={active ? "page" : undefined}
+              <Link key={it.href} href={it.href} aria-current={active ? "page" : undefined} onTouchStart={() => warm(it.href)} onMouseEnter={() => warm(it.href)}
                 className={cn("flex flex-col items-center justify-center gap-0.5 h-14 rounded-2xl text-[11px] font-bold transition", active ? "text-fg" : "text-muted")}>
                 <span className={cn("grid place-items-center h-8 w-12 rounded-full transition", active && "bg-primary-soft text-primary")}><it.icon className="size-[19px]" aria-hidden /></span>
                 {it.short}
@@ -196,7 +205,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
             {[...items.filter((i) => !i.tab), ...secondary].map((it) => {
               const active = isActive(it.href, (it as any).exact);
               return (
-                <Link key={it.href} href={it.href}
+                <Link key={it.href} href={it.href} onTouchStart={() => warm(it.href)}
                   className={cn("flex flex-col gap-2 p-3.5 rounded-2xl text-[14px] font-bold transition", active ? "bg-primary-soft text-primary" : "bg-subtle hover:bg-glass-strong")}>
                   <it.icon className={cn("size-5", active ? "text-primary" : "text-muted")} aria-hidden />
                   <span className="flex items-center gap-1.5">{it.label}{(it as any).badge}</span>

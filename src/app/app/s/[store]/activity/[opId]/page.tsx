@@ -11,7 +11,8 @@ import { useChannels, useStoreId } from "@/lib/hooks";
 import { OP_TYPES } from "@/lib/meta";
 import { StepTimeline } from "@/components/ui/timeline";
 import { PlatformIcon, StatusChip } from "@/components/ui/status";
-import { Button, Card, CardHeader, Chip, Skeleton } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip } from "@/components/ui/primitives";
+import { ListRowsSkeleton, OperationSkeleton } from "@/components/ui/skeletons";
 
 const RESULT: Record<string, { label: string; tone: string }> = {
   created: { label: "محصول ساخته شد", tone: "success" }, updated: { label: "به‌روز شد", tone: "primary" },
@@ -34,7 +35,7 @@ export default function OperationDetail() {
     onSuccess: (n) => { toast.success("دوباره در صف قرار گرفت"); router.push(`/app/s/${sid}/activity/${n.id}`); },
     onError: (e: any) => toast.error(e.message),
   });
-  if (!op) return <Skeleton className="h-96" />;
+  if (!op) return <OperationSkeleton />;
   const ch = channels.find((c: any) => c.id === op.channel_id);
   const total = op.steps.reduce((a: number, s: any) => a + s.duration_ms, 0);
   return (
@@ -81,6 +82,7 @@ export default function OperationDetail() {
         <CardHeader title="مراحل" subtitle="روی هر مرحله بزن تا درخواست و پاسخ کامل را ببینی" />
         <div className="px-5 pb-3"><StepTimeline steps={op.steps} /></div>
       </Card>
+      {op.type === "crawl" && !items && <Card><ListRowsSkeleton rows={3} icon={false} /></Card>}
       {op.type === "crawl" && items && (
         <Card>
           <CardHeader title="آیتم‌های کرال" subtitle={`${faNum(items.length)} آیتم؛ هر کدام چه شد و چرا`} />

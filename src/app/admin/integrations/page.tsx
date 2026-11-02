@@ -5,7 +5,8 @@ import { Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Select, Skeleton, Switch } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Select, Switch } from "@/components/ui/primitives";
+import { FormSectionSkeleton } from "@/components/ui/skeletons";
 
 const STEPS = [
   "در developers.facebook.com یک اپ از نوع Business بساز و محصول «Instagram» › «API setup with Instagram login» را اضافه کن.",
@@ -26,7 +27,7 @@ function PaymentCard() {
     onSuccess: (d: any) => { qc.setQueryData(["admin-pay"], d); qc.invalidateQueries({ queryKey: ["payments-config"] }); toast.success("درگاه ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
-  if (!f || !data) return <Skeleton className="h-64" />;
+  if (!f || !data) return <FormSectionSkeleton fields={3} />;
   const bank = data.banks[f.bank];
   const g = f.gateways[f.bank] ?? {};
   const setG = (k: string, v: any) => setF({ ...f, gateways: { ...f.gateways, [f.bank]: { ...g, [k]: v } } });
@@ -78,7 +79,7 @@ function InstagramCrawlerCard() {
       <p className="text-muted text-[13px]">اگر بک‌اند تازه به‌روز نشده، در پوشهٔ بک‌اند git pull بزن و دوباره اجرایش کن.</p>
     </Card>
   );
-  if (!f) return <Skeleton className="h-64" />;
+  if (!f) return <FormSectionSkeleton fields={2} />;
   return (
     <Card>
       <CardHeader title="کرال اینستاگرام با آیدی پیج" subtitle="با ذخیرهٔ کلید، کرال اینستاگرام برای همهٔ فروشنده‌ها باز می‌شود؛ بدون کلید برایشان قفل است."
@@ -115,7 +116,7 @@ export default function Integrations() {
     onSuccess: (d: any) => { qc.setQueryData(["admin-ig"], d); qc.invalidateQueries({ queryKey: ["platforms"] }); toast.success("ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
-  if (!f) return <Skeleton className="h-96" />;
+  if (!f) return <FormSectionSkeleton fields={4} />;
   const copy = () => { navigator.clipboard.writeText(f.redirect_uri); toast.success("کپی شد"); };
 
   return (

@@ -2,10 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
 import { faNum } from "@/lib/format";
-import { useStoreId } from "@/lib/hooks";
-import { Chip, PageHeader, Switch, Tabs } from "@/components/ui/primitives";
+import { storeQueries, useStoreId } from "@/lib/hooks";
+import { Chip, PageHeader, Skeleton, Switch, Tabs } from "@/components/ui/primitives";
 import { useAgent, useSaveAgent } from "@/lib/chat";
 import { ChatOverview } from "@/components/chat/Overview";
 import { ChatConnections } from "@/components/chat/Connections";
@@ -26,13 +25,13 @@ export default function Chat() {
   const go = (t: Tab, extra = "") => router.replace(`${path}?tab=${t}${extra}`, { scroll: false });
   const { data: agent } = useAgent(sid);
   const save = useSaveAgent(sid);
-  const { data: ov } = useQuery({ queryKey: ["chat-overview", sid], queryFn: () => api(`/stores/${sid}/chat/overview`), refetchInterval: 30_000 });
+  const { data: ov } = useQuery({ ...storeQueries.chatOverview(sid), refetchInterval: 30_000 });
   const badge = (n?: number) => (n ? <span className="ms-1.5 min-w-5 h-5 px-1 rounded-full bg-warning text-white text-[11px] inline-grid place-items-center tnum">{faNum(n)}</span> : null);
 
   return (
     <>
       <PageHeader title="دستیار چت فروش" subtitle="در تلگرام و بله به‌جای ادمین جواب مشتری را می‌دهد، محصول توضیح می‌دهد و سفارش می‌گیرد."
-        actions={agent && (
+        actions={!agent ? <Skeleton className="h-11 w-44 rounded-full" /> : (
           <label className="glass rounded-full h-11 ps-4 pe-2 flex items-center gap-3 text-[14px] font-bold cursor-pointer">
             {agent.enabled ? <Chip tone="success">روشن</Chip> : <Chip>خاموش</Chip>}
             <span>دستیار</span>

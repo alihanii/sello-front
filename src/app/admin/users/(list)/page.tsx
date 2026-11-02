@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate } from "@/lib/format";
-import { Card, Chip, Input, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { Card, Chip, Input, PageHeader } from "@/components/ui/primitives";
+import { InlineSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { VirtualTbody } from "@/components/ui/VirtualList";
 
 export default function Users() {
@@ -15,10 +16,10 @@ export default function Users() {
   const { data } = useQuery({ queryKey: ["admin-users", q], queryFn: () => api<any[]>(`/admin/users?q=${encodeURIComponent(q)}`) });
   return (
     <>
-      <PageHeader title="کاربران" subtitle={data && `${faNum(data.length)} کاربر`} />
+      <PageHeader title="کاربران" subtitle={data ? `${faNum(data.length)} کاربر` : <InlineSkeleton />} />
       <div className="relative mb-4 max-w-md"><Search className="size-4 absolute top-3.5 start-3 text-muted" /><Input className="ps-9" placeholder="جستجوی موبایل یا نام" value={q} onChange={(e) => setQ(e.target.value)} /></div>
       <Card strong ref={scroller} className="overflow-auto max-h-[calc(100dvh-220px)]">
-        {!data ? <Skeleton className="h-80 m-4" /> : (
+        {!data ? <TableSkeleton rows={10} cols={7} /> : (
           <table className="w-full text-[14px] min-w-[760px]">
             <thead className="text-muted text-[12px]"><tr className="border-b border-edge">
               {["کاربر", "نقش", "فروشگاه‌ها", "پلن", "عضویت", "آخرین ورود", "وضعیت"].map((h) => <th key={h} className="p-3 text-start font-semibold">{h}</th>)}

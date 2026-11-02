@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { faNum, jDate } from "@/lib/format";
 import { PlanCards } from "@/components/plans/PlanCards";
 import { Button, Card, Chip, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { PlanCardsSkeleton } from "@/components/ui/skeletons";
 
 const LIMIT_LABELS: Record<string, string> = {
   max_stores: "فروشگاه", max_channels: "کانال", max_products: "محصول", monthly_publishes: "انتشار در ماه",
@@ -87,7 +88,7 @@ export default function Billing() {
         <PlanCards plans={plans} onSelect={(p) => (payCfg?.enabled ? pay.mutate(p) : request.mutate(p))}
           loadingId={payCfg?.enabled ? (pay.isPending || pay.isSuccess ? pay.variables?.id : undefined) : request.variables?.id}
           currentPlanId={sub?.subscription?.plan?.id} />
-      ) : <Skeleton className="h-96" />}
+      ) : <PlanCardsSkeleton />}
       <p className="text-center text-muted text-[13px] mt-8">
         {payCfg?.enabled ? `پرداخت امن از طریق درگاه ${payCfg.label}؛ اشتراک بلافاصله بعد از پرداخت فعال می‌شود.` : "پس از ثبت درخواست، پلن توسط پشتیبانی فعال می‌شود."}
       </p>

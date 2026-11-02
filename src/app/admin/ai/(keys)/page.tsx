@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago, ms, toman } from "@/lib/format";
 import { Button, Card, CardHeader, Chip, EmptyState, Input, PageHeader, Select } from "@/components/ui/primitives";
+import { AiKeysSkeleton } from "@/components/ui/skeletons";
 
 import { EMPTY_KEY, KIND_LABEL, KeyEditor } from "@/components/admin/AiKeyEditor";
 
 export default function AiKeys() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["ai-providers"], queryFn: () => api("/admin/ai/providers") });
-  const { data: routes = [] } = useQuery({ queryKey: ["ai-routes"], queryFn: () => api<any[]>("/admin/ai/routes") });
+  const { data: routes = [], isPending: routesPending } = useQuery({ queryKey: ["ai-routes"], queryFn: () => api<any[]>("/admin/ai/routes") });
   const { data: aiStatus } = useQuery({ queryKey: ["ai-status"], queryFn: () => api("/ai/status") });
   const [edit, setEdit] = useState<any>(null);
   const test = useMutation({
@@ -34,6 +35,7 @@ export default function AiKeys() {
     <>
       <PageHeader title="کلیدهای AI" subtitle="کلیدها را اضافه کن و برای هر کار مشخص کن از کدام کلید و مدل استفاده شود."
         actions={<Button icon={<Plus className="size-4" />} onClick={() => setEdit(empty)}>افزودن کلید</Button>} />
+      {!data || routesPending ? <AiKeysSkeleton /> : <>
       {providers.length === 0 ? (
         <Card className="mb-6"><EmptyState icon={<KeyRound className="size-6" />} title="هنوز کلیدی اضافه نشده" text="تا وقتی کلیدی نباشد، کرال فقط قاعده‌محور کار می‌کند و ساخت محصول با AI غیرفعال است." action={<Button onClick={() => setEdit(empty)}>افزودن اولین کلید</Button>} /></Card>
       ) : (
@@ -77,6 +79,7 @@ export default function AiKeys() {
           </table>
         </div>
       </Card>
+      </>}
       {edit && <KeyEditor value={edit} kinds={data?.kinds ?? []} onClose={() => setEdit(null)} />}
     </>
   );

@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { faDigits, toman } from "@/lib/format";
+import { AdminFormsSkeleton } from "@/components/ui/skeletons";
 import { PlanCards } from "@/components/plans/PlanCards";
-import { Button, Card, CardHeader, Field, Input, NumberInput, PageHeader, Select, Skeleton, Switch, Textarea } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Field, Input, NumberInput, PageHeader, Select, Switch, Textarea } from "@/components/ui/primitives";
 
 const LIMITS: [string, string][] = [["max_stores", "حداکثر فروشگاه"], ["max_channels", "حداکثر کانال"], ["max_products", "حداکثر محصول"], ["monthly_publishes", "انتشار در ماه"], ["monthly_ai_credits", "اعتبار AI در ماه"], ["monthly_chat_messages", "پیام AI دستیار چت در ماه"]];
 const LABEL: Record<number, string> = { 1: "یک‌ماهه", 3: "سه‌ماهه", 12: "یک‌ساله" };
@@ -21,7 +22,7 @@ export default function AdminPlans() {
     onSuccess: (d: any) => { setP(d); qc.invalidateQueries({ queryKey: ["plans"] }); qc.setQueryData(["admin-plan-config"], d); toast.success("پلن ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
-  if (!p) return <Skeleton className="h-96" />;
+  if (!p) return <AdminFormsSkeleton />;
   const setPrice = (m: number, patch: any) => setP({ ...p, prices: p.prices.map((x: any) => (x.duration_months === m ? { ...x, ...patch } : x)) });
   const preview = p.prices.filter((x: any) => x.is_active).map((x: any) => ({ ...p, ...x, id: x.duration_months, is_featured: x.duration_months === 12 }));
 

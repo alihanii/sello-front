@@ -10,7 +10,8 @@ import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate, toman } from "@/lib/format";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, CardHeader, Chip, Dialog, Field, Input, Select, Skeleton } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Dialog, Field, Input, Select } from "@/components/ui/primitives";
+import { AdminDetailSkeleton } from "@/components/ui/skeletons";
 
 const HEALTH: Record<string, string> = { connected: "bg-success", error: "bg-danger", expired: "bg-danger", disconnected: "bg-neutral" };
 
@@ -30,7 +31,7 @@ export default function UserDetail() {
   });
   const cancel = useMutation({ mutationFn: (sid: number) => api(`/admin/subscriptions/${sid}/cancel`, { method: "POST" }), onSuccess: refresh });
   const setActive = useMutation({ mutationFn: (v: boolean) => api(`/admin/users/${id}/active`, { method: "POST", json: { is_active: v } }), onSuccess: refresh, onError: (e: any) => toast.error(e.message) });
-  if (!data) return <Skeleton className="h-96" />;
+  if (!data) return <AdminDetailSkeleton />;
   const u = data.user;
   return (
     <>

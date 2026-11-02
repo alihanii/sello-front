@@ -4,13 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { useStoreId } from "@/lib/hooks";
+import { storeQueries, useStoreId } from "@/lib/hooks";
 import { Button, Card, Field, Input, PageHeader, Switch, Textarea } from "@/components/ui/primitives";
+import { SettingsSkeleton } from "@/components/ui/skeletons";
 
 export default function Settings() {
   const sid = useStoreId();
   const qc = useQueryClient();
-  const { data: store } = useQuery({ queryKey: ["store", sid], queryFn: () => api(`/stores/${sid}`) });
+  const { data: store } = useQuery(storeQueries.store(sid));
   const [f, setF] = useState<any>(null);
   useEffect(() => { if (store) setF(store); }, [store]);
   const save = useMutation({
@@ -18,7 +19,7 @@ export default function Settings() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["stores"] }); qc.invalidateQueries({ queryKey: ["store", sid] }); toast.success("ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
-  if (!f) return null;
+  if (!f) return <SettingsSkeleton />;
   const s = f.settings;
   const setS = (k: string, v: any) => setF({ ...f, settings: { ...s, [k]: v } });
   return (
