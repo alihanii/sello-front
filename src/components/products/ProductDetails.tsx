@@ -3,10 +3,11 @@
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { Button, Card, Field, Input, NumberInput, Textarea } from "@/components/ui/primitives";
+import { CategoryInput } from "./CategoryInput";
 import { ImageUploader } from "./ImageUploader";
 
-export type Details = { images: string[]; title: string; sku: string; price: number; stock_qty: number; description: string; attributes: Record<string, string> };
-export const EMPTY_DETAILS: Details = { images: [], title: "", sku: "", price: 0, stock_qty: 0, description: "", attributes: {} };
+export type Details = { images: string[]; title: string; sku: string; category: string; price: number; stock_qty: number; description: string; attributes: Record<string, string> };
+export const EMPTY_DETAILS: Details = { images: [], title: "", sku: "", category: "", price: 0, stock_qty: 0, description: "", attributes: {} };
 
 /** The whole product form: photos and details, nothing else. Used for manual add and for editing. */
 export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "ذخیره" }: {
@@ -27,6 +28,9 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
         <Field label="نام محصول"><Input value={d.title} onChange={(e) => set("title", e.target.value)} required maxLength={300} /></Field>
         <Field label="کد محصول" hint="کوتاه و یکتا، مثل H12. اگر در پست کانال هم بنویسی، مشتری با فرستادن همین کد در چت سفارش می‌دهد و دستیار دقیقاً همین محصول را پیدا می‌کند.">
           <Input dir="ltr" className="text-left w-48" maxLength={80} placeholder="H12" value={d.sku ?? ""} onChange={(e) => set("sku", e.target.value.trim())} />
+        </Field>
+        <Field label="دسته‌بندی" hint="از دسته‌های قبلی انتخاب کن یا یک دستهٔ تازه بنویس.">
+          <CategoryInput storeId={storeId} value={d.category ?? ""} onChange={(v) => set("category", v)} />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="قیمت (تومان)"><NumberInput value={d.price} onChange={(v) => set("price", v)} /></Field>

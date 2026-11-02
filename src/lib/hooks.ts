@@ -22,8 +22,11 @@ export function useStores() {
  * Query definitions shared by pages and by hover-prefetch in the shell, so a prefetched result lands under exactly the key
  * the page reads and the page opens with its data already there.
  */
-export const productListParams = (f: { q?: string; source?: string; stock?: string; status?: string; page?: number } = {}) =>
-  new URLSearchParams({ q: f.q ?? "", source: f.source ?? "", stock: f.stock ?? "", status: f.status ?? "", page: String(f.page ?? 1), size: "25" });
+export const productListParams = (f: { q?: string; source?: string; stock?: string; status?: string; category?: string; page?: number } = {}) => {
+  const p = new URLSearchParams({ q: f.q ?? "", source: f.source ?? "", stock: f.stock ?? "", status: f.status ?? "", page: String(f.page ?? 1), size: "25" });
+  if (f.category) p.set("category", f.category); // "-" = products without a category
+  return p;
+};
 export const activityParams = (f: { type?: string; status?: string; page?: number } = {}) =>
   new URLSearchParams({ type: f.type ?? "", status: f.status === "failed" ? "failed,partial" : (f.status ?? ""), page: String(f.page ?? 1), size: "30" });
 
@@ -31,6 +34,7 @@ export const storeQueries = {
   channels: (sid: number) => queryOptions({ queryKey: ["channels", sid], queryFn: () => api<any[]>(`/stores/${sid}/channels`), enabled: !!sid }),
   dashboard: (sid: number) => queryOptions({ queryKey: ["dashboard", sid], queryFn: () => api(`/stores/${sid}/dashboard`) }),
   products: (sid: number, params: URLSearchParams) => queryOptions({ queryKey: ["products", sid, params.toString()], queryFn: () => api(`/stores/${sid}/products?${params}`) }),
+  categories: (sid: number) => queryOptions({ queryKey: ["product-categories", sid], queryFn: () => api<{ name: string; count: number }[]>(`/stores/${sid}/product-categories`), enabled: !!sid }),
   operations: (sid: number, params: URLSearchParams) => queryOptions({ queryKey: ["operations", sid, params.toString()], queryFn: () => api(`/stores/${sid}/operations?${params}`) }),
   crawlSources: (sid: number) => queryOptions({ queryKey: ["crawl-sources", sid], queryFn: () => api<any[]>(`/stores/${sid}/crawl-sources`) }),
   platforms: () => queryOptions({ queryKey: ["platforms"], queryFn: () => api<any[]>("/platforms"), staleTime: 5 * 60_000 }),

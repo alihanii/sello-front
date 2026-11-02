@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Download, FileSpreadsheet, Grid2X2, ImageOff, List, Plus, Search, Send, Sparkles, Tag } from "lucide-react";
+import { Archive, Download, FileSpreadsheet, Grid2X2, ImageOff, List, Pencil, Plus, Search, Send, Sparkles, Tag } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import { productListParams, storeQueries, useChannels, useStoreId } from "@/lib/
 import { ChannelStatusStrip, SourceBadge } from "@/components/ui/status";
 import { PublishDialog } from "@/components/products/PublishDialog";
 import { ImportDialog } from "@/components/products/ImportDialog";
+import { BulkEditDialog } from "@/components/products/BulkEditDialog";
 import { Button, Card, EmptyState, Input, PageHeader, Select, Tabs, cn } from "@/components/ui/primitives";
 import { InlineSkeleton, ProductsBodySkeleton } from "@/components/ui/skeletons";
 
@@ -24,24 +25,37 @@ export default function Products() {
   const [stock, setStock] = useState(sp.get("stock") ?? "");
   const [chan, setChan] = useState("");
   const [status, setStatus] = useState("");
+  const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   // Phones get the card grid; a 7-column table is unreadable at 375px. (Signed-in pages render only in the browser.)
   const [view, setView] = useState<"table" | "grid">(() => (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? "grid" : "table"));
   const [selected, setSelected] = useState<number[]>([]);
+  // "Select all N products": bulk actions go to every product matching the current filters, not just this page.
+  const [allMatching, setAllMatching] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const { data: channels = [] } = useChannels(sid);
+  const { data: categories = [] } = useQuery(storeQueries.categories(sid));
 
-  const params = productListParams({ q, source, stock, status, page });
+  const params = productListParams({ q, source, stock, status, category, page });
   if (chan.startsWith("in:")) params.set("published_in", chan.slice(3));
   if (chan.startsWith("not:")) params.set("not_published_in", chan.slice(4));
   const { data, isPending, isPlaceholderData } = useQuery({ ...storeQueries.products(sid, params), placeholderData: keepPreviousData });
+  const filters = {
+    q, source, stock, status, category: category === "-" ? "" : category || null,
+    published_in: chan.startsWith("in:") ? Number(chan.slice(3)) : null,
+    not_published_in: chan.startsWith("not:") ? Number(chan.slice(4)) : null,
+  };
   const bulk = useMutation({
-    mutationFn: (body: any) => api(`/stores/${sid}/products/bulk`, { method: "POST", json: { product_ids: selected, ...body } }),
+    mutationFn: (body: any) => api(`/stores/${sid}/products/bulk`, { method: "POST",
+      json: allMatching ? { filters, ...body } : { product_ids: selected, ...body } }),
     onSuccess: (r, v: any) => {
-      toast.success(v.action === "publish" ? `${faNum(r.queued)} انتشار در صف قرار گرفت؛ وضعیت را در «فعالیت‌ها» ببینید.` : "انجام شد");
-      setSelected([]); setPublishOpen(false);
+      toast.success(v.action === "publish" ? `${faNum(r.queued)} انتشار در صف قرار گرفت؛ وضعیت را در «فعالیت‌ها» ببینید.`
+        : v.action === "edit" ? `${faNum(r.changed)} محصول تغییر کرد.` : "انجام شد");
+      setSelected([]); setAllMatching(false); setPublishOpen(false); setEditOpen(false);
       qc.invalidateQueries({ queryKey: ["products", sid] });
+      qc.invalidateQueries({ queryKey: ["product-categories", sid] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -57,6 +71,11 @@ export default function Products() {
   });
   const items: any[] = data?.items ?? [];
   const allSel = items.length > 0 && items.every((p) => selected.includes(p.id));
+  const selCount = allMatching ? data?.total ?? 0 : selected.length;
+  // A filter change makes "all matching" mean something else, so the selection starts over.
+  const filterKey = JSON.stringify(filters);
+  useEffect(() => { setAllMatching(false); setSelected([]); }, [filterKey]);
+  const toggle = (id: number, on: boolean) => { setAllMatching(false); setSelected(on ? [...selected, id] : selected.filter((x) => x !== id)); };
 
   const exportCsv = async () => {
     const res = await fetch(`${API_URL}/api/v1/stores/${sid}/products.csv`, { headers: { Authorization: `Bearer ${getToken()}` } });
@@ -88,12 +107,24 @@ export default function Products() {
           {channels.map((c: any) => <option key={`in${c.id}`} value={`in:${c.id}`}>منتشرشده در {c.display_name}</option>)}
           {channels.map((c: any) => <option key={`n${c.id}`} value={`not:${c.id}`}>منتشرنشده در {c.display_name}</option>)}
         </Select>
+        <Select className="w-auto" value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }} aria-label="دسته‌بندی">
+          <option value="">همهٔ دسته‌ها</option>
+          <option value="-">بدون دسته</option>
+          {categories.map((c) => <option key={c.name} value={c.name}>{c.name} ({faNum(c.count)})</option>)}
+        </Select>
         <Select className="w-auto" value={stock} onChange={(e) => { setStock(e.target.value); setPage(1); }} aria-label="موجودی">
           <option value="">همهٔ موجودی‌ها</option><option value="low">کم‌موجودی</option><option value="out">تمام‌شده</option>
         </Select>
         <Select className="w-auto" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} aria-label="وضعیت">
           <option value="">فعال</option><option value="draft">پیش‌نویس</option><option value="archived">آرشیو</option>
         </Select>
+        {view === "grid" && items.length > 0 && (
+          <label className="flex items-center gap-2 h-11 px-3 rounded-full bg-subtle text-[13px] font-semibold cursor-pointer">
+            <input type="checkbox" className="size-4 accent-[var(--primary)]" checked={allSel}
+              onChange={(e) => { setAllMatching(false); setSelected(e.target.checked ? items.map((p) => p.id) : []); }} />
+            انتخاب همه
+          </label>
+        )}
         <Tabs value={view} onChange={setView} items={[
           { value: "table", label: <List className="size-4" aria-label="جدول" /> },
           { value: "grid", label: <Grid2X2 className="size-4" aria-label="گرید" /> },
@@ -112,7 +143,7 @@ export default function Products() {
             <thead className="text-muted text-[12px] text-start">
               <tr className="border-b border-edge">
                 <th className="p-3 w-10"><input type="checkbox" aria-label="انتخاب همه" className="size-4 accent-[var(--primary)]" checked={allSel}
-                  onChange={(e) => setSelected(e.target.checked ? items.map((p) => p.id) : [])} /></th>
+                  onChange={(e) => { setAllMatching(false); setSelected(e.target.checked ? items.map((p) => p.id) : []); }} /></th>
                 <th className="p-3 text-start font-semibold">محصول</th>
                 <th className="p-3 text-start font-semibold">قیمت</th>
                 <th className="p-3 text-start font-semibold">موجودی</th>
@@ -125,14 +156,14 @@ export default function Products() {
               {items.map((p) => (
                 <tr key={p.id} className={cn("border-b border-edge last:border-0 hover:bg-subtle/60 transition", selected.includes(p.id) && "bg-primary/6")}>
                   <td className="p-3"><input type="checkbox" aria-label={`انتخاب ${p.title}`} className="size-4 accent-[var(--primary)]" checked={selected.includes(p.id)}
-                    onChange={(e) => setSelected(e.target.checked ? [...selected, p.id] : selected.filter((x) => x !== p.id))} /></td>
+                    onChange={(e) => toggle(p.id, e.target.checked)} /></td>
                   <td className="p-3">
                     <Link href={`/app/s/${sid}/products/${p.id}`} className="flex items-center gap-3 group">
                       {p.images[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-11 rounded-xl object-cover bg-subtle" loading="lazy" />
                         : <span className="size-11 rounded-xl bg-subtle grid place-items-center text-muted"><ImageOff className="size-4" /></span>}
                       <span>
                         <span className="block font-semibold group-hover:text-primary line-clamp-1">{p.title}</span>
-                        <span className="block text-muted text-[12px] tnum">{p.sku || `#${faNum(p.id)}`}{p.status === "draft" && " · پیش‌نویس"}</span>
+                        <span className="block text-muted text-[12px] tnum">{p.sku || `#${faNum(p.id)}`}{p.category && ` · ${p.category}`}{p.status === "draft" && " · پیش‌نویس"}</span>
                       </span>
                     </Link>
                   </td>
@@ -154,19 +185,27 @@ export default function Products() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {items.map((p) => (
-            <Link key={p.id} href={`/app/s/${sid}/products/${p.id}`}>
-              <Card className="overflow-hidden hover:-translate-y-0.5 transition h-full p-1.5">
-                <div className="aspect-square bg-subtle rounded-[18px] overflow-hidden">
-                  {p.images[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" loading="lazy" />
-                    : <div className="size-full grid place-items-center text-muted"><ImageOff className="size-6" /></div>}
-                </div>
-                <div className="p-2 sm:p-2.5 space-y-2">
-                  <div className="font-bold text-[14px] line-clamp-1">{p.title}</div>
-                  <div className="flex flex-wrap items-center justify-between gap-1"><span className="tnum text-[13px] font-semibold">{toman(p.price)}</span><SourceBadge source={p.source} /></div>
-                  <ChannelStatusStrip channels={channels} listings={p.listings} />
-                </div>
-              </Card>
-            </Link>
+            <div key={p.id} className="relative">
+              {/* Outside the link, so ticking it selects instead of opening the product. */}
+              <label className="absolute top-3 start-3 z-10 size-8 grid place-items-center rounded-full glass-strong cursor-pointer">
+                <input type="checkbox" aria-label={`انتخاب ${p.title}`} className="size-4 accent-[var(--primary)]"
+                  checked={allMatching || selected.includes(p.id)} onChange={(e) => toggle(p.id, e.target.checked)} />
+              </label>
+              <Link href={`/app/s/${sid}/products/${p.id}`} className="block h-full">
+                <Card className={cn("overflow-hidden hover:-translate-y-0.5 transition h-full p-1.5", selected.includes(p.id) && "ring-2 ring-primary/50")}>
+                  <div className="aspect-square bg-subtle rounded-[18px] overflow-hidden">
+                    {p.images[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" loading="lazy" />
+                      : <div className="size-full grid place-items-center text-muted"><ImageOff className="size-6" /></div>}
+                  </div>
+                  <div className="p-2 sm:p-2.5 space-y-2">
+                    <div className="font-bold text-[14px] line-clamp-1">{p.title}</div>
+                    {p.category && <div className="text-muted text-[12px] line-clamp-1 -mt-1.5">{p.category}</div>}
+                    <div className="flex flex-wrap items-center justify-between gap-1"><span className="tnum text-[13px] font-semibold">{toman(p.price)}</span><SourceBadge source={p.source} /></div>
+                    <ChannelStatusStrip channels={channels} listings={p.listings} />
+                  </div>
+                </Card>
+              </Link>
+            </div>
           ))}
         </div>
       )}
@@ -180,21 +219,29 @@ export default function Products() {
         </div>
       )}
 
-      {selected.length > 0 && (
+      {selCount > 0 && (
         <div className="fixed bottom-24 lg:bottom-5 inset-x-0 z-40 flex justify-center px-3">
           <Card strong className="flex flex-wrap items-center justify-center gap-2 p-2 ps-4 rounded-[22px]">
-            <span className="text-[14px] font-bold tnum">{faNum(selected.length)} مورد</span>
-            <Button size="sm" icon={<Send className="size-4" />} onClick={() => setPublishOpen(true)}>انتشار در…</Button>
+            <span className="text-[14px] font-bold tnum">{faNum(selCount)} مورد</span>
+            {data && !allMatching && allSel && data.total > items.length && (
+              <Button size="sm" variant="ghost" onClick={() => setAllMatching(true)}>انتخاب همهٔ {faNum(data.total)} محصول</Button>
+            )}
+            {allMatching && <Button size="sm" variant="ghost" onClick={() => setAllMatching(false)}>فقط همین صفحه</Button>}
+            <Button size="sm" icon={<Pencil className="size-4" />} onClick={() => setEditOpen(true)}>ویرایش گروهی</Button>
+            <Button size="sm" variant="secondary" icon={<Send className="size-4" />} onClick={() => setPublishOpen(true)}>انتشار در…</Button>
             <Button size="sm" variant="secondary" icon={<Tag className="size-4" />} onClick={() => {
               const tag = prompt("برچسب:"); if (tag) bulk.mutate({ action: "tag", tag });
             }}>برچسب</Button>
             <Button size="sm" variant="secondary" onClick={() => bulk.mutate({ action: "status", status: "ready" })}>آماده</Button>
             <Button size="sm" variant="danger" icon={<Archive className="size-4" />} onClick={() => bulk.mutate({ action: "archive" })}>آرشیو</Button>
-            <Button size="sm" variant="ghost" onClick={() => setSelected([])}>لغو</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setSelected([]); setAllMatching(false); }}>لغو</Button>
           </Card>
         </div>
       )}
       <ImportDialog storeId={sid} open={importOpen} onClose={() => setImportOpen(false)} />
+      <BulkEditDialog open={editOpen} onClose={() => setEditOpen(false)} storeId={sid} count={selCount} loading={bulk.isPending}
+        sample={allMatching ? items : items.filter((p) => selected.includes(p.id))}
+        onConfirm={(edit) => bulk.mutate({ action: "edit", edit })} />
       <PublishDialog open={publishOpen} onClose={() => setPublishOpen(false)} channels={channels} loading={bulk.isPending}
         onConfirm={(ids: number[], showPrice: boolean) => bulk.mutate({ action: "publish", channel_ids: ids, show_price: showPrice })} />
     </>
