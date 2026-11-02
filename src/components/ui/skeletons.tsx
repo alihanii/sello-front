@@ -143,7 +143,7 @@ export function ProductCardsSkeleton({ count = 8 }: { count?: number }) {
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4" aria-hidden>
       {Array.from({ length: count }, (_, i) => (
         <Card key={i} className="p-1.5">
-          <Skeleton className="aspect-square rounded-[18px]" />
+          <Skeleton className="aspect-square rounded-[10px]" />
           <div className="p-2 sm:p-2.5 space-y-2">
             <SkLine size={15} className="w-3/4" />
             <div className="flex justify-between"><SkLine className="w-16" /><Skeleton className="h-6 w-12 rounded-full" /></div>
@@ -215,7 +215,7 @@ export function BackTitleSkeleton({ title = true }: { title?: boolean }) {
 /** Tabs strip (segmented control). */
 export function TabsSkeleton({ count = 3, className }: { count?: number; className?: string }) {
   return (
-    <div className={cn("glass inline-flex max-w-full overflow-hidden rounded-full p-1 gap-1", className)}>
+    <div className={cn("glass inline-flex max-w-full overflow-hidden rounded-xl p-1 gap-1", className)}>
       {Array.from({ length: count }, (_, i) => <Skeleton key={i} className={cn("h-9 rounded-full shrink-0", i === 0 ? "w-20" : "w-24")} />)}
     </div>
   );
@@ -317,7 +317,7 @@ export function CalendarSkeleton({ header = true }: { header?: boolean }) {
           <PageHeaderSkeleton />
           <Card className="p-3 mb-4 flex flex-wrap items-center gap-2">
             <TabsSkeleton count={3} />
-            <Skeleton className="h-9 w-56 rounded-full" />
+            <Skeleton className="h-9 w-56 rounded-[10px]" />
             <div className="flex-1" />
             <Skeleton className="h-11 w-36 rounded-2xl" />
           </Card>
@@ -364,7 +364,7 @@ export function ChannelsBodySkeleton() {
             <Skeleton className="size-11 rounded-xl" />
             <SkLine size={15} className="w-24 mt-3" />
             <div className="flex gap-1 mt-2"><Skeleton className="h-6 w-14 rounded-full" /><Skeleton className="h-6 w-12 rounded-full" /></div>
-            <Skeleton className="h-9 mt-4 rounded-full" />
+            <Skeleton className="h-9 mt-4 rounded-[10px]" />
           </Card>
         ))}
       </div>

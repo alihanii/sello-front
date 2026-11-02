@@ -31,7 +31,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh lg:ps-[292px]">
-      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-[28px] p-4 hidden lg:flex flex-col gap-4 z-20">
+      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-[14px] p-4 hidden lg:flex flex-col gap-4 z-20">
         <div className="flex items-center justify-between px-1 pt-1"><Logo /><Chip tone="warning">ادمین</Chip></div>
         <nav className="flex flex-col gap-1" aria-label="منوی ادمین">
           {ITEMS.map((it) => {
@@ -51,7 +51,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4">
-        <div className="glass rounded-full h-14 px-2 sm:px-3 flex items-center gap-2">
+        <div className="glass rounded-2xl h-14 px-2 sm:px-3 flex items-center gap-2">
           <div className="lg:hidden flex items-center gap-2 ps-1"><Logo className="text-[18px]" /><Chip tone="warning">ادمین</Chip></div>
           <div className="flex-1" />
           <ThemeToggle />
@@ -60,7 +60,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <main key={path} className="page-in px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px]">{children}</main>
 
-      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-[26px] px-1.5 pt-1.5 pb-safe" aria-label="منوی ادمین">
+      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-[14px] px-1.5 pt-1.5 pb-safe" aria-label="منوی ادمین">
         <div className="grid grid-cols-5">
           {ITEMS.filter((it) => it.tab).map((it) => {
             const active = isActive(it);

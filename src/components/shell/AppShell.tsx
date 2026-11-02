@@ -13,6 +13,9 @@ import { faDigits, faNum } from "@/lib/format";
 import { prefetchStorePage, useMe, useOperationsStream, useStores } from "@/lib/hooks";
 import { Button, Sheet, cn } from "@/components/ui/primitives";
 import { NotificationBell } from "./Notifications";
+import { Logo } from "./Brand";
+
+export { Logo };
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -30,20 +33,6 @@ export function ThemeToggle() {
     <Button variant="ghost" size="sm" onClick={toggle} aria-label="تغییر تم">
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
-  );
-}
-
-export function Logo({ className, compact }: { className?: string; compact?: boolean }) {
-  return (
-    <span className={cn("inline-flex items-center gap-2.5 font-black text-[21px] tracking-tight", className)}>
-      {/* Price-tag mark: a seller's tag, not a robot. */}
-      <svg viewBox="0 0 32 32" className="size-9 shrink-0" aria-hidden>
-        <rect x="1" y="1" width="30" height="30" rx="10" className="fill-primary" />
-        <path d="M10 9.5h7.6c.5 0 1 .2 1.4.6l4.4 4.4c.8.8.8 2 0 2.8l-6.2 6.2c-.8.8-2 .8-2.8 0l-4.4-4.4c-.4-.4-.6-.9-.6-1.4V10c0-.3.2-.5.6-.5Z" fill="none" strokeWidth="2" strokeLinejoin="round" className="stroke-primary-fg" />
-        <circle cx="13.6" cy="13.4" r="1.6" fill="#fbbf24" />
-      </svg>
-      {!compact && <span dir="ltr">Sello</span>}
-    </span>
   );
 }
 
@@ -149,7 +138,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
   return (
     <div className="min-h-dvh lg:ps-[292px]">
       {/* Desktop: floating glass sidebar */}
-      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-[28px] p-4 hidden lg:flex flex-col gap-4 z-20">
+      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-[14px] p-4 hidden lg:flex flex-col gap-4 z-20">
         <div className="px-1 pt-1"><Logo /></div>
         <StoreSwitcher storeId={storeId} />
         <nav className="flex flex-col gap-1 overflow-y-auto no-scrollbar" aria-label="منوی اصلی">
@@ -161,7 +150,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
       </aside>
 
       <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4">
-        <div className="glass rounded-full h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
+        <div className="glass rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
           <Link href={base} className="lg:hidden ps-1" aria-label="داشبورد"><Logo className="text-[18px]" /></Link>
           <div className="flex-1" />
           <ActivityIndicator storeId={storeId} />
@@ -178,7 +167,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
       <main key={path} className="page-in px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px]">{children}</main>
 
       {/* Mobile/tablet: bottom tab bar (4 primary destinations + more) */}
-      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-[26px] px-1.5 pt-1.5 pb-safe" aria-label="منوی اصلی">
+      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-[14px] px-1.5 pt-1.5 pb-safe" aria-label="منوی اصلی">
         <div className="grid grid-cols-5">
           {items.filter((i) => i.tab).map((it) => {
             const active = isActive(it.href, it.exact);

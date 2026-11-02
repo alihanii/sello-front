@@ -13,7 +13,7 @@ export default function Pricing() {
   const { data: plans } = useQuery({ queryKey: ["plans"], queryFn: () => api<any[]>("/plans") });
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <header className="glass rounded-full h-14 px-3 sm:px-4 flex items-center justify-between mb-10 sm:mb-14">
+      <header className="glass rounded-2xl h-14 px-3 sm:px-4 flex items-center justify-between mb-10 sm:mb-14">
         <Link href="/"><Logo /></Link>
         <div className="flex items-center gap-2"><ThemeToggle /><Link href="/login"><Button size="sm">ورود</Button></Link></div>
       </header>

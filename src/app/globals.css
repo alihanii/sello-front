@@ -54,7 +54,6 @@
     --subtle: rgba(255, 255, 255, 0.06);
     --line: rgba(255, 255, 255, 0.08);
     --raised: rgba(255, 255, 255, 0.12);
-  --raised: rgba(255, 255, 255, 0.12);
     --primary: #34d399;
     --primary-hover: #6ee7b7;
     --primary-fg: #022c22;
@@ -137,7 +136,12 @@
   --color-edge: var(--glass-edge);
   --font-sans: var(--font-vazir), system-ui, sans-serif;
   --font-mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
-  --radius-card: 24px;
+  --radius-card: 14px;
+  /* Sharper corners across the app: one step tighter than Tailwind defaults. */
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
 }
 
 html {
@@ -161,13 +165,14 @@ body {
   overflow: hidden;
   pointer-events: none;
 }
+/* Radial gradients instead of filter: blur(90px): same soft field, but no huge blurred layer
+   for weak GPUs to rasterise. */
 .scene .orb {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(90px);
 }
-.scene .orb:nth-child(1) { width: 60vmax; height: 60vmax; top: -24vmax; inset-inline-start: -18vmax; background: var(--orb-1); }
-.scene .orb:nth-child(2) { width: 54vmax; height: 54vmax; bottom: -26vmax; inset-inline-end: -18vmax; background: var(--orb-2); }
+.scene .orb:nth-child(1) { width: 90vmax; height: 90vmax; top: -45vmax; inset-inline-start: -35vmax; background: radial-gradient(closest-side, var(--orb-1), transparent); }
+.scene .orb:nth-child(2) { width: 80vmax; height: 80vmax; bottom: -42vmax; inset-inline-end: -34vmax; background: radial-gradient(closest-side, var(--orb-2), transparent); }
 
 @layer components {
 .glass,

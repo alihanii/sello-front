@@ -41,7 +41,7 @@ export function NotificationBell({ storeId }: { storeId: number }) {
         <Bell className="size-[18px]" />
         {unread > 0 && <span className="absolute top-1 end-1 min-w-4 h-4 px-1 rounded-full bg-danger text-white text-[10px] font-bold grid place-items-center tnum">{faNum(Math.min(unread, 99))}</span>}
       </Button>
-      <div className={cn("glass-strong absolute z-40 top-12 -end-2 w-[min(380px,calc(100vw-24px))] rounded-[22px] p-2 origin-top-left transition-all duration-200",
+      <div className={cn("glass-strong absolute z-40 top-12 -end-2 w-[min(380px,calc(100vw-24px))] rounded-[12px] p-2 origin-top-left transition-all duration-200",
         open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-1 pointer-events-none")} role="dialog" aria-label="اعلان‌ها">
         <div className="flex items-center justify-between px-2 py-1.5">
           <span className="font-bold text-[14px]">اعلان‌ها</span>

@@ -223,7 +223,7 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
     return (
       <div className="space-y-4" aria-busy="true">
         <div className="grid grid-cols-2 gap-2">{Array.from({ length: 6 }, (_, i) => <div key={i} className="rounded-xl bg-subtle p-3 space-y-2"><SkLine size={12} className="w-16" /><SkLine size={20} className="w-8" /></div>)}</div>
-        <Skeleton className="h-9 rounded-full" />
+        <Skeleton className="h-9 rounded-[10px]" />
         <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-8 rounded-xl" />)}</div>
       </div>
     );
