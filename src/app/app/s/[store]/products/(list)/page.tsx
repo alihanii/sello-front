@@ -232,7 +232,8 @@ export default function Products() {
             <Button size="sm" variant="secondary" icon={<Tag className="size-4" />} onClick={() => {
               const tag = prompt("برچسب:"); if (tag) bulk.mutate({ action: "tag", tag });
             }}>برچسب</Button>
-            <Button size="sm" variant="secondary" onClick={() => bulk.mutate({ action: "status", status: "ready" })}>آماده</Button>
+            <Button size="sm" variant="secondary" title="محصولات پیش‌نویس (مثلاً ساخته‌شده با AI) تأیید و فعال می‌شوند"
+              onClick={() => bulk.mutate({ action: "status", status: "ready" })}>تأیید پیش‌نویس</Button>
             <Button size="sm" variant="danger" icon={<Archive className="size-4" />} onClick={() => bulk.mutate({ action: "archive" })}>آرشیو</Button>
             <Button size="sm" variant="ghost" onClick={() => { setSelected([]); setAllMatching(false); }}>لغو</Button>
           </Card>
