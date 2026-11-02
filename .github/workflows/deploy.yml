@@ -1,5 +1,6 @@
-# Every push to main: build the frontend image here, copy it to the server over SSH and restart it.
-# The stack (docker-compose.yml, Caddyfile, .env) is set up on the server by sello-back's deploy workflow.
+# build: on every pull request and push to main, build the frontend image (a failed build stops here).
+# deploy: on push to main only, copy the built image to the server over SSH and restart the frontend.
+# The stack (docker-compose.yml, nginx site, .env) is set up on the server by sello-back's deploy workflow.
 #
 # Repository secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, optional SSH_PORT (default 22).
 # Repository variables: NEXT_PUBLIC_API_URL (the site address, e.g. https://sello.example.com),
@@ -9,17 +10,18 @@ name: deploy
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-server
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('build-{0}', github.ref) || 'deploy-server' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/sello' }}
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,9 +32,28 @@ jobs:
         run: test -n "$API_URL" || { echo "::error::Set the NEXT_PUBLIC_API_URL repository variable"; exit 1; }
 
       - name: Build image
-        run: |
-          docker build --build-arg NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" -t sello-front:latest .
-          docker save sello-front:latest | gzip -1 > sello-front.tar.gz
+        run: docker build --build-arg NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" -t sello-front:latest .
+
+      - name: Save image
+        if: github.event_name != 'pull_request'
+        run: docker save sello-front:latest | gzip -1 > sello-front.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: sello-front-image
+          path: sello-front.tar.gz
+          retention-days: 3
+          compression-level: 0
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sello-front-image
 
       - name: SSH setup
         env:
@@ -42,7 +63,7 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
           printf 'Host server\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/id_deploy\n  ServerAliveInterval 30\n' \
             "$SSH_HOST" "$SSH_USER" "$SSH_PORT" > ~/.ssh/config
