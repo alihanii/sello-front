@@ -86,6 +86,19 @@
 .ld-typing i:nth-child(2) { animation-delay: 1150ms; }
 .ld-typing i:nth-child(3) { animation-delay: 1300ms; }
 
+
+/* Stock number in the hero: 5 becomes 4 when the chat order lands (2.6s). */
+@keyframes ld-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes ld-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ld-swap-old { animation: ld-out 260ms var(--ld-ease) 2700ms both; }
+.ld-swap-new { animation: ld-in 300ms var(--ld-ease) 2800ms backwards; }
+
+@keyframes ld-seq { from { transform: translateY(14px) scale(0.97); } to { transform: none; } }
+/* Chat in its section (transform only): each message settles in as it scrolls into view. Off-screen = already final. */
+@supports (animation-timeline: view()) {
+  .ld-seq { animation: ld-seq linear both; animation-timeline: view(); animation-range: entry 10% cover 30%; }
+}
+
 /* ---------- Scroll reveal: compositor-driven, no JS, no IntersectionObserver ---------- */
 /* Transform only: text keeps full contrast at every frame (and for audits of off-screen rows). */
 @keyframes ld-reveal { from { transform: translateY(24px); } to { transform: none; } }
@@ -94,7 +107,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ld-msg, .ld-reveal, .ld-typing, .ld-typing i { animation: none !important; }
+  .ld-msg, .ld-reveal, .ld-seq, .ld-swap-new, .ld-typing, .ld-typing i { animation: none !important; }
+  .ld-swap-old { animation: none !important; opacity: 0; }
   .ld-typing { display: none; }
   .ld-btn, .ld-arrow { transition: none; }
 }

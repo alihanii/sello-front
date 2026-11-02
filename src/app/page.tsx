@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Clock3, History, MessageSquareText, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Check, History, MessageSquareText, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/shell/Brand";
 import { PlatformIcon } from "@/components/ui/PlatformIcon";
@@ -53,7 +53,7 @@ function Hero() {
           <span className="block text-primary">که خودت تربیتش می‌کنی.</span>
         </h1>
         <p className="text-muted text-[17px] sm:text-[19px] leading-[1.9] mt-6 max-w-[33rem]">
-          سلو جواب مشتری‌هات رو می‌ده، سفارش می‌گیره، محصول می‌سازه و توی همهٔ کانال‌هات منتشر می‌کنه. تو فقط از یه جا فروشت رو می‌بینی.
+          محصول، موجودی، انتشار، گفتگو با مشتری و سفارش؛ سلو همهٔ کارهای فروشگاهت رو از یه پنل می‌چرخونه. تو فقط تصمیم می‌گیری.
         </p>
         <div className="flex flex-wrap gap-3 mt-9">
           <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary">
@@ -68,24 +68,75 @@ function Hero() {
           <span className="text-[13px] text-muted">تلگرام، بله، اینستاگرام و دیجی‌کالا</span>
         </div>
       </div>
-      <ChatDemo />
+      <PanelDemo />
     </section>
   );
 }
 
-/** One authored moment: a question turned into an order. Pure CSS, and the final frame is the default state. */
-function ChatDemo() {
+/** Hero's one authored moment: the seller's panel. Products arrive from different sources, then an
+    order from chat lowers a stock number. Pure CSS, plays once, final frame is the default state. */
+function PanelDemo() {
+  const rows = [
+    { name: "هودی مشکی قلب هندسی", code: "H12", src: "کرال اینستاگرام", tone: "crawl", stock: true, ch: ["telegram", "bale", "digikala"], color: "#111827" },
+    { name: "تیشرت سفید مینیمال", code: "T07", src: "ساخت با AI", tone: "ai", stockN: "۱۲", ch: ["telegram", "bale"], color: "#e5e7eb" },
+    { name: "سویشرت طوسی کلاه‌دار", code: "S03", src: "کرال تلگرام", tone: "crawl", stockN: "۲", low: true, ch: ["telegram"], color: "#6b7280" },
+    { name: "ماگ سرامیکی طرح‌دار", code: "M21", src: "دستی", tone: "neutral", stockN: "۳۰", ch: ["bale", "digikala"], color: "#0f766e" },
+  ];
+  const toneCls: Record<string, string> = { crawl: "bg-crawl/12 text-crawl", ai: "bg-ai/12 text-ai", neutral: "bg-subtle text-muted" };
   return (
-    <div className="relative mx-auto w-full max-w-[400px]" role="img" aria-label="نمونهٔ گفتگوی دستیار سلو با مشتری که به سفارش می‌رسد">
-      <div className="ld-msg absolute -top-12 end-0 z-10 ld-float rounded-[10px] px-3 py-2 flex items-center gap-2 text-[12.5px] font-bold" style={S({ "--d": "200ms" })}>
-        <span className="flex -space-x-1.5 space-x-reverse" aria-hidden>
-          <i className="size-5 rounded-full bg-[#f59e0b] ring-2 ring-[var(--raised-solid)]" />
-          <i className="size-5 rounded-full bg-[#3b82f6] ring-2 ring-[var(--raised-solid)]" />
-          <i className="size-5 rounded-full bg-[#ec4899] ring-2 ring-[var(--raised-solid)]" />
-        </span>
-        <span className="tnum">۳۸ گفتگوی هم‌زمان</span>
+    <div className="relative mx-auto w-full max-w-[460px]" role="img" aria-label="نمای پنل سلو: محصول‌ها از کرال، AI و ورود دستی، موجودی و کانال‌های منتشرشده">
+      <div className="ld-msg absolute -top-12 end-0 z-10 ld-float rounded-[10px] px-3 py-2 flex items-center gap-2 text-[12.5px] font-bold" style={S({ "--d": "300ms" })}>
+        <PlatformIcon platform="instagram" size={20} />
+        <span className="tnum">۱۲ محصول جدید از پیجت کرال شد</span>
       </div>
 
+      <div className="ld-phone rounded-[16px] overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-line">
+          <div className="font-extrabold text-[14px]">محصولات <span className="text-muted font-semibold">· فروشگاه هودی</span></div>
+          <div className="flex gap-1 text-[11.5px] font-bold">
+            <span className="rounded-[6px] bg-ink text-ink-fg px-2 py-0.5">همه</span>
+            <span className="rounded-[6px] bg-subtle text-muted px-2 py-0.5">کم‌موجود</span>
+          </div>
+        </div>
+        <ul className="divide-y divide-line text-[12.5px]">
+          {rows.map((r, i) => (
+            <li key={r.code} className="ld-msg flex items-center gap-3 px-4 py-3" style={S({ "--d": `${500 + i * 120}ms` })}>
+              <span className="size-10 shrink-0 rounded-[8px] grid place-items-center" style={{ background: r.color }} aria-hidden>
+                <svg viewBox="0 0 40 40" className="size-6"><path d="M14 8l-7 5 3 6 3-2v15h14V17l3 2 3-6-7-5c-1 2.5-3 4-6 4s-5-1.5-6-4z" fill="rgba(255,255,255,.28)" /></svg>
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-[13px] truncate">{r.name}</div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className={`rounded-[5px] px-1.5 py-px text-[10.5px] font-bold ${toneCls[r.tone]}`}>{r.src}</span>
+                  <span className="text-muted tnum">{r.code}</span>
+                </div>
+              </div>
+              <div className="text-end shrink-0">
+                <div className={`font-extrabold tnum ${r.low ? "text-warning" : ""}`}>
+                  {r.stock ? (
+                    <span className="ld-swap relative inline-grid"><span className="ld-swap-old col-start-1 row-start-1">۵</span><span className="ld-swap-new col-start-1 row-start-1 text-primary">۴</span></span>
+                  ) : r.stockN}
+                  <span className="text-muted font-semibold text-[11px]"> عدد</span>
+                </div>
+                <div className="flex gap-0.5 justify-end mt-1">{r.ch.map((c) => <PlatformIcon key={c} platform={c} size={16} />)}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="ld-msg absolute -bottom-6 start-3 sm:-start-8 ld-float rounded-[10px] px-3.5 py-2.5 flex items-center gap-2.5 text-[12.5px] font-bold max-w-[85%]" style={S({ "--d": "2600ms" })}>
+        <PlatformIcon platform="telegram" size={22} />
+        <span>سفارش جدید از چت: هودی H12 · موجودی آپدیت شد</span>
+      </div>
+    </div>
+  );
+}
+
+/** A chat that becomes an order; messages appear as they scroll into view (CSS scroll timeline). */
+function ChatDemo() {
+  return (
+    <div className="relative mx-auto w-full max-w-[380px]" role="img" aria-label="نمونهٔ گفتگوی دستیار سلو با مشتری که به سفارش می‌رسد">
       <div className="ld-phone rounded-[18px] p-3 sm:p-4">
         <div className="flex items-center gap-3 px-1.5 pb-3 border-b border-line">
           <span className="size-10 rounded-full bg-[#111827] text-white grid place-items-center font-black text-[14px]" aria-hidden>م</span>
@@ -97,14 +148,13 @@ function ChatDemo() {
         </div>
 
         <div className="flex flex-col gap-2.5 pt-4 pb-1 text-[13.5px] leading-[1.8]">
-          <div className="ld-msg ld-msg-in self-start max-w-[80%] rounded-[12px] rounded-se-[4px] bg-subtle px-3.5 py-2" style={S({ "--d": "500ms" })}>
+          <div className="ld-seq ld-msg-in self-start max-w-[80%] rounded-[12px] rounded-se-[4px] bg-subtle px-3.5 py-2">
             سلام، این هودی مشکی سایز L داری؟
             <span className="block text-[10.5px] text-muted text-end tnum">۰۳:۱۲</span>
           </div>
 
           <div className="relative self-end w-[84%]">
-            <div className="ld-typing absolute end-0 top-0 flex gap-1 rounded-[12px] bg-primary-soft px-3.5 py-3" aria-hidden><i /><i /><i /></div>
-            <div className="ld-msg ld-msg-out rounded-[12px] rounded-ss-[4px] bg-primary-soft p-2" style={S({ "--d": "1900ms" })}>
+            <div className="ld-seq ld-msg-out rounded-[12px] rounded-ss-[4px] bg-primary-soft p-2">
               <div className="flex gap-3 items-center rounded-[8px] bg-[var(--raised-solid)] p-2">
                 <ProductThumb />
                 <div className="min-w-0">
@@ -117,11 +167,11 @@ function ChatDemo() {
             </div>
           </div>
 
-          <div className="ld-msg ld-msg-in self-start rounded-[12px] rounded-se-[4px] bg-subtle px-3.5 py-2" style={S({ "--d": "2900ms" })}>
+          <div className="ld-seq ld-msg-in self-start rounded-[12px] rounded-se-[4px] bg-subtle px-3.5 py-2">
             آره، یکی بفرست
           </div>
 
-          <div className="ld-msg ld-msg-out self-end w-[84%] rounded-[12px] rounded-ss-[4px] bg-primary-soft px-3.5 py-2.5" style={S({ "--d": "3700ms" })}>
+          <div className="ld-seq ld-msg-out self-end w-[84%] rounded-[12px] rounded-ss-[4px] bg-primary-soft px-3.5 py-2.5">
             <div className="font-bold mb-1">خلاصهٔ سفارشت</div>
             <Row a="هودی H12 · L × ۱" b="۸۵۰٬۰۰۰" />
             <Row a="ارسال" b="۹۰٬۰۰۰" muted />
@@ -130,7 +180,7 @@ function ChatDemo() {
         </div>
       </div>
 
-      <div className="ld-msg absolute -bottom-5 start-3 sm:-start-6 ld-float rounded-[10px] px-4 py-2.5 flex items-center gap-2.5 text-[13px] font-bold" style={S({ "--d": "4500ms" })}>
+      <div className="ld-seq absolute -bottom-5 start-3 sm:-start-6 ld-float rounded-[10px] px-4 py-2.5 flex items-center gap-2.5 text-[13px] font-bold">
         <span className="size-5 rounded-full bg-primary text-primary-fg grid place-items-center" aria-hidden><Check className="size-3" strokeWidth={3} /></span>
         سفارش ثبت شد، منتظر تأیید توئه
       </div>
@@ -154,39 +204,39 @@ function ProductThumb({ size = "size-14" }: { size?: string }) {
 
 const SEVEN: { title: string; text: string; visual: React.ReactNode }[] = [
   {
-    title: "فروشت رو از یه جا مدیریت کن",
-    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا کنار هم. محصول، گفتگو و سفارش همه یه جاست؛ دیگه لازم نیست بین ده تا اپ بچرخی.",
+    title: "کل فروشگاهت توی یه پنل",
+    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا کنار هم: محصول، موجودی، انتشار، گفتگو و سفارش. چند تا فروشگاه هم داشته باشی، همه از همین‌جا.",
     visual: <VisHub />,
   },
   {
-    title: "ادمینی که هیچ‌وقت نمی‌خوابه",
-    text: "ساعت ۳ صبح هم جواب می‌ده. نه مرخصی می‌خواد، نه دیر جواب می‌ده، نه حواسش پرت می‌شه.",
-    visual: <VisNight />,
+    title: "محصول‌هات خودشون میان",
+    text: "پیج اینستاگرام، کانال تلگرام و بله یا پنل دیجی‌کالات رو بده؛ سلو پست‌ها رو کرال می‌کنه و با AI ازشون محصول کامل با قیمت و ویژگی درمیاره.",
+    visual: <VisCrawl />,
   },
   {
-    title: "خودت تربیتش می‌کنی",
-    text: "لحنش، سؤال‌های پرتکرار، قوانین فروشگاه، جدول سایز و ساعت کاری رو یادش می‌دی؛ همون‌جوری جواب می‌ده که خودت می‌دادی.",
+    title: "عکس و اطلاعات محصول با AI",
+    text: "یه عکس با گوشی و یه خط توضیح کافیه. عکس تمیز با زمینهٔ سفید، عنوان، توضیحات، دسته و ویژگی‌ها رو سلو می‌سازه.",
+    visual: <VisMake />,
+  },
+  {
+    title: "موجودی و انبار همیشه درسته",
+    text: "موجودی هر محصول یه جاست. با هر سفارش خودش کم می‌شه، کم‌موجودها رو نشونت می‌ده و از اکسل هم یه‌جا آپدیت می‌شه.",
+    visual: <VisStock />,
+  },
+  {
+    title: "یه بار بساز، همه‌جا منتشر کن",
+    text: "با یه کلیک توی همهٔ کانال‌هات می‌ره، هر کدوم با شکل خودش. هر اتفاقی بیفته رو مرحله‌به‌مرحله و توی تقویم می‌بینی.",
+    visual: <VisPublish />,
+  },
+  {
+    title: "ادمین چتی که خودت تربیتش می‌کنی",
+    text: "لحن، سؤال‌های پرتکرار، قوانین و جدول سایز رو یادش می‌دی؛ بعد ۲۴ ساعته و با صد نفر هم‌زمان همون‌جوری جواب می‌ده که خودت می‌دادی.",
     visual: <VisTrain />,
   },
   {
     title: "سفارش‌گیر حرفه‌ای",
-    text: "رنگ و سایز و آدرس رو می‌پرسه، جمع رو از روی قیمت واقعی حساب می‌کنه، فیش رو می‌گیره و می‌ذاره جلوت که فقط تأیید کنی.",
+    text: "رنگ و سایز و آدرس رو می‌پرسه، جمع رو از قیمت واقعی حساب می‌کنه، فیش رو می‌گیره و می‌ذاره جلوت که فقط تأیید کنی.",
     visual: <VisOrder />,
-  },
-  {
-    title: "با صد نفر هم‌زمان حرف می‌زنه",
-    text: "یه مشتری باشه یا صد تا، فرقی نداره. هیچ‌کس توی صف نمی‌مونه و هیچ پیامی بی‌جواب نمی‌مونه.",
-    visual: <VisMany />,
-  },
-  {
-    title: "محصول رو خودش می‌سازه",
-    text: "یه عکس با گوشی و یه خط توضیح کافیه. عنوان، توضیحات، ویژگی‌ها و عکس تمیز رو سلو آماده می‌کنه.",
-    visual: <VisMake />,
-  },
-  {
-    title: "یه بار بساز، همه‌جا منتشر کن",
-    text: "با یه کلیک توی همهٔ کانال‌هات می‌ره، هر کدوم با شکل خودش. هر اتفاقی هم بیفته، مرحله‌به‌مرحله می‌بینی.",
-    visual: <VisPublish />,
   },
 ];
 
@@ -198,7 +248,7 @@ function What() {
           سلو قرار نیست برات فروشگاه بسازه.<br className="hidden sm:block" />
           <span className="text-primary"> قراره فروشگاهت رو بچرخونه.</span>
         </h2>
-        <p className="text-muted text-[17px] mt-4 leading-[1.9]">هفت کاری که از روزی که وصلش کنی، به‌جات انجام می‌ده:</p>
+        <p className="text-muted text-[17px] mt-4 leading-[1.9]">از روزی که وصلش کنی، این هفت کار با سلوئه:</p>
       </div>
 
       <ol className="mt-10 sm:mt-14 border-t border-line">
@@ -234,12 +284,32 @@ function VisHub() {
     </VisBox>
   );
 }
-function VisNight() {
+function VisCrawl() {
   return (
     <VisBox>
-      <div className="flex items-center gap-2 text-muted"><Clock3 className="size-4" /><span className="tnum font-bold">۰۳:۱۲ بامداد</span></div>
-      <div className="mt-2 rounded-[8px] bg-primary-soft px-2.5 py-1.5">سلام عزیزم، آره موجوده 🌱</div>
-      <div className="mt-1.5 text-[11.5px] text-primary font-bold">جواب در ۲ ثانیه</div>
+      <div className="flex items-center gap-2">
+        <PlatformIcon platform="instagram" size={24} />
+        <span className="font-bold">۲۵ پست آخر پیج</span>
+        <ArrowLeft className="size-3.5 text-primary" />
+        <span className="rounded-[5px] bg-ai/12 text-ai px-1.5 py-px font-bold text-[11px]">AI</span>
+      </div>
+      <div className="mt-2.5 space-y-1">
+        <Row a="هودی قلب هندسی · H12" b="۸۵۰٬۰۰۰" />
+        <Row a="تیشرت مینیمال · T07" b="۴۲۰٬۰۰۰" />
+        <Row a="۱۰ محصول دیگه…" b="" muted />
+      </div>
+    </VisBox>
+  );
+}
+function VisStock() {
+  return (
+    <VisBox>
+      {[["هودی H12", "۴", ""], ["سویشرت S03", "۲", "low"], ["ماگ M21", "۳۰", ""]].map(([n, q, low]) => (
+        <div key={n} className="flex items-center justify-between py-0.5">
+          <span className="font-semibold">{n}</span>
+          <span className={`tnum font-extrabold ${low ? "text-warning" : ""}`}>{q} عدد{low ? " · کم‌موجود" : ""}</span>
+        </div>
+      ))}
     </VisBox>
   );
 }
@@ -263,18 +333,6 @@ function VisOrder() {
         <span className="font-bold">فیش دریافت شد</span>
         <span className="rounded-[6px] bg-primary text-primary-fg px-2 py-0.5 font-bold">تأیید</span>
       </div>
-    </VisBox>
-  );
-}
-function VisMany() {
-  const colors = ["#f59e0b", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#ef4444", "#14b8a6", "#f97316"];
-  return (
-    <VisBox>
-      <div className="flex -space-x-2 space-x-reverse">
-        {colors.map((c) => <i key={c} className="size-7 rounded-full ring-2 ring-[var(--raised-solid)]" style={{ background: c }} />)}
-        <span className="size-7 rounded-full ring-2 ring-[var(--raised-solid)] bg-subtle grid place-items-center text-[10px] font-bold tnum">+۹۲</span>
-      </div>
-      <div className="mt-2.5 font-bold">۱۰۰ گفتگو، همه در حال جواب گرفتن</div>
     </VisBox>
   );
 }
@@ -314,37 +372,37 @@ function VisPublish() {
 /* ---------------- Chatbot spotlight ---------------- */
 
 const CHAT_POINTS = [
-  { icon: UserRound, title: "از پیوی خودت جواب می‌ده", text: "وصلش کن به حساب تلگرامت؛ به اسم خودت و توی پیوی خودت با مشتری حرف می‌زنه. مشتری فکر می‌کنه داره با خودت چت می‌کنه." },
-  { icon: MessageSquareText, title: "تلگرام و بله", text: "یا روی ربات اختصاصی فروشگاهت توی تلگرام و بله، یا مستقیم توی پیوی تلگرام. هر جا مشتری‌هات هستن." },
-  { icon: History, title: "گزارش دقیق از هر گفتگو", text: "تاریخچهٔ کامل هر چت، سفارش‌هایی که گرفته، فیش‌ها و حتی هزینهٔ هر پیام رو می‌بینی." },
-  { icon: ShieldCheck, title: "حرف بی‌ربط نمی‌زنه", text: "فقط دربارهٔ محصول و فروش حرف می‌زنه، قیمت رو از دیتابیس می‌خونه و هر وقت مشتری آدم بخواد، گفتگو رو می‌ده دست تو." },
+  { icon: UserRound, title: "از پیوی خودت جواب می‌ده", text: "به اسم خودت توی پیوی تلگرامت با مشتری حرف می‌زنه؛ مشتری فکر می‌کنه داره با خودت چت می‌کنه." },
+  { icon: MessageSquareText, title: "تلگرام و بله", text: "روی ربات فروشگاهت توی تلگرام و بله، یا مستقیم توی پیوی تلگرام." },
+  { icon: History, title: "گزارش دقیق از هر گفتگو", text: "تاریخچهٔ کامل هر چت، سفارش‌ها، فیش‌ها و هزینهٔ هر پیام." },
+  { icon: ShieldCheck, title: "حرف بی‌ربط نمی‌زنه", text: "فقط دربارهٔ فروش حرف می‌زنه و هر وقت مشتری آدم بخواد، گفتگو رو می‌ده دست تو." },
 ];
 
 function ChatBot() {
   return (
-    <section id="chat" className="py-16 sm:py-24 scroll-mt-20" aria-labelledby="chat-title">
-      <div className="ld-panel rounded-[20px] p-6 sm:p-10 lg:p-14 grid lg:grid-cols-[1fr_1.05fr] gap-10 lg:gap-14 items-center">
+    <section id="chat" className="py-16 sm:py-20 scroll-mt-20" aria-labelledby="chat-title">
+      <div className="ld-panel rounded-[20px] p-6 sm:p-10 lg:p-12 grid lg:grid-cols-[1.15fr_1fr] gap-10 lg:gap-14 items-center">
         <div>
-          <div className="flex gap-1.5 mb-6"><PlatformIcon platform="telegram" size={36} /><PlatformIcon platform="bale" size={36} /></div>
-          <h2 id="chat-title" className="text-[30px] sm:text-[40px] font-black tracking-tight leading-[1.3] text-balance">
-            دستیار چتی که مشتری نمی‌فهمه رباته.
+          <div className="flex items-center gap-2 text-[13px] font-bold text-muted mb-4">
+            <PlatformIcon platform="telegram" size={24} /><PlatformIcon platform="bale" size={24} />
+            یکی از کارهای سلو
+          </div>
+          <h2 id="chat-title" className="text-[26px] sm:text-[34px] font-black tracking-tight leading-[1.35] text-balance">
+            و یه دستیار چت که مشتری نمی‌فهمه رباته.
           </h2>
-          <p className="text-muted text-[17px] mt-4 leading-[1.9] max-w-[30rem]">
-            مثل بهترین ادمینی که داشتی حرف می‌زنه، با لحن خودت. محصول رو با عکس معرفی می‌کنه، سؤال‌ها رو جواب می‌ده و سفارش رو تا آخر می‌بره.
-          </p>
-          <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary mt-8">
-            دستیارت رو راه بنداز <ArrowLeft className="ld-arrow size-4" aria-hidden />
-          </Link>
+          <ul className="mt-7 grid sm:grid-cols-2 gap-x-7 gap-y-6">
+            {CHAT_POINTS.map((p) => (
+              <li key={p.title} className="flex gap-3">
+                <span className="size-9 shrink-0 rounded-[9px] bg-primary-soft text-primary grid place-items-center"><p.icon className="size-[18px]" aria-hidden /></span>
+                <div>
+                  <h3 className="font-extrabold text-[16px]">{p.title}</h3>
+                  <p className="text-muted text-[15px] leading-[1.8] mt-0.5">{p.text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-8">
-          {CHAT_POINTS.map((p) => (
-            <li key={p.title} className="ld-reveal">
-              <span className="size-10 rounded-[10px] bg-primary-soft text-primary grid place-items-center"><p.icon className="size-5" aria-hidden /></span>
-              <h3 className="font-extrabold text-[17px] mt-3">{p.title}</h3>
-              <p className="text-muted text-[15px] leading-[1.85] mt-1">{p.text}</p>
-            </li>
-          ))}
-        </ul>
+        <ChatDemo />
       </div>
     </section>
   );
@@ -354,8 +412,8 @@ function ChatBot() {
 
 const STEPS = [
   { title: "کانالت رو وصل کن", text: "تلگرام، بله، اینستاگرام یا دیجی‌کالا. محصول‌هات خودشون میان توی سلو." },
-  { title: "به ادمینت یاد بده", text: "لحن، سؤال‌های پرتکرار، قوانین و اطلاعات پرداخت. چند دقیقه بیشتر نیست." },
-  { title: "بسپارش به سلو", text: "از اینجا به بعد جواب می‌ده و سفارش می‌گیره؛ تو فقط تأیید می‌کنی." },
+  { title: "تنظیمش کن", text: "انتشار، موجودی و دستیار چت رو هر جور خواستی روشن کن و به ادمینت یاد بده." },
+  { title: "بسپارش به سلو", text: "از اینجا به بعد سلو فروشگاهت رو می‌چرخونه؛ تو فقط تأیید می‌کنی." },
 ];
 
 function Start() {
