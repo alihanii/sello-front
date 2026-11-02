@@ -29,6 +29,7 @@ export default function Landing() {
         <Hero />
         <What />
         <ChatBot />
+        <ActivityLog />
         <Start />
       </main>
 
@@ -364,6 +365,58 @@ function ChatBot() {
           </ul>
         </div>
         <ChatDemo />
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Activity log ---------------- */
+
+const LOG = [
+  { t: "۱۴:۰۲", who: "سلو", what: "۱۲ محصول از پیج اینستاگرامت کرال شد", how: "اینستاگرام · خودکار", icon: "instagram" },
+  { t: "۱۴:۰۵", who: "سلو", what: "به سؤال مریم دربارهٔ سایز هودی جواب داد", how: "تلگرام · دستیار چت", icon: "telegram" },
+  { t: "۱۴:۰۷", who: "سلو", what: "سفارش هودی H12 رو گرفت و فرستاد برای تأییدت", how: "تلگرام · دستیار چت", icon: "telegram" },
+  { t: "۱۴:۰۷", who: "سلو", what: "موجودی هودی H12 از ۵ به ۴ رسید", how: "انبار · بعد از سفارش", icon: null },
+  { t: "۱۴:۱۰", who: "تو", what: "سفارش رو تأیید کردی", how: "پنل سلو", icon: null },
+  { t: "۱۴:۱۱", who: "سلو", what: "قیمت جدید تیشرت T07 توی بله و تلگرام منتشر شد", how: "بله، تلگرام · انتشار", icon: "bale" },
+];
+
+function ActivityLog() {
+  return (
+    <section id="log" className="pb-16 sm:pb-24 scroll-mt-20 grid lg:grid-cols-[1fr_1.15fr] gap-10 lg:gap-14 items-center" aria-labelledby="log-title">
+      <div>
+        <div className="flex items-center gap-2 text-[13px] font-bold text-muted mb-4">
+          <History className="size-5 text-primary" aria-hidden /> لاگ کامل
+        </div>
+        <h2 id="log-title" className="text-[26px] sm:text-[34px] font-black tracking-tight leading-[1.35] text-balance">
+          هر کاری سلو بکنه، جلوی چشمته.
+        </h2>
+        <p className="text-muted text-[16px] sm:text-[17px] leading-[1.9] mt-5 max-w-[30rem]">
+          قدم به قدم ثبت می‌شه چی کار کرد، کِی کرد و چطوری کرد. از کرال یه محصول تا جواب به مشتری و کم شدن موجودی. هیچ کاری پشت پرده نیست.
+        </p>
+      </div>
+      <div className="ld-vis rounded-[16px] overflow-hidden ld-reveal" role="img" aria-label="نمونهٔ لاگ سلو: کرال محصول، جواب به مشتری، ثبت سفارش، آپدیت موجودی و انتشار، هر کدوم با ساعت و کانال">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-line text-[13px]">
+          <span className="font-extrabold">لاگ امروز</span>
+          <span className="text-muted tnum">۶ رویداد</span>
+        </div>
+        <ol className="px-4 py-2">
+          {LOG.map((l, i) => (
+            <li key={i} className="relative flex gap-3 py-2.5">
+              <span className="tnum text-[12px] text-muted w-10 shrink-0 pt-0.5">{l.t}</span>
+              <span className="relative flex flex-col items-center shrink-0" aria-hidden>
+                <span className={`size-2.5 rounded-full mt-1.5 ${l.who === "تو" ? "bg-ink" : "bg-primary"}`} />
+                {i < LOG.length - 1 && <span className="w-px flex-1 bg-line mt-1 -mb-4" />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13.5px] font-bold leading-[1.7]"><span className={l.who === "تو" ? "" : "text-[var(--primary-hover)]"}>{l.who}:</span> {l.what}</div>
+                <div className="flex items-center gap-1.5 text-[11.5px] text-muted mt-0.5">
+                  {l.icon && <PlatformIcon platform={l.icon} size={14} />}{l.how}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
