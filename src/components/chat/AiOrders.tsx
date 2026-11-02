@@ -28,7 +28,7 @@ function OrderCard({ o, highlight, go }: { o: any; highlight: boolean; go: (t: a
       <div className="flex items-center gap-3">
         <PlatformIcon platform={o.platform === "test" ? "telegram" : o.platform} size={34} />
         <div className="flex-1 min-w-0">
-          <div className="font-bold flex items-center gap-2"><span className="tnum">سفارش #{faNum(o.id)}</span>{o.is_test && <Chip>تست</Chip>}</div>
+          <div className="font-bold flex items-center gap-2"><span className="tnum">سفارش #{faNum(o.id)}</span>{o.is_test && <Chip>تست</Chip>}{o.tracking_code && <span className="text-muted text-[12px] font-normal" dir="ltr">{o.tracking_code}</span>}</div>
           <div className="text-[12px] text-muted">{jDateTime(o.created_at)}</div>
         </div>
         <Chip tone={st?.tone}>{st?.label}</Chip>

@@ -35,6 +35,7 @@ export const MSG_SOURCE: Record<string, { label: string; free: boolean }> = {
   canned: { label: "پاسخ آماده", free: true },
   catalog: { label: "فهرست محصولات", free: true },
   cache: { label: "جواب تکراری (کش)", free: true },
+  status: { label: "وضعیت سفارش", free: true },
   receipt: { label: "دریافت فیش", free: true },
   order: { label: "ثبت سفارش", free: true },
   handoff: { label: "ارجاع به ادمین", free: true },
