@@ -1,6 +1,6 @@
 export const PLATFORMS: Record<string, { label: string; color: string }> = {
   telegram: { label: "تلگرام", color: "#2AABEE" },
-  bale: { label: "بله", color: "#16A085" },
+  bale: { label: "بله", color: "#00C896" },
   digikala: { label: "دیجی‌کالا", color: "#EF394E" },
   instagram: { label: "اینستاگرام", color: "#E1306C" },
 };

@@ -193,7 +193,7 @@ export default function Products() {
               </label>
               <Link href={`/app/s/${sid}/products/${p.id}`} className="block h-full">
                 <Card className={cn("overflow-hidden hover:-translate-y-0.5 transition h-full p-1.5", selected.includes(p.id) && "ring-2 ring-primary/50")}>
-                  <div className="aspect-square bg-subtle rounded-[18px] overflow-hidden">
+                  <div className="aspect-square bg-subtle rounded-[10px] overflow-hidden">
                     {p.images[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" loading="lazy" />
                       : <div className="size-full grid place-items-center text-muted"><ImageOff className="size-6" /></div>}
                   </div>
@@ -221,7 +221,7 @@ export default function Products() {
 
       {selCount > 0 && (
         <div className="fixed bottom-24 lg:bottom-5 inset-x-0 z-40 flex justify-center px-3">
-          <Card strong className="flex flex-wrap items-center justify-center gap-2 p-2 ps-4 rounded-[22px]">
+          <Card strong className="flex flex-wrap items-center justify-center gap-2 p-2 ps-4 rounded-[12px]">
             <span className="text-[14px] font-bold tnum">{faNum(selCount)} مورد</span>
             {data && !allMatching && allSel && data.total > items.length && (
               <Button size="sm" variant="ghost" onClick={() => setAllMatching(true)}>انتخاب همهٔ {faNum(data.total)} محصول</Button>
