@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useStoreId } from "@/lib/hooks";
 import { EMPTY_DETAILS, ProductDetails } from "@/components/products/ProductDetails";
-import { ImageUploader } from "@/components/products/ImageUploader";
+import { IMAGE_ORDER_HINT, ImageUploader } from "@/components/products/ImageUploader";
 import { Button, Card, Field, PageHeader, Spinner, Tabs, Textarea } from "@/components/ui/primitives";
 
 type Mode = "ai" | "manual";
@@ -92,8 +92,8 @@ function AiCreate({ storeId }: { storeId: number }) {
   return (
     <div className="space-y-4 max-w-2xl">
       <Card className="p-5 space-y-4">
-        <Field label="عکس محصول" hint="عکس خام کافی است؛ با گوشی هم بگیری خوب است.">
-          <ImageUploader storeId={storeId} value={images} onChange={setImages} max={5} />
+        <Field label="عکس محصول" tip={`عکس خام کافی است؛ با گوشی هم بگیری خوب است. ${IMAGE_ORDER_HINT}`}>
+          <ImageUploader storeId={storeId} value={images} onChange={setImages} max={5} hint={false} />
         </Field>
         {main && canImage && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[13px]">

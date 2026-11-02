@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { API_URL, getToken, mediaUrl } from "@/lib/api";
 import { Spinner, cn } from "@/components/ui/primitives";
 
-export function ImageUploader({ storeId, value, onChange, max = 10 }: { storeId: number; value: string[]; onChange: (v: string[]) => void; max?: number }) {
+export const IMAGE_ORDER_HINT = "عکس اول، عکس اصلی است. برای تغییر ترتیب بکشید و رها کنید.";
+
+export function ImageUploader({ storeId, value, onChange, max = 10, hint = true }: { storeId: number; value: string[]; onChange: (v: string[]) => void; max?: number; hint?: boolean }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
@@ -56,7 +58,7 @@ export function ImageUploader({ storeId, value, onChange, max = 10 }: { storeId:
           </button>
         )}
       </div>
-      <p className="text-[12px] text-muted mt-2">عکس اول، عکس اصلی است. برای تغییر ترتیب بکشید و رها کنید.</p>
+      {hint && <p className="text-[12px] text-muted mt-2">{IMAGE_ORDER_HINT}</p>}
       <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => e.target.files && upload(e.target.files)} />
     </div>
   );

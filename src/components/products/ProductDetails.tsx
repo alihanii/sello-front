@@ -4,7 +4,7 @@ import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { Button, Card, Field, Input, NumberInput, Textarea } from "@/components/ui/primitives";
 import { CategoryInput } from "./CategoryInput";
-import { ImageUploader } from "./ImageUploader";
+import { IMAGE_ORDER_HINT, ImageUploader } from "./ImageUploader";
 
 export type Details = { images: string[]; title: string; sku: string; category: string; brand: string; tags: string[]; price: number; stock_qty: number; description: string; attributes: Record<string, string> };
 export const EMPTY_DETAILS: Details = { images: [], title: "", sku: "", category: "", brand: "", tags: [], price: 0, stock_qty: 0, description: "", attributes: {} };
@@ -25,21 +25,21 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
   return (
     <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-4 max-w-2xl">
       <Card className="p-5 space-y-4">
-        <Field label="عکس‌ها" hint="عکس اول، عکس اصلی محصول است.">
-          <ImageUploader storeId={storeId} value={d.images} onChange={(v) => set("images", v)} />
+        <Field label="عکس‌ها" tip={IMAGE_ORDER_HINT}>
+          <ImageUploader storeId={storeId} value={d.images} onChange={(v) => set("images", v)} hint={false} />
         </Field>
         <Field label="نام محصول"><Input value={d.title} onChange={(e) => set("title", e.target.value)} required maxLength={300} /></Field>
-        <Field label="کد محصول" hint="کوتاه و یکتا، مثل H12. اگر در پست کانال هم بنویسی، مشتری با فرستادن همین کد در چت سفارش می‌دهد و دستیار دقیقاً همین محصول را پیدا می‌کند.">
-          <Input dir="ltr" className="text-left w-48" maxLength={80} placeholder="H12" value={d.sku ?? ""} onChange={(e) => set("sku", e.target.value.trim())} />
+        <Field label="کد محصول" tip="کوتاه و یکتا، مثل H12. اگر خالی بماند، موقع ساخت محصول از کدی که در توضیحات نوشته‌ای (مثل «کد: H12») و اگر نبود از شمارهٔ محصول پر می‌شود. کد محصول در خط اول توضیحات هم نوشته می‌شود تا در پست کانال دیده شود؛ مشتری با فرستادن همین کد در چت سفارش می‌دهد و دستیار دقیقاً همین محصول را پیدا می‌کند.">
+          <Input dir="ltr" className="text-left w-48" maxLength={80} placeholder="خودکار" value={d.sku ?? ""} onChange={(e) => set("sku", e.target.value.trim())} />
         </Field>
-        <Field label="دسته‌بندی" hint="از دسته‌های قبلی انتخاب کن یا یک دستهٔ تازه بنویس.">
+        <Field label="دسته‌بندی" tip="از دسته‌های قبلی انتخاب کن یا یک دستهٔ تازه بنویس.">
           <CategoryInput storeId={storeId} value={d.category ?? ""} onChange={(v) => set("category", v)} />
         </Field>
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="برند" hint="فقط اگر برند مشخصی دارد.">
+          <Field label="برند" tip="فقط اگر برند مشخصی دارد.">
             <Input maxLength={120} placeholder="مثلاً ال‌سی‌من" value={d.brand ?? ""} onChange={(e) => set("brand", e.target.value)} />
           </Field>
-          <Field label="برچسب‌ها" hint="با ویرگول جدا کن. دستیار چت در جستجوی محصول از این‌ها کمک می‌گیرد.">
+          <Field label="برچسب‌ها" tip="با ویرگول جدا کن. دستیار چت در جستجوی محصول از این‌ها کمک می‌گیرد.">
             <Input placeholder="مثلاً زمستانه، اورسایز" value={tagsText} onChange={(e) => setTagsText(e.target.value)} />
           </Field>
         </div>
@@ -48,7 +48,7 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
           <Field label="موجودی"><NumberInput value={d.stock_qty} grouping={false} onChange={(v) => set("stock_qty", v)} /></Field>
         </div>
         <Field label="توضیحات"><Textarea rows={6} value={d.description} onChange={(e) => set("description", e.target.value)} /></Field>
-        <Field label="جزئیات" hint="مثل جنس، رنگ، سایز">
+        <Field label="جزئیات" tip="مثل جنس، رنگ، سایز">
           <div className="space-y-2">
             {rows.map(([k, v], i) => (
               <div key={i} className="flex items-center gap-2">

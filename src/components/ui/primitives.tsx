@@ -1,8 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { Loader2, X } from "lucide-react";
-import { Children, Fragment, forwardRef, isValidElement, useEffect } from "react";
+import { CircleHelp, Loader2, X } from "lucide-react";
+import { Children, Fragment, forwardRef, isValidElement, useEffect, useState } from "react";
 import { Dropdown, type DropdownOption } from "./Dropdown";
 import { fieldCls, widthCls } from "./styles";
 
@@ -78,13 +78,40 @@ export function Chip({ tone = "neutral", className, children, icon }: { tone?: s
   );
 }
 
-export function Field({ label, hint, error, children, className }: { label?: React.ReactNode; hint?: string; error?: string; children: React.ReactNode; className?: string }) {
+/** `tip` puts the help text behind a question-mark icon next to the label instead of under the field. */
+export function Field({ label, hint, tip, error, children, className }: { label?: React.ReactNode; hint?: string; tip?: string; error?: string; children: React.ReactNode; className?: string }) {
   return (
     <label className={cn("block", className)}>
-      {label && <span className="block text-[13px] font-semibold mb-1.5">{label}</span>}
+      {label && (
+        <span className={cn("text-[13px] font-semibold mb-1.5", tip ? "flex items-center gap-1" : "block")}>
+          {label}{tip && <InfoTip text={tip} />}
+        </span>
+      )}
       {children}
       {error ? <span className="block text-[12px] text-danger mt-1">{error}</span> : hint && <span className="block text-[12px] text-muted mt-1">{hint}</span>}
     </label>
+  );
+}
+
+/** A question-mark icon that shows `text` on hover, keyboard focus or tap. */
+export function InfoTip({ text, className }: { text: string; className?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className={cn("relative inline-flex", className)} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button type="button" aria-label="راهنما" aria-expanded={open}
+        className="inline-flex text-muted hover:text-fg cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }}
+        onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}
+        onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}>
+        <CircleHelp className="size-4" />
+      </button>
+      {open && (
+        <span role="tooltip"
+          className="glass-strong absolute top-full start-0 mt-1.5 z-[60] w-64 max-w-[calc(100vw-2.5rem)] rounded-xl px-3 py-2 text-[12px] font-normal leading-6 text-fg shadow-[var(--shadow)] fade-in">
+          {text}
+        </span>
+      )}
+    </span>
   );
 }
 
