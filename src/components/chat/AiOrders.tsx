@@ -36,12 +36,15 @@ function OrderCard({ o, highlight, go }: { o: any; highlight: boolean; go: (t: a
       <ul className="mt-4 space-y-1.5 text-[14px]">
         {o.items.map((it: any, i: number) => (
           <li key={i} className="flex justify-between gap-3">
-            <span className="min-w-0">{it.title}{it.variant && <span className="text-muted"> ({it.variant})</span>} <span className="text-muted tnum">× {faNum(it.qty)}</span></span>
+            <span className="min-w-0">{it.title}{it.variant && <span className="text-muted"> ({it.variant})</span>} <span className="text-muted tnum">× {faNum(it.qty)}</span>
+              {it.paid === true && <span className="text-success text-[12px] font-bold"> · پرداخت‌شده</span>}
+              {it.paid === false && o.items.some((x: any) => x.paid) && <span className="text-warning text-[12px] font-bold"> · پرداخت نشده</span>}</span>
             <span className="tnum shrink-0">{it.unit_price ? toman(it.unit_price * it.qty) : "قیمت با فروشنده"}</span>
           </li>
         ))}
       </ul>
       <div className="flex justify-between font-black text-[15px] border-t border-edge mt-3 pt-3"><span>جمع</span><span className="tnum">{toman(o.total_toman)}</span></div>
+      {o.due_toman > 0 && o.due_toman < o.total_toman && <div className="flex justify-between font-bold text-[14px] text-warning mt-1"><span>مانده برای پرداخت</span><span className="tnum">{toman(o.due_toman)}</span></div>}
       <div className="mt-3 space-y-1 text-[13px]">
         <div className="font-bold">{o.customer_name || "مشتری"} {o.customer_username && <span className="text-muted font-normal" dir="ltr">@{o.customer_username}</span>}</div>
         {o.customer_phone && <div className="flex items-center gap-1.5 text-muted tnum"><Phone className="size-3.5" /><a href={`tel:${o.customer_phone}`} dir="ltr">{faDigits(o.customer_phone)}</a></div>}

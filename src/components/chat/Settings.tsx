@@ -106,6 +106,8 @@ function AnswerRules({ draft, set }: { draft: any; set: (p: any) => void }) {
   );
 }
 
+const ORDER_FORM_SAMPLE = "برای ثبت سفارش لطفاً این‌ها رو توی یک پیام بفرست 🌸\nنام و نام خانوادگی:\nشماره موبایل:\nآدرس کامل با کد پستی:";
+
 export function AssistantSettings() {
   const { draft, set, save, dirty } = useDraft();
   if (!draft) return <SettingsColumnsSkeleton />;
@@ -473,11 +475,15 @@ export function OrderSettings() {
           </Row>
         </Card>
         <OrderFields draft={draft} set={set} />
-        <Card className={cn("p-5", !draft.orders_enabled && "opacity-60")}>
+        <Card className={cn("p-5 space-y-3", !draft.orders_enabled && "opacity-60")}>
           <h3 className="font-extrabold text-[15px] mb-2">اطلاعاتی که از مشتری گرفته می‌شود</h3>
           {[["name", "نام و نام خانوادگی"], ["phone", "شمارهٔ موبایل"], ["address", "آدرس کامل (برای محصول فیزیکی)"]].map(([k, l]) => (
             <Row key={k} title={l}><Switch checked={req[k] !== false} onChange={(v) => set({ required_fields: { ...req, [k]: v } })} label={l} /></Row>
           ))}
+          <Field label="پیام آمادهٔ گرفتن اطلاعات (اختیاری)" hint="وقتی مشتری محصولش را انتخاب کرد، دستیار به‌جای پرسیدن تک‌تک اطلاعات، همین پیام را یک بار می‌فرستد.">
+            <Textarea className="!min-h-24" maxLength={500} placeholder={ORDER_FORM_SAMPLE} value={pay.order_form ?? ""} onChange={(e) => setPay({ order_form: e.target.value })} />
+          </Field>
+          {!pay.order_form && <button type="button" className="text-[13px] text-primary font-bold" onClick={() => setPay({ order_form: ORDER_FORM_SAMPLE })}>استفاده از نمونه</button>}
         </Card>
       </div>
       <Card className="p-5 h-fit lg:sticky lg:top-24">
