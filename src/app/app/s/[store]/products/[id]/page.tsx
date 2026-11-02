@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useStoreId } from "@/lib/hooks";
@@ -14,11 +14,18 @@ export default function EditProduct() {
   const sid = useStoreId();
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
+  const router = useRouter();
   const { data: p } = useQuery({ queryKey: ["product", id], queryFn: () => api(`/products/${id}`) });
   const save = useMutation({
     // Saving here also confirms an AI draft as a ready product.
     mutationFn: (d: any) => api(`/products/${id}`, { method: "PATCH", json: { ...d, status: "ready" } }),
-    onSuccess: (r) => { qc.setQueryData(["product", id], r); qc.invalidateQueries({ queryKey: ["product-categories"] }); toast.success("ذخیره شد"); },
+    onSuccess: (r) => {
+      qc.setQueryData(["product", id], r);
+      qc.invalidateQueries({ queryKey: ["product-categories"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      toast.success("ذخیره شد");
+      router.push(`/app/s/${sid}/products`);
+    },
     onError: (e: any) => toast.error(e.message),
   });
   if (!p) return <ProductEditSkeleton />;
