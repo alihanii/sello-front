@@ -13,7 +13,7 @@ const STEPS = [
   "آدرس بازگشت (Redirect URI) زیر را در بخش Business login settings ثبت کن.",
   "Instagram app ID و Instagram app secret را اینجا وارد کن.",
   "تا قبل از App Review فقط حساب‌هایی که به‌عنوان Tester به اپ اضافه شده‌اند وصل می‌شوند؛ برای همهٔ کاربران، دسترسی‌های instagram_business_basic و instagram_business_content_publish را برای Advanced Access به بررسی Meta بفرست.",
-  "دامنه‌های اینستاگرام در ایران فیلتر است؛ اگر سرور داخل ایران است، یک پروکسی HTTP/SOCKS خارج از ایران وارد کن.",
+  "دامنه‌های اینستاگرام در ایران فیلتر است؛ اگر سرور داخل ایران است، در پنل ادمین › پروکسی‌ها لینک‌های v2ray یا پروکسی بده.",
   "SELLO_PUBLIC_BASE_URL باید آدرس عمومی بک‌اند باشد؛ اینستاگرام عکس‌ها را مستقیم از همین آدرس دانلود می‌کند.",
 ];
 
@@ -93,7 +93,7 @@ function InstagramCrawlerCard() {
         <Field label="API token" hint={f.has_token ? `ذخیره شده (${f.token_hint})؛ برای تغییر مقدار جدید وارد کن.` : "از console.apify.com ← Settings ← API & Integrations بگیر."}>
           <Input dir="ltr" type="password" className="text-left font-mono" placeholder={f.has_token ? "••••••••" : "apify_api_…"} value={f.token} onChange={(e) => setF({ ...f, token: e.target.value })} />
         </Field>
-        <Field label="پروکسی (اختیاری)" hint="برای رسیدن به Apify و دانلود عکس‌های اینستاگرام از داخل ایران؛ مثل socks5://host:port">
+        <Field label="پروکسی تکی (اختیاری، قدیمی)" hint="بهتر است از صفحهٔ «پروکسی‌ها» استفاده کنی؛ این فقط وقتی استفاده می‌شود که هیچ پروکسی سالمی آنجا نباشد. مثل socks5://host:port">
           <Input dir="ltr" className="text-left font-mono text-[13px]" value={f.proxy} onChange={(e) => setF({ ...f, proxy: e.target.value })} />
         </Field>
         <div className="flex flex-wrap gap-2">
@@ -134,7 +134,7 @@ export default function Integrations() {
             <Field label="Instagram app secret" hint={f.has_secret ? "ذخیره شده؛ برای تغییر مقدار جدید وارد کن." : "هنوز وارد نشده."}>
               <Input dir="ltr" type="password" className="text-left font-mono" placeholder={f.has_secret ? "••••••••" : ""} value={f.app_secret} onChange={(e) => setF({ ...f, app_secret: e.target.value })} />
             </Field>
-            <Field label="پروکسی (اختیاری)" hint="مثل http://user:pass@host:port یا socks5://host:port">
+            <Field label="پروکسی تکی (اختیاری، قدیمی)" hint="بهتر است از صفحهٔ «پروکسی‌ها» استفاده کنی؛ این فقط وقتی استفاده می‌شود که هیچ پروکسی سالمی آنجا نباشد.">
               <Input dir="ltr" className="text-left font-mono text-[13px]" value={f.proxy} onChange={(e) => setF({ ...f, proxy: e.target.value })} />
             </Field>
             <Field label="Redirect URI">
