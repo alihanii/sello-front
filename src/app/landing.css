@@ -67,6 +67,12 @@
 .ld-vis { background: var(--raised-solid); border: 1px solid var(--line); }
 .ld-panel { background: color-mix(in oklab, var(--raised-solid) 70%, transparent); border: 1px solid var(--line); }
 
+/* The hero illustration is drawn for a light page; in dark mode it sits on a light stage so its cut-out edges stay clean. */
+:root[data-theme="dark"] .ld-hero-art { background: radial-gradient(120% 90% at 50% 45%, #f4f8f6, #dfe8e4); border-radius: 1rem; padding: 1rem; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ld-hero-art { background: radial-gradient(120% 90% at 50% 45%, #f4f8f6, #dfe8e4); border-radius: 1rem; padding: 1rem; }
+}
+
 .ld-numeral { font-variant-numeric: tabular-nums; line-height: 1; color: var(--primary); }
 
 /* ---------- Hero chat: plays once, ends on the fully visible final state ---------- */
@@ -77,21 +83,6 @@
 .ld-msg { animation: ld-msg 420ms var(--ld-ease) backwards; animation-delay: var(--d, 0ms); }
 .ld-msg-in { transform-origin: bottom right; }
 .ld-msg-out { transform-origin: bottom left; }
-
-/* Typing dots sit where the answer will appear, live 1.0s to 1.9s, then are gone for good. */
-@keyframes ld-typing-life { 0%, 100% { opacity: 0; } 12%, 85% { opacity: 1; } }
-@keyframes ld-dot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.45; } 30% { transform: translateY(-3px); opacity: 1; } }
-.ld-typing { opacity: 0; animation: ld-typing-life 900ms linear 1000ms 1 both; }
-.ld-typing i { display: block; width: 6px; height: 6px; border-radius: 9999px; background: var(--muted-fg); animation: ld-dot 900ms ease-in-out 1000ms 1; }
-.ld-typing i:nth-child(2) { animation-delay: 1150ms; }
-.ld-typing i:nth-child(3) { animation-delay: 1300ms; }
-
-
-/* Stock number in the hero: 5 becomes 4 when the chat order lands (2.6s). */
-@keyframes ld-out { to { opacity: 0; transform: translateY(-6px); } }
-@keyframes ld-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.ld-swap-old { animation: ld-out 260ms var(--ld-ease) 2700ms both; }
-.ld-swap-new { animation: ld-in 300ms var(--ld-ease) 2800ms backwards; }
 
 @keyframes ld-seq { from { transform: translateY(14px) scale(0.97); } to { transform: none; } }
 /* Chat in its section (transform only): each message settles in as it scrolls into view. Off-screen = already final. */
@@ -107,9 +98,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ld-msg, .ld-reveal, .ld-seq, .ld-swap-new, .ld-typing, .ld-typing i { animation: none !important; }
-  .ld-swap-old { animation: none !important; opacity: 0; }
-  .ld-typing { display: none; }
+  .ld-msg, .ld-reveal, .ld-seq { animation: none !important; }
   .ld-btn, .ld-arrow { transition: none; }
 }
 }

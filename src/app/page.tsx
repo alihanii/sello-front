@@ -8,7 +8,6 @@ import "./landing.css";
 /* Static page, no app-shell bundle. Hero text is never animated (it is the LCP element);
    only the chat demo plays once, and rows reveal with a CSS scroll timeline where supported. */
 
-const S = (v: Record<string, string | number>) => v as React.CSSProperties;
 
 export default function Landing() {
   return (
@@ -68,68 +67,30 @@ function Hero() {
           <span className="text-[13px] text-muted">تلگرام، بله، اینستاگرام و دیجی‌کالا</span>
         </div>
       </div>
-      <PanelDemo />
+      <HeroArt />
     </section>
   );
 }
 
-/** Hero's one authored moment: the seller's panel. Products arrive from different sources, then an
-    order from chat lowers a stock number. Pure CSS, plays once, final frame is the default state. */
-function PanelDemo() {
-  const rows = [
-    { name: "هودی مشکی قلب هندسی", code: "H12", src: "کرال اینستاگرام", tone: "crawl", stock: true, ch: ["telegram", "bale", "digikala"], color: "#111827" },
-    { name: "تیشرت سفید مینیمال", code: "T07", src: "ساخت با AI", tone: "ai", stockN: "۱۲", ch: ["telegram", "bale"], color: "#e5e7eb" },
-    { name: "سویشرت طوسی کلاه‌دار", code: "S03", src: "کرال تلگرام", tone: "crawl", stockN: "۲", low: true, ch: ["telegram"], color: "#6b7280" },
-    { name: "ماگ سرامیکی طرح‌دار", code: "M21", src: "دستی", tone: "neutral", stockN: "۳۰", ch: ["bale", "digikala"], color: "#0f766e" },
-  ];
-  const toneCls: Record<string, string> = { crawl: "bg-crawl/8 text-crawl", ai: "bg-ai/8 text-ai", neutral: "bg-subtle text-muted" };
+/** Hero visual: one static illustration (likely the LCP on desktop), so it is never animated.
+    AVIF with WebP fallback, two widths, fixed aspect ratio (no CLS), fetched with high priority. */
+function HeroArt() {
   return (
-    <div className="relative mx-auto w-full max-w-[460px]" role="img" aria-label="نمای پنل سلو: محصول‌ها از کرال، AI و ورود دستی، موجودی و کانال‌های منتشرشده">
-      <div className="ld-msg absolute -top-12 end-0 z-10 ld-float rounded-[10px] px-3 py-2 flex items-center gap-2 text-[12.5px] font-bold" style={S({ "--d": "300ms" })}>
-        <PlatformIcon platform="instagram" size={20} />
-        <span className="tnum">۱۲ محصول جدید از پیجت کرال شد</span>
-      </div>
-
-      <div className="ld-phone rounded-[16px] overflow-hidden">
-        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-line">
-          <div className="font-extrabold text-[14px]">محصولات <span className="text-muted font-semibold">· فروشگاه هودی</span></div>
-          <div className="flex gap-1 text-[11.5px] font-bold">
-            <span className="rounded-[6px] bg-ink text-ink-fg px-2 py-0.5">همه</span>
-            <span className="rounded-[6px] bg-subtle text-muted px-2 py-0.5">کم‌موجود</span>
-          </div>
-        </div>
-        <ul className="divide-y divide-line text-[12.5px]">
-          {rows.map((r, i) => (
-            <li key={r.code} className="ld-msg flex items-center gap-3 px-4 py-3" style={S({ "--d": `${500 + i * 120}ms` })}>
-              <span className="size-10 shrink-0 rounded-[8px] grid place-items-center" style={{ background: r.color }} aria-hidden>
-                <svg viewBox="0 0 40 40" className="size-6"><path d="M14 8l-7 5 3 6 3-2v15h14V17l3 2 3-6-7-5c-1 2.5-3 4-6 4s-5-1.5-6-4z" fill="rgba(255,255,255,.28)" /></svg>
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="font-bold text-[13px] truncate">{r.name}</div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className={`rounded-[5px] px-1.5 py-px text-[10.5px] font-bold ${toneCls[r.tone]}`}>{r.src}</span>
-                  <span className="text-muted tnum">{r.code}</span>
-                </div>
-              </div>
-              <div className="text-end shrink-0">
-                <div className={`font-extrabold tnum ${r.low ? "text-warning" : ""}`}>
-                  {r.stock ? (
-                    <span className="ld-swap relative inline-grid"><span className="ld-swap-old col-start-1 row-start-1">۵</span><span className="ld-swap-new col-start-1 row-start-1 text-primary">۴</span></span>
-                  ) : r.stockN}
-                  <span className="text-muted font-semibold text-[11px]"> عدد</span>
-                </div>
-                <div className="flex gap-0.5 justify-end mt-1">{r.ch.map((c) => <PlatformIcon key={c} platform={c} size={16} />)}</div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="ld-msg absolute -bottom-6 start-3 sm:-start-8 ld-float rounded-[10px] px-3.5 py-2.5 flex items-center gap-2.5 text-[12.5px] font-bold max-w-[85%]" style={S({ "--d": "2600ms" })}>
-        <PlatformIcon platform="telegram" size={22} />
-        <span>سفارش جدید از چت: هودی H12 · موجودی آپدیت شد</span>
-      </div>
-    </div>
+    <picture className="ld-hero-art block mx-auto w-full max-w-[560px] lg:max-w-none">
+      <source type="image/avif" srcSet="/landing/hero-480.avif 480w, /landing/hero-752.avif 752w" sizes="(min-width: 1024px) 560px, 92vw" />
+      <img
+        src="/landing/hero-752.webp"
+        srcSet="/landing/hero-480.webp 480w, /landing/hero-752.webp 752w"
+        sizes="(min-width: 1024px) 560px, 92vw"
+        width={752}
+        height={519}
+        alt="پنل سلو: محصول‌ها، موجودی، چت هوشمند با مشتری و انتشار در تلگرام، بله و اینستاگرام"
+        fetchPriority="high"
+        decoding="async"
+        className="w-full h-auto select-none"
+        draggable={false}
+      />
+    </picture>
   );
 }
 
