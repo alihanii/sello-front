@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Blocks, CreditCard, Gauge, Inbox, KeyRound, LineChart, Menu, Plug, ScrollText, Store, Users, MessagesSquare } from "lucide-react";
+import { ArrowRight, Blocks, CreditCard, Gauge, Inbox, KeyRound, LineChart, Menu, Plug, ScrollText, Store, Users, MessagesSquare, Network } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,6 +18,7 @@ const ITEMS = [
   { href: "/admin/requests", icon: Inbox, label: "خریدها و پرداخت‌ها" },
   { href: "/admin/ai", icon: KeyRound, label: "کلیدهای AI", exact: true },
   { href: "/admin/integrations", icon: Blocks, label: "یکپارچه‌سازی‌ها" },
+  { href: "/admin/proxies", icon: Network, label: "پروکسی‌ها" },
   { href: "/admin/audit", icon: ScrollText, label: "لاگ ادمین" },
 ];
 
