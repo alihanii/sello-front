@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Download, FileSpreadsheet, Grid2X2, ImageOff, List, Pencil, Plus, Search, Send, Sparkles, Tag } from "lucide-react";
+import { Archive, Download, FileSpreadsheet, Grid2X2, ImageOff, List, Pencil, Plus, Search, Send, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -229,9 +229,6 @@ export default function Products() {
             {allMatching && <Button size="sm" variant="ghost" onClick={() => setAllMatching(false)}>فقط همین صفحه</Button>}
             <Button size="sm" icon={<Pencil className="size-4" />} onClick={() => setEditOpen(true)}>ویرایش گروهی</Button>
             <Button size="sm" variant="secondary" icon={<Send className="size-4" />} onClick={() => setPublishOpen(true)}>انتشار در…</Button>
-            <Button size="sm" variant="secondary" icon={<Tag className="size-4" />} onClick={() => {
-              const tag = prompt("برچسب:"); if (tag) bulk.mutate({ action: "tag", tag });
-            }}>برچسب</Button>
             <Button size="sm" variant="secondary" title="محصولات پیش‌نویس (مثلاً ساخته‌شده با AI) تأیید و فعال می‌شوند"
               onClick={() => bulk.mutate({ action: "status", status: "ready" })}>تأیید پیش‌نویس</Button>
             <Button size="sm" variant="danger" icon={<Archive className="size-4" />} onClick={() => bulk.mutate({ action: "archive" })}>آرشیو</Button>
