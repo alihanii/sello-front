@@ -7,7 +7,8 @@ import { api } from "@/lib/api";
 import { ago } from "@/lib/format";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon } from "@/components/ui/status";
-import { Card, Chip, PageHeader, Select, Skeleton, Switch } from "@/components/ui/primitives";
+import { Card, Chip, PageHeader, Select, Switch } from "@/components/ui/primitives";
+import { ListRowsSkeleton } from "@/components/ui/skeletons";
 
 const HEALTH: Record<string, [string, string]> = { connected: ["وصل", "success"], error: ["خطا", "danger"], expired: ["منقضی", "danger"] };
 
@@ -24,7 +25,7 @@ export default function AdminChannels() {
         <label className="flex items-center gap-2 text-[14px]"><Switch checked={errors} onChange={setErrors} />فقط کانال‌های دارای خطا</label>
       </Card>
       <Card strong>
-        {!data ? <Skeleton className="h-80 m-4" /> : (
+        {!data ? <ListRowsSkeleton rows={8} icon={32} /> : (
           <ul className="divide-y divide-[var(--glass-edge)]">
             {data.map((c) => (
               <li key={c.id} className="p-4 flex flex-wrap items-center gap-3">

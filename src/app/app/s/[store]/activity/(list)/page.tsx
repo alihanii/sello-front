@@ -1,16 +1,17 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { ago, faNum, jDateTime } from "@/lib/format";
-import { useChannels, useStoreId } from "@/lib/hooks";
+import { activityParams, storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { OP_STATUS, OP_TYPES } from "@/lib/meta";
 import { PlatformIcon, StatusChip } from "@/components/ui/status";
-import { Button, Card, EmptyState, PageHeader, Select, Skeleton, cn } from "@/components/ui/primitives";
+import { Button, Card, EmptyState, PageHeader, Select, cn } from "@/components/ui/primitives";
+import { ListRowsSkeleton } from "@/components/ui/skeletons";
 
 export default function ActivityPage() {
   const sid = useStoreId();
@@ -21,9 +22,9 @@ export default function ActivityPage() {
   const [channel, setChannel] = useState("");
   const [page, setPage] = useState(1);
   const { data: channels = [] } = useChannels(sid);
-  const params = new URLSearchParams({ type, status: status === "failed" ? "failed,partial" : status, page: String(page), size: "30" });
+  const params = activityParams({ type, status, page });
   if (channel) params.set("channel_id", channel);
-  const { data } = useQuery({ queryKey: ["operations", sid, params.toString()], queryFn: () => api(`/stores/${sid}/operations?${params}`) });
+  const { data, isPlaceholderData } = useQuery({ ...storeQueries.operations(sid, params), placeholderData: keepPreviousData });
   const seen = useMutation({ mutationFn: () => api(`/stores/${sid}/operations/mark-seen`, { method: "POST" }), onSuccess: () => qc.invalidateQueries({ queryKey: ["ops-summary", sid] }) });
   useEffect(() => { seen.mutate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -43,8 +44,8 @@ export default function ActivityPage() {
           <option value="">همهٔ کانال‌ها</option>{channels.map((c: any) => <option key={c.id} value={c.id}>{c.display_name}</option>)}
         </Select>
       </Card>
-      <Card strong>
-        {!data ? <Skeleton className="h-96 m-4" /> : data.items.length === 0 ? <EmptyState icon={<Activity className="size-6" />} title="فعالیتی پیدا نشد" /> : (
+      <Card strong className={cn("transition-opacity", isPlaceholderData && "opacity-60")} aria-busy={!data || isPlaceholderData}>
+        {!data ? <ListRowsSkeleton rows={8} trailing /> : data.items.length === 0 ? <EmptyState icon={<Activity className="size-6" />} title="فعالیتی پیدا نشد" /> : (
           <ul className="divide-y divide-[var(--glass-edge)]">
             {data.items.map((o: any) => {
               const ch = channels.find((c: any) => c.id === o.channel_id);

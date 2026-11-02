@@ -10,6 +10,7 @@ import { jDate } from "@/lib/format";
 import { useStores } from "@/lib/hooks";
 import { Logo } from "@/components/shell/AppShell";
 import { Button, Card, Dialog, Field, Input, PageHeader } from "@/components/ui/primitives";
+import { StoreCardsSkeleton } from "@/components/ui/skeletons";
 
 export default function Stores() {
   const { data: stores } = useStores();
@@ -27,8 +28,8 @@ export default function Stores() {
       <Logo className="mb-8" />
       <PageHeader title="فروشگاه‌های من" subtitle="هر فروشگاه کانال‌ها و محصولات خودش را دارد."
         actions={<Button icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>فروشگاه جدید</Button>} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {stores?.map((s) => (
+      {!stores ? <StoreCardsSkeleton /> : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {stores.map((s) => (
           <Link key={s.id} href={`/app/s/${s.id}`}>
             <Card className="p-5 flex items-center gap-4 hover:-translate-y-0.5 transition">
               <span className="size-12 rounded-xl bg-primary/12 text-primary grid place-items-center"><Store className="size-5" /></span>
@@ -39,7 +40,7 @@ export default function Stores() {
             </Card>
           </Link>
         ))}
-      </div>
+      </div>}
       <Dialog open={open} onClose={() => setOpen(false)} title="ساخت فروشگاه">
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
           <Field label="نام فروشگاه"><Input value={name} onChange={(e) => setName(e.target.value)} autoFocus /></Field>

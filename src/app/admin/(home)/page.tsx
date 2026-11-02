@@ -7,7 +7,8 @@ import { api } from "@/lib/api";
 import { faNum, toman } from "@/lib/format";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon } from "@/components/ui/status";
-import { Card, CardHeader, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { Card, CardHeader, PageHeader } from "@/components/ui/primitives";
+import { AdminDashboardSkeleton } from "@/components/ui/skeletons";
 import { AddAiKeyButton } from "@/components/admin/AiKeyEditor";
 
 function Stat({ icon: I, label, value, hint, href }: any) {
@@ -23,7 +24,7 @@ function Stat({ icon: I, label, value, hint, href }: any) {
 
 export default function AdminHome() {
   const { data: s } = useQuery({ queryKey: ["admin-stats"], queryFn: () => api("/admin/stats") });
-  if (!s) return <Skeleton className="h-96" />;
+  if (!s) return <AdminDashboardSkeleton />;
   return (
     <>
       <PageHeader title="داشبورد ادمین" subtitle="نمای کلی کاربران، فروشگاه‌ها و درآمد" actions={<AddAiKeyButton />} />

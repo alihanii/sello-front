@@ -7,12 +7,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
 import { ago, faNum, toman } from "@/lib/format";
-import { useChannels, useStoreId } from "@/lib/hooks";
+import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon, StatusChip } from "@/components/ui/status";
 import { VirtualList } from "@/components/ui/VirtualList";
-import { Button, Card, CardHeader, Chip, Dialog, EmptyState, Field, Input, PageHeader, Select, Switch } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Dialog, EmptyState, Field, Input, PageHeader, Select, Skeleton, Switch } from "@/components/ui/primitives";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
+import { ListRowsSkeleton, SkLine } from "@/components/ui/skeletons";
 
 const SCHEDULE: Record<string, string> = { manual: "دستی", hourly: "هر ساعت", daily: "روزانه", weekly: "هفتگی" };
 const MODE: Record<string, string> = { auto: "خودکار (قاعده، سپس AI)", regex: "فقط قاعده‌محور", llm: "فقط AI" };
@@ -21,9 +22,9 @@ export default function Crawl() {
   const sid = useStoreId();
   const qc = useQueryClient();
   const { data: channels = [] } = useChannels(sid);
-  const { data: sources = [] } = useQuery({ queryKey: ["crawl-sources", sid], queryFn: () => api<any[]>(`/stores/${sid}/crawl-sources`) });
+  const { data: sources = [], isPending: sourcesPending } = useQuery(storeQueries.crawlSources(sid));
   const { data: runs } = useQuery({ queryKey: ["operations", sid, "crawl"], queryFn: () => api(`/stores/${sid}/operations?type=crawl&size=15`) });
-  const { data: inbox = [] } = useQuery({ queryKey: ["products", sid, "inbox"], queryFn: () => api<any[]>(`/stores/${sid}/crawl-inbox`) });
+  const { data: inbox = [], isPending: inboxPending } = useQuery({ queryKey: ["products", sid, "inbox"], queryFn: () => api<any[]>(`/stores/${sid}/crawl-inbox`) });
   const { data: caps } = useQuery({ queryKey: ["crawl-caps"], queryFn: () => api<any>("/crawl/capabilities") });
   const ig = caps?.instagram_profile ?? { available: false, reason: "" };
   const [open, setOpen] = useState(false);
@@ -68,7 +69,7 @@ export default function Crawl() {
         <div className="lg:col-span-2 space-y-4">
           <Card>
             <CardHeader title="منابع کرال" />
-            {sources.length === 0 ? <EmptyState icon={<Radar className="size-6" />} title="هنوز منبعی نداری" text="یک کانال وصل‌شده یا یک لینک را منبع کرال کن." /> : (
+            {sourcesPending ? <ListRowsSkeleton rows={2} icon={28} chip={false} /> : sources.length === 0 ? <EmptyState icon={<Radar className="size-6" />} title="هنوز منبعی نداری" text="یک کانال وصل‌شده یا یک لینک را منبع کرال کن." /> : (
               <ul className="divide-y divide-[var(--glass-edge)]">
                 {sources.map((s: any) => {
                   const ch = channels.find((c: any) => c.id === s.channel_id);
@@ -97,7 +98,7 @@ export default function Crawl() {
           </Card>
           <Card>
             <CardHeader title="تاریخچهٔ کرال" subtitle="هر اجرا: چند آیتم دیده شد، چند محصول ساخته یا به‌روز شد، چند خطا" />
-            <ul className="divide-y divide-[var(--glass-edge)]">
+            {!runs ? <ListRowsSkeleton rows={4} icon={false} /> : <ul className="divide-y divide-[var(--glass-edge)]">
               {runs?.items?.map((o: any) => (
                 <li key={o.id}>
                   <Link href={`/app/s/${sid}/activity/${o.id}`} className="p-4 flex flex-wrap items-center gap-3 hover:bg-subtle/60">
@@ -120,12 +121,14 @@ export default function Crawl() {
                 </li>
               ))}
               {runs?.items?.length === 0 && <li className="p-5 text-muted text-[14px]">هنوز کرالی اجرا نشده.</li>}
-            </ul>
+            </ul>}
           </Card>
         </div>
         <Card className="self-start">
           <CardHeader title={<span className="flex items-center gap-2"><Inbox className="size-4" />صندوق ورودی</span>} subtitle="پیش‌نویس‌های کرال و AI که منتظر تأیید تو هستند" />
-          {inbox.length === 0 ? <p className="px-5 pb-5 text-muted text-[14px]">چیزی منتظر بررسی نیست.</p> : (
+          {inboxPending ? (
+            <div className="px-5 pb-5 space-y-3" aria-hidden>{[0, 1, 2].map((i) => <div key={i} className="flex items-center gap-2"><Skeleton className="size-10 rounded-lg" /><div className="flex-1 space-y-1.5"><SkLine className="w-3/4" /><SkLine size={12} className="w-16" /></div></div>)}</div>
+          ) : inbox.length === 0 ? <p className="px-5 pb-5 text-muted text-[14px]">چیزی منتظر بررسی نیست.</p> : (
             <VirtualList className="px-3 pb-3" items={inbox} getKey={(p: any) => p.id} estimate={56} maxHeight={600} render={(p: any) => (
                 <div className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle">
                   <div className="size-10 rounded-lg bg-subtle overflow-hidden shrink-0">{p.images[0] && <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" />}</div>

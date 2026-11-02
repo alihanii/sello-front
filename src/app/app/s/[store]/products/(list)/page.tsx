@@ -8,11 +8,12 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { API_URL, api, getToken, mediaUrl } from "@/lib/api";
 import { ago, faDigits, faNum, toman } from "@/lib/format";
-import { useChannels, useStoreId } from "@/lib/hooks";
+import { productListParams, storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { ChannelStatusStrip, SourceBadge } from "@/components/ui/status";
 import { PublishDialog } from "@/components/products/PublishDialog";
 import { ImportDialog } from "@/components/products/ImportDialog";
-import { Button, Card, EmptyState, Input, PageHeader, Select, Skeleton, Tabs, cn } from "@/components/ui/primitives";
+import { Button, Card, EmptyState, Input, PageHeader, Select, Tabs, cn } from "@/components/ui/primitives";
+import { InlineSkeleton, ProductsBodySkeleton } from "@/components/ui/skeletons";
 
 export default function Products() {
   const sid = useStoreId();
@@ -24,22 +25,17 @@ export default function Products() {
   const [chan, setChan] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
-  const [view, setView] = useState<"table" | "grid">("table");
-  // Phones get the card grid; a 7-column table is unreadable at 375px.
-  useEffect(() => { if (window.matchMedia("(max-width: 767px)").matches) setView("grid"); }, []);
+  // Phones get the card grid; a 7-column table is unreadable at 375px. (Signed-in pages render only in the browser.)
+  const [view, setView] = useState<"table" | "grid">(() => (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? "grid" : "table"));
   const [selected, setSelected] = useState<number[]>([]);
   const [publishOpen, setPublishOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const { data: channels = [] } = useChannels(sid);
 
-  const params = new URLSearchParams({ q, source, stock, status, page: String(page), size: "25" });
+  const params = productListParams({ q, source, stock, status, page });
   if (chan.startsWith("in:")) params.set("published_in", chan.slice(3));
   if (chan.startsWith("not:")) params.set("not_published_in", chan.slice(4));
-  const { data, isLoading } = useQuery({
-    queryKey: ["products", sid, params.toString()],
-    queryFn: () => api(`/stores/${sid}/products?${params}`),
-    placeholderData: keepPreviousData,
-  });
+  const { data, isPending, isPlaceholderData } = useQuery({ ...storeQueries.products(sid, params), placeholderData: keepPreviousData });
   const bulk = useMutation({
     mutationFn: (body: any) => api(`/stores/${sid}/products/bulk`, { method: "POST", json: { product_ids: selected, ...body } }),
     onSuccess: (r, v: any) => {
@@ -70,7 +66,7 @@ export default function Products() {
 
   return (
     <>
-      <PageHeader title="محصولات" subtitle={data ? `${faNum(data.total)} محصول` : undefined}
+      <PageHeader title="محصولات" subtitle={data ? `${faNum(data.total)} محصول` : <InlineSkeleton />}
         actions={<>
           <Button variant="ghost" size="sm" icon={<Download className="size-4" />} onClick={exportCsv}>خروجی CSV</Button>
           <Button variant="secondary" size="sm" icon={<FileSpreadsheet className="size-4" />} onClick={() => setImportOpen(true)}>ورود از اکسل</Button>
@@ -104,7 +100,9 @@ export default function Products() {
         ]} />
       </Card>
 
-      {isLoading ? <Skeleton className="h-96" /> : items.length === 0 ? (
+      {/* While a filter change is loading, the previous rows stay (dimmed) instead of collapsing to a skeleton. */}
+      <div className={cn("transition-opacity", isPlaceholderData && "opacity-60 pointer-events-none")} aria-busy={isPlaceholderData}>
+      {isPending ? <ProductsBodySkeleton view={view} /> : items.length === 0 ? (
         <Card><EmptyState icon={<Plus className="size-6" />} title="محصولی پیدا نشد"
           text="محصول دستی اضافه کن، از کانالت کرال کن یا با AI بساز."
           action={<Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai">ساخت اولین محصول با AI</Button></Link>} /></Card>
@@ -172,6 +170,7 @@ export default function Products() {
           ))}
         </div>
       )}
+      </div>
 
       {data && data.total > 25 && (
         <div className="flex items-center justify-center gap-2 mt-4">

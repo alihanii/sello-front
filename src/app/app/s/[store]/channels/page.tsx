@@ -7,11 +7,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago } from "@/lib/format";
-import { useChannels, useStoreId } from "@/lib/hooks";
+import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { OperationWatcher } from "@/components/OperationWatcher";
 import { PlatformIcon } from "@/components/ui/status";
 import { Button, Card, Chip, Dialog, Field, Input, PageHeader, Switch } from "@/components/ui/primitives";
+import { ChannelsBodySkeleton } from "@/components/ui/skeletons";
 
 const HEALTH: Record<string, { label: string; tone: string }> = {
   connected: { label: "وصل", tone: "success" }, error: { label: "خطا", tone: "danger" },
@@ -130,9 +131,9 @@ function InstagramCrawlDialog({ onClose }: { onClose: () => void }) {
 export default function Channels() {
   const sid = useStoreId();
   const qc = useQueryClient();
-  const { data: channels = [] } = useChannels(sid);
-  const { data: platforms = [] } = useQuery({ queryKey: ["platforms"], queryFn: () => api<any[]>("/platforms") });
-  const { data: sources = [] } = useQuery({ queryKey: ["crawl-sources", sid], queryFn: () => api<any[]>(`/stores/${sid}/crawl-sources`) });
+  const { data: channels = [], isPending: chPending } = useChannels(sid);
+  const { data: platforms = [], isPending: plPending } = useQuery(storeQueries.platforms());
+  const { data: sources = [], isPending: srcPending } = useQuery(storeQueries.crawlSources(sid));
   const igPages = sources.filter((s: any) => s.type === "instagram_profile");
   const [connect, setConnect] = useState<{ platform: string; channelId?: number; crawlOnly?: boolean } | null>(null);
   const [healthOp, setHealthOp] = useState<number | null>(null);
@@ -144,6 +145,7 @@ export default function Channels() {
   return (
     <>
       <PageHeader title="کانال‌ها" subtitle="کانال‌هایی که این فروشگاه در آن‌ها محصول منتشر می‌کند یا از آن‌ها کرال می‌کند." />
+      {chPending || plPending || srcPending ? <ChannelsBodySkeleton /> : <>
       {(channels.length > 0 || igPages.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
           {igPages.map((s: any) => (
@@ -208,6 +210,7 @@ export default function Channels() {
         </div>
         <Link href={`/app/s/${sid}/chat?tab=connections`}><Button variant="secondary">اتصال‌های چت</Button></Link>
       </Card>
+      </>}
       {connect?.crawlOnly && <InstagramCrawlDialog onClose={() => setConnect(null)} />}
       {connect && !connect.crawlOnly && <ConnectDialog platform={connect.platform} channelId={connect.channelId} oauth={platforms.find((p: any) => p.platform === "instagram")?.oauth}
         onClose={() => setConnect(null)} />}

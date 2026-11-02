@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Bot, Coins, Database, MessageCircle, ShoppingBag, Zap } from "lucide-react";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -9,15 +9,16 @@ import { faNum, jDate, jDateTime, ms, toman } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
 import { MSG_SOURCE } from "@/lib/chat";
 import { PlatformIcon } from "@/components/ui/status";
-import { Card, CardHeader, Select, Skeleton } from "@/components/ui/primitives";
+import { Card, CardHeader, Select } from "@/components/ui/primitives";
+import { ChatUsageSkeleton } from "@/components/ui/skeletons";
 
 export const tip = { contentStyle: { background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: 12, direction: "rtl" as const, fontFamily: "inherit" }, formatter: (v: any) => faNum(v) };
 
 export function ChatUsage() {
   const sid = useStoreId();
   const [days, setDays] = useState("30");
-  const { data } = useQuery({ queryKey: ["chat-usage", sid, days], queryFn: () => api(`/stores/${sid}/chat/usage?days=${days}`) });
-  if (!data) return <Skeleton className="h-96" />;
+  const { data } = useQuery({ queryKey: ["chat-usage", sid, days], queryFn: () => api(`/stores/${sid}/chat/usage?days=${days}`), placeholderData: keepPreviousData });
+  if (!data) return <ChatUsageSkeleton />;
   const t = data.totals;
   const chart = data.series.map((d: any) => ({ day: jDate(d.day, "d MMM"), "با AI": d.llm, "بدون هزینه": d.ai - d.llm, "پیام مشتری": d.customer }));
   const free = t.ai_replies ? Math.round((100 * t.without_llm) / t.ai_replies) : 0;

@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, MessageCircle, Package, Radar, Send, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { api } from "@/lib/api";
 import { faDigits, faNum, jDate } from "@/lib/format";
-import { useStoreId } from "@/lib/hooks";
+import { storeQueries, useStoreId } from "@/lib/hooks";
 import { Button, Card, CardHeader, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { DashboardSkeleton, SkLine } from "@/components/ui/skeletons";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 
 function Stat({ icon: Icon, label, value, hint }: any) {
@@ -28,7 +28,15 @@ const ATTENTION_LINK: Record<string, string> = {
 };
 
 function ChatCard({ sid }: { sid: number }) {
-  const { data } = useQuery({ queryKey: ["chat-overview", sid], queryFn: () => api(`/stores/${sid}/chat/overview`) });
+  const { data, isPending } = useQuery(storeQueries.chatOverview(sid));
+  if (isPending) {
+    return (
+      <Card className="p-5 space-y-3" aria-hidden>
+        <div className="flex justify-between"><SkLine className="w-24" /><SkLine className="w-10" /></div>
+        <div className="grid grid-cols-3 gap-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-10 rounded-xl" />)}</div>
+      </Card>
+    );
+  }
   if (!data) return null;
   return (
     <Link href={`/app/s/${sid}/chat`}>
@@ -49,8 +57,8 @@ function ChatCard({ sid }: { sid: number }) {
 
 export default function Dashboard() {
   const sid = useStoreId();
-  const { data } = useQuery({ queryKey: ["dashboard", sid], queryFn: () => api(`/stores/${sid}/dashboard`) });
-  if (!data) return <div className="grid grid-cols-1 gap-4 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-32" />)}</div>;
+  const { data } = useQuery(storeQueries.dashboard(sid));
+  if (!data) return <DashboardSkeleton />;
   const k = data.kpis;
   const series = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(Date.now() - (29 - i) * 864e5).toISOString().slice(0, 10);

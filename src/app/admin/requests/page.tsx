@@ -7,11 +7,12 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, toman } from "@/lib/format";
 import { Button, Card, CardHeader, Chip, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { ListRowsSkeleton } from "@/components/ui/skeletons";
 
 export default function Requests() {
   const qc = useQueryClient();
-  const { data = [] } = useQuery({ queryKey: ["admin-requests"], queryFn: () => api<any[]>("/admin/plan-requests") });
-  const { data: payments = [] } = useQuery({ queryKey: ["admin-payments"], queryFn: () => api<any[]>("/admin/payments") });
+  const { data = [], isPending } = useQuery({ queryKey: ["admin-requests"], queryFn: () => api<any[]>("/admin/plan-requests") });
+  const { data: payments = [], isPending: paymentsPending } = useQuery({ queryKey: ["admin-payments"], queryFn: () => api<any[]>("/admin/payments") });
   const decide = useMutation({
     mutationFn: ({ id, approve }: any) => api(`/admin/plan-requests/${id}`, { method: "POST", json: { approve } }),
     onSuccess: (_, v: any) => { toast.success(v.approve ? "پلن فعال شد" : "رد شد"); qc.invalidateQueries({ queryKey: ["admin-requests"] }); qc.invalidateQueries({ queryKey: ["admin-stats"] }); },
@@ -20,7 +21,7 @@ export default function Requests() {
     <>
       <PageHeader title="خریدها" subtitle="درخواست‌های خرید دستی و پرداخت‌های آنلاین" />
       <Card strong>
-        {data.length === 0 ? <EmptyState icon={<Inbox className="size-6" />} title="درخواستی در انتظار نیست" /> : (
+        {isPending ? <ListRowsSkeleton rows={3} icon={false} /> : data.length === 0 ? <EmptyState icon={<Inbox className="size-6" />} title="درخواستی در انتظار نیست" /> : (
           <ul className="divide-y divide-[var(--glass-edge)]">
             {data.map((r) => (
               <li key={r.id} className="p-4 flex flex-wrap items-center gap-3">
@@ -37,7 +38,7 @@ export default function Requests() {
       </Card>
       <Card strong className="mt-6">
         <CardHeader title="پرداخت‌های آنلاین" subtitle="پرداخت موفق، پلن را خودکار فعال می‌کند." />
-        {payments.length === 0 ? <EmptyState icon={<Inbox className="size-6" />} title="هنوز پرداختی ثبت نشده" /> : (
+        {paymentsPending ? <ListRowsSkeleton rows={3} icon={false} /> : payments.length === 0 ? <EmptyState icon={<Inbox className="size-6" />} title="هنوز پرداختی ثبت نشده" /> : (
           <ul className="divide-y divide-[var(--glass-edge)]">
             {payments.map((p) => (
               <li key={p.id} className="p-4 flex flex-wrap items-center gap-3">

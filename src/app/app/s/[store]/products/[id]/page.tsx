@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useStoreId } from "@/lib/hooks";
 import { ProductDetails } from "@/components/products/ProductDetails";
-import { Skeleton } from "@/components/ui/primitives";
+import { ProductEditSkeleton } from "@/components/ui/skeletons";
 
 export default function EditProduct() {
   const sid = useStoreId();
@@ -21,7 +21,7 @@ export default function EditProduct() {
     onSuccess: (r) => { qc.setQueryData(["product", id], r); toast.success("ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
-  if (!p) return <Skeleton className="h-[600px] max-w-2xl" />;
+  if (!p) return <ProductEditSkeleton />;
   return (
     <>
       <Link href={`/app/s/${sid}/products`} className="text-muted text-[13px] inline-flex items-center gap-1 hover:text-fg mb-3"><ArrowRight className="size-4" />محصولات</Link>

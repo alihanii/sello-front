@@ -1,18 +1,19 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Bot, Coins, Database, MessageCircle, ShoppingBag, Zap } from "lucide-react";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "@/lib/api";
 import { faDigits, faNum, jDate, toman } from "@/lib/format";
-import { Card, CardHeader, PageHeader, Select, Skeleton } from "@/components/ui/primitives";
+import { Card, CardHeader, PageHeader, Select } from "@/components/ui/primitives";
+import { AdminUsageSkeleton } from "@/components/ui/skeletons";
 import { tip } from "@/components/chat/Usage";
 
 export default function AdminChatUsage() {
   const [days, setDays] = useState("30");
-  const { data } = useQuery({ queryKey: ["admin-chat-usage", days], queryFn: () => api(`/admin/chat/usage?days=${days}`) });
-  if (!data) return <Skeleton className="h-96" />;
+  const { data } = useQuery({ queryKey: ["admin-chat-usage", days], queryFn: () => api(`/admin/chat/usage?days=${days}`), placeholderData: keepPreviousData });
+  if (!data) return <AdminUsageSkeleton />;
   const t = data.totals;
   const chart = data.series.map((d: any) => ({ day: jDate(d.day, "d MMM"), توکن: d.tokens }));
   return (

@@ -155,8 +155,8 @@ export function Spinner({ className }: { className?: string }) {
   return <Loader2 className={cn("size-4 animate-spin", className)} aria-hidden />;
 }
 
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("rounded-xl bg-subtle shimmer", className)} />;
+export function Skeleton({ className, ...p }: React.ComponentProps<"div">) {
+  return <div aria-hidden className={cn("rounded-xl bg-subtle shimmer", className)} {...p} />;
 }
 
 export function EmptyState({ icon, title, text, action }: { icon: React.ReactNode; title: string; text?: string; action?: React.ReactNode }) {

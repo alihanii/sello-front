@@ -1,19 +1,20 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Activity, AlertTriangle, Coins, Timer } from "lucide-react";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate, jDateTime, ms, toman } from "@/lib/format";
-import { Card, CardHeader, Chip, PageHeader, Select, Skeleton } from "@/components/ui/primitives";
+import { Card, CardHeader, Chip, PageHeader, Select } from "@/components/ui/primitives";
+import { AdminUsageSkeleton } from "@/components/ui/skeletons";
 import { AddAiKeyButton } from "@/components/admin/AiKeyEditor";
 
 export default function AiUsage() {
   const [days, setDays] = useState("30");
   const [provider, setProvider] = useState("");
-  const { data } = useQuery({ queryKey: ["ai-usage", days, provider], queryFn: () => api(`/admin/ai/usage?days=${days}${provider ? `&provider_id=${provider}` : ""}`) });
-  if (!data) return <Skeleton className="h-96" />;
+  const { data } = useQuery({ queryKey: ["ai-usage", days, provider], queryFn: () => api(`/admin/ai/usage?days=${days}${provider ? `&provider_id=${provider}` : ""}`), placeholderData: keepPreviousData });
+  if (!data) return <AdminUsageSkeleton stats={4} actions={3} />;
   const t = data.totals;
   const chart = data.daily.map((d: any) => ({ day: jDate(d.day, "d MMM"), موفق: d.ok, ناموفق: d.failed }));
   const tip = { contentStyle: { background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: 12, direction: "rtl" as const, fontFamily: "inherit" }, formatter: (v: any) => faNum(v) };

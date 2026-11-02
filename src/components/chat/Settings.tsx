@@ -9,6 +9,7 @@ import { useStoreId } from "@/lib/hooks";
 import { faDigits } from "@/lib/format";
 import { TONES, WEEK, useAgent, useSaveAgent } from "@/lib/chat";
 import { Button, Card, CardHeader, Dialog, EmptyState, Field, Input, Select, Skeleton, Switch, Textarea, cn } from "@/components/ui/primitives";
+import { ListCardSkeleton, SettingsColumnsSkeleton } from "@/components/ui/skeletons";
 
 /** Local copy of the agent settings; saved with one button so half-typed text is never sent. */
 function useDraft() {
@@ -107,7 +108,7 @@ function AnswerRules({ draft, set }: { draft: any; set: (p: any) => void }) {
 
 export function AssistantSettings() {
   const { draft, set, save, dirty } = useDraft();
-  if (!draft) return <Skeleton className="h-96" />;
+  if (!draft) return <SettingsColumnsSkeleton />;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-4">
@@ -361,7 +362,7 @@ function FaqImport({ existing, onClose, onAdd }: { existing: number; onClose: ()
 export function KnowledgeSettings() {
   const { draft, set, save, dirty } = useDraft();
   const [importing, setImporting] = useState(false);
-  if (!draft) return <Skeleton className="h-96" />;
+  if (!draft) return <div className="space-y-4"><ListCardSkeleton rows={5} /></div>;
   const faqs: any[] = draft.faqs;
   const setFaq = (i: number, p: any) => set({ faqs: faqs.map((f, j) => (j === i ? { ...f, ...p } : f)) });
   return (
@@ -446,7 +447,7 @@ function OrderFields({ draft, set }: { draft: any; set: (p: any) => void }) {
 
 export function OrderSettings() {
   const { draft, set, save, dirty } = useDraft();
-  if (!draft) return <Skeleton className="h-96" />;
+  if (!draft) return <SettingsColumnsSkeleton />;
   const pay = draft.payment;
   const setPay = (p: any) => set({ payment: { ...pay, ...p } });
   const req = draft.required_fields;
