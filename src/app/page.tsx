@@ -82,7 +82,7 @@ function PanelDemo() {
     { name: "سویشرت طوسی کلاه‌دار", code: "S03", src: "کرال تلگرام", tone: "crawl", stockN: "۲", low: true, ch: ["telegram"], color: "#6b7280" },
     { name: "ماگ سرامیکی طرح‌دار", code: "M21", src: "دستی", tone: "neutral", stockN: "۳۰", ch: ["bale", "digikala"], color: "#0f766e" },
   ];
-  const toneCls: Record<string, string> = { crawl: "bg-crawl/12 text-crawl", ai: "bg-ai/12 text-ai", neutral: "bg-subtle text-muted" };
+  const toneCls: Record<string, string> = { crawl: "bg-crawl/8 text-crawl", ai: "bg-ai/8 text-ai", neutral: "bg-subtle text-muted" };
   return (
     <div className="relative mx-auto w-full max-w-[460px]" role="img" aria-label="نمای پنل سلو: محصول‌ها از کرال، AI و ورود دستی، موجودی و کانال‌های منتشرشده">
       <div className="ld-msg absolute -top-12 end-0 z-10 ld-float rounded-[10px] px-3 py-2 flex items-center gap-2 text-[12.5px] font-bold" style={S({ "--d": "300ms" })}>
@@ -291,7 +291,7 @@ function VisCrawl() {
         <PlatformIcon platform="instagram" size={24} />
         <span className="font-bold">۲۵ پست آخر پیج</span>
         <ArrowLeft className="size-3.5 text-primary" />
-        <span className="rounded-[5px] bg-ai/12 text-ai px-1.5 py-px font-bold text-[11px]">AI</span>
+        <span className="rounded-[5px] bg-ai/8 text-ai px-1.5 py-px font-bold text-[11px]">AI</span>
       </div>
       <div className="mt-2.5 space-y-1">
         <Row a="هودی قلب هندسی · H12" b="۸۵۰٬۰۰۰" />
