@@ -1,0 +1,126 @@
+/* Landing page only. Motion budget for weak phones: transform and opacity only, no JS timers,
+   no animated blur or backdrop-filter. One authored moment (the hero chat playing out once);
+   the principle rows use a compositor-driven scroll reveal where the browser supports it and
+   are simply visible everywhere else. */
+
+@layer components {
+.ld {
+  --ld-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --ld-surface: color-mix(in oklab, var(--raised) 78%, transparent);
+}
+
+/* Links styled as buttons (a <button> inside <a> is invalid HTML). */
+.ld-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 3rem;
+  padding-inline: 1.6rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 15px;
+  white-space: nowrap;
+  transition: transform 160ms var(--ld-ease), background-color 160ms ease, box-shadow 160ms ease;
+}
+.ld-btn:active { transform: scale(0.97); }
+.ld-btn-primary {
+  background: var(--primary);
+  color: var(--primary-fg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 8px 22px -10px color-mix(in oklab, var(--primary) 80%, transparent);
+}
+.ld-btn-quiet {
+  color: var(--fg);
+  background: var(--subtle);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ld-btn-primary:hover { background: var(--primary-hover); }
+  .ld-btn-quiet:hover { background: color-mix(in oklab, var(--fg) 9%, transparent); }
+  .ld-btn:hover .ld-arrow { transform: translateX(-3px); }
+}
+.ld-arrow { transition: transform 200ms var(--ld-ease); }
+
+/* ---------- Hero entrance ---------- */
+@keyframes ld-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.ld-rise {
+  animation: ld-rise 640ms var(--ld-ease) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* ---------- Hero chat: plays once, ends on a fully visible final state ---------- */
+.ld-phone {
+  border: 1px solid var(--glass-border);
+  background: linear-gradient(160deg, var(--sheen), transparent 40%), var(--glass-strong);
+  box-shadow: var(--shadow), 0 40px 80px -40px rgba(4, 120, 87, 0.35);
+}
+@keyframes ld-msg {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.ld-msg {
+  animation: ld-msg 420ms var(--ld-ease) backwards;
+  animation-delay: var(--d, 0ms);
+}
+.ld-msg-in { transform-origin: bottom right; }
+.ld-msg-out { transform-origin: bottom left; }
+
+/* Typing dots: visible only between the question and the answer, then gone for good. */
+@keyframes ld-typing-life {
+  0%, 100% { opacity: 0; }
+  10%, 85% { opacity: 1; }
+}
+@keyframes ld-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+.ld-typing {
+  opacity: 0;
+  animation: ld-typing-life 900ms linear 1000ms 1 both;
+}
+.ld-typing i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--muted-fg);
+  animation: ld-dot 900ms ease-in-out 1000ms 1;
+}
+.ld-typing i:nth-child(2) { animation-delay: 1150ms; }
+.ld-typing i:nth-child(3) { animation-delay: 1300ms; }
+
+/* ---------- Cycle track ---------- */
+.ld-stage-dot {
+  box-shadow: 0 0 0 5px var(--bg);
+}
+
+/* ---------- Principles: scroll-driven reveal, no JS ---------- */
+@keyframes ld-reveal {
+  from { opacity: 0.15; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@supports (animation-timeline: view()) {
+  .ld-reveal {
+    animation: ld-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 30%;
+  }
+}
+
+.ld-numeral {
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--primary);
+}
+
+.ld-surface { background: var(--ld-surface); border: 1px solid var(--line); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-rise, .ld-msg, .ld-reveal, .ld-typing, .ld-typing i { animation: none !important; }
+  .ld-typing { display: none; }
+  .ld-btn, .ld-arrow { transition: none; }
+}
+
+}
