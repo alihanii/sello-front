@@ -151,7 +151,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
 
       <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4">
         <div className="glass rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
-          <Link href={base} className="lg:hidden ps-1" aria-label="داشبورد"><Logo className="text-[18px]" /></Link>
+          <Link href={base} className="lg:hidden ps-1 flex items-center" aria-label="داشبورد"><Logo className="text-[18px]" /></Link>
           <div className="flex-1" />
           <ActivityIndicator storeId={storeId} />
           <NotificationBell storeId={storeId} />

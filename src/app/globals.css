@@ -7,8 +7,8 @@
   --bg: #f3f5f4;
   --orb-1: rgba(16, 185, 129, 0.20);
   --orb-2: rgba(245, 158, 11, 0.13);
-  --glass: rgba(255, 255, 255, 0.58);
-  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass: rgba(255, 255, 255, 0.8);
+  --glass-strong: rgba(255, 255, 255, 0.95);
   --glass-border: rgba(255, 255, 255, 0.85);
   --glass-edge: rgba(15, 23, 42, 0.08);
   --sheen: rgba(255, 255, 255, 0.6);
@@ -44,8 +44,8 @@
     --bg: #0a0f0d;
     --orb-1: rgba(16, 185, 129, 0.16);
     --orb-2: rgba(245, 158, 11, 0.07);
-    --glass: rgba(255, 255, 255, 0.05);
-    --glass-strong: rgba(18, 26, 23, 0.86);
+    --glass: rgba(18, 26, 23, 0.82);
+    --glass-strong: rgba(18, 26, 23, 0.96);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-edge: rgba(255, 255, 255, 0.08);
     --sheen: rgba(255, 255, 255, 0.06);
@@ -80,8 +80,8 @@
   --bg: #0a0f0d;
   --orb-1: rgba(16, 185, 129, 0.16);
   --orb-2: rgba(245, 158, 11, 0.07);
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-strong: rgba(18, 26, 23, 0.86);
+  --glass: rgba(18, 26, 23, 0.82);
+  --glass-strong: rgba(18, 26, 23, 0.96);
   --glass-border: rgba(255, 255, 255, 0.09);
   --glass-edge: rgba(255, 255, 255, 0.08);
   --sheen: rgba(255, 255, 255, 0.06);
@@ -182,13 +182,13 @@ body {
 }
 .glass {
   background: linear-gradient(140deg, var(--sheen), transparent 42%), var(--glass);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
 }
 .glass-strong {
   background: linear-gradient(140deg, var(--sheen), transparent 50%), var(--glass-strong);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
 }
 @supports not (backdrop-filter: blur(1px)) {
   .glass { background: var(--glass-strong); }

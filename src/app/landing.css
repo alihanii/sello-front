@@ -19,8 +19,8 @@
   border: 1px solid var(--glass-border);
   background: var(--glass-strong);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
 }
 
 /* Links styled as buttons (a <button> inside <a> is invalid HTML). 48px tall: comfortable touch target. */

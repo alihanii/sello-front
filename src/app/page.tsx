@@ -14,7 +14,7 @@ export default function Landing() {
     <div className="ld">
       <div className="sticky top-0 z-30 px-4 pt-3">
         <header className="ld-header max-w-6xl mx-auto rounded-2xl h-14 ps-3 pe-2 flex items-center justify-between">
-          <Link prefetch={false} href="/" aria-label="Sello"><Logo /></Link>
+          <Link prefetch={false} href="/" aria-label="Sello" className="flex items-center h-full"><Logo /></Link>
           <nav className="flex items-center gap-1">
             <a href="#what" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">چی کار می‌کنه</a>
             <a href="#chat" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">دستیار چت</a>
