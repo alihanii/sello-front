@@ -1,7 +1,7 @@
 /* Landing page only. Built for weak phones and Core Web Vitals:
    - only transform and opacity animate (compositor), no JS timers, no animated blur;
    - the hero text (LCP) is never animated or hidden;
-   - one authored moment (the hero chat plays out once), rows reveal with a CSS scroll timeline
+   - rows reveal with a CSS scroll timeline
      where supported and are simply visible everywhere else;
    - backdrop-filter only on the sticky header, small radius. */
 
@@ -54,18 +54,7 @@
 }
 
 /* Surfaces: solid, no blur, so scrolling never repaints a frosted layer. */
-.ld-phone {
-  background: var(--raised-solid);
-  border: 1px solid var(--line);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 30px 60px -30px rgba(4, 120, 87, 0.35);
-}
-.ld-float {
-  background: var(--raised-solid);
-  border: 1px solid var(--line);
-  box-shadow: 0 10px 24px -12px rgba(15, 23, 42, 0.25);
-}
 .ld-vis { background: var(--raised-solid); border: 1px solid var(--line); }
-.ld-panel { background: color-mix(in oklab, var(--raised-solid) 70%, transparent); border: 1px solid var(--line); }
 
 /* The hero illustration is drawn for a light page; in dark mode it sits on a light stage so its cut-out edges stay clean. */
 :root[data-theme="dark"] .ld-hero-art { background: radial-gradient(120% 90% at 50% 45%, #f4f8f6, #dfe8e4); border-radius: 1rem; padding: 1rem; }
@@ -75,21 +64,6 @@
 
 .ld-numeral { font-variant-numeric: tabular-nums; line-height: 1; color: var(--primary); }
 
-/* ---------- Hero chat: plays once, ends on the fully visible final state ---------- */
-@keyframes ld-msg {
-  from { opacity: 0; transform: translateY(10px) scale(0.97); }
-  to { opacity: 1; transform: none; }
-}
-.ld-msg { animation: ld-msg 420ms var(--ld-ease) backwards; animation-delay: var(--d, 0ms); }
-.ld-msg-in { transform-origin: bottom right; }
-.ld-msg-out { transform-origin: bottom left; }
-
-@keyframes ld-seq { from { transform: translateY(14px) scale(0.97); } to { transform: none; } }
-/* Chat in its section (transform only): each message settles in as it scrolls into view. Off-screen = already final. */
-@supports (animation-timeline: view()) {
-  .ld-seq { animation: ld-seq linear both; animation-timeline: view(); animation-range: entry 10% cover 30%; }
-}
-
 /* ---------- Scroll reveal: compositor-driven, no JS, no IntersectionObserver ---------- */
 /* Transform only: text keeps full contrast at every frame (and for audits of off-screen rows). */
 @keyframes ld-reveal { from { transform: translateY(24px); } to { transform: none; } }
@@ -98,7 +72,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ld-msg, .ld-reveal, .ld-seq { animation: none !important; }
+  .ld-reveal { animation: none !important; }
   .ld-btn, .ld-arrow { transition: none; }
 }
 }

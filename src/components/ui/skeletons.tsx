@@ -399,42 +399,6 @@ export function SettingsSkeleton() {
   );
 }
 
-/** The chat page: header + tab strip + the overview body (the default tab). */
-export function ChatSkeleton() {
-  return (
-    <div aria-busy="true">
-      <PageHeaderSkeleton actions={1} />
-      <div className="mb-5"><TabsSkeleton count={6} className="max-w-full overflow-hidden" /></div>
-      <ChatOverviewSkeleton />
-    </div>
-  );
-}
-
-export function ChatOverviewSkeleton() {
-  return (
-    <div className="space-y-4">
-      <StatGridSkeleton />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2"><CardHeaderSkeleton subtitle /><div className="px-5 pb-5 space-y-4">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="flex items-center gap-3"><Skeleton className="size-5 rounded-full" /><SkLine className="flex-1 max-w-72" /></div>)}</div></Card>
-        <div className="flex flex-col gap-4">
-          <Card className="p-5 space-y-3"><SkLine className="w-32" /><Skeleton className="h-2 rounded-full" /><SkLine size={12} className="w-full" /></Card>
-          <Card><CardHeaderSkeleton action /><div className="px-5 pb-5"><div className="flex items-center gap-3"><Skeleton className="size-8 rounded-lg" /><div className="flex-1 space-y-1.5"><SkLine className="w-28" /><SkLine size={12} className="w-36" /></div></div></div></Card>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** A settings-style tab body: two form cards side by side. */
-export function TwoFormCardsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-      <Card><CardHeaderSkeleton subtitle /><div className="px-5 pb-5 space-y-4"><FieldsSkeleton fields={3} tall={[2]} /></div></Card>
-      <Card><CardHeaderSkeleton subtitle /><div className="px-5 pb-5 space-y-4"><ToggleRowsSkeleton rows={3} /><FieldsSkeleton fields={1} /></div></Card>
-    </div>
-  );
-}
-
 /** Matches <ProductDetails>: one card of fields (photos, name, code, price/stock, description) + the save button. */
 export function ProductFormSkeleton() {
   return (
@@ -633,36 +597,6 @@ export function CardsStackSkeleton({ cards = 3, header = true, actions = 0 }: { 
       </div>
     </div>
   );
-}
-
-/** Chat settings tabs: two form cards in a 2/3 column and a side card. */
-export function SettingsColumnsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" aria-busy="true">
-      <div className="lg:col-span-2 space-y-4">
-        <FormCardSkeleton fields={3} tall={[2]} />
-        <Card className="p-5 space-y-4"><ToggleRowsSkeleton rows={3} /></Card>
-      </div>
-      <Card className="self-start"><CardHeaderSkeleton subtitle /><div className="px-5 pb-5 space-y-3"><SkLine className="w-full" /><SkLine className="w-4/5" /><Skeleton className="h-11 rounded-full mt-2" /></div></Card>
-    </div>
-  );
-}
-
-/** Chat → usage: period select, six small stats, chart, log table. */
-export function ChatUsageSkeleton() {
-  return (
-    <div className="space-y-4" aria-busy="true">
-      <div className="flex justify-end"><Skeleton className="h-11 w-28 rounded-2xl" /></div>
-      <StatGridSkeleton count={6} className="grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" compact />
-      <ChartCardSkeleton plot="h-64" />
-      <Card strong><CardHeaderSkeleton /><TableSkeleton rows={5} cols={5} /></Card>
-    </div>
-  );
-}
-
-/** A single list card (FAQ list, conversation list, order list) with header. */
-export function ListCardSkeleton({ rows = 4 }: { rows?: number }) {
-  return <Card aria-busy="true"><CardHeaderSkeleton subtitle action /><ListRowsSkeleton rows={rows} icon={false} /></Card>;
 }
 
 export function AdminAiKeysPageSkeleton() {

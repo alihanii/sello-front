@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, History, MessageSquareText, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/shell/Brand";
 import { PlatformIcon } from "@/components/ui/PlatformIcon";
@@ -6,7 +6,7 @@ import { ThemeSwitch } from "./ThemeSwitch";
 import "./landing.css";
 
 /* Static page, no app-shell bundle. Hero text is never animated (it is the LCP element);
-   only the chat demo plays once, and rows reveal with a CSS scroll timeline where supported. */
+   rows reveal with a CSS scroll timeline where supported. */
 
 
 export default function Landing() {
@@ -17,7 +17,6 @@ export default function Landing() {
           <Link prefetch={false} href="/" aria-label="Sello" className="flex items-center h-full"><Logo /></Link>
           <nav className="flex items-center gap-1">
             <a href="#what" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">چی کار می‌کنه</a>
-            <a href="#chat" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">دستیار چت</a>
             <Link prefetch={false} href="/pricing" className="inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">پلن‌ها</Link>
             <ThemeSwitch />
             <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary ld-btn-sm">ورود</Link>
@@ -28,7 +27,6 @@ export default function Landing() {
       <main className="max-w-6xl mx-auto px-4">
         <Hero />
         <What />
-        <ChatBot />
         <Start />
       </main>
 
@@ -52,7 +50,7 @@ function Hero() {
           <span className="block text-primary">که خودت تربیتش می‌کنی.</span>
         </h1>
         <p className="text-muted text-[17px] sm:text-[19px] leading-[1.9] mt-6 max-w-[33rem]">
-          محصول، موجودی، انتشار، گفتگو با مشتری و سفارش؛ سلو همهٔ کارهای فروشگاهت رو از یه پنل می‌چرخونه. تو فقط تصمیم می‌گیری.
+          محصول، موجودی، انتشار و کرال؛ سلو همهٔ کارهای فروشگاهت رو از یه پنل می‌چرخونه. تو فقط تصمیم می‌گیری.
         </p>
         <div className="flex flex-wrap gap-3 mt-9">
           <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary">
@@ -84,68 +82,13 @@ function HeroArt() {
         sizes="(min-width: 1024px) 560px, 92vw"
         width={752}
         height={519}
-        alt="پنل سلو: محصول‌ها، موجودی، چت هوشمند با مشتری و انتشار در تلگرام، بله و اینستاگرام"
+        alt="پنل سلو: محصول‌ها، موجودی و انتشار در تلگرام، بله و اینستاگرام"
         fetchPriority="high"
         decoding="async"
         className="w-full h-auto select-none"
         draggable={false}
       />
     </picture>
-  );
-}
-
-/** A chat that becomes an order; messages appear as they scroll into view (CSS scroll timeline). */
-function ChatDemo() {
-  return (
-    <div className="relative mx-auto w-full max-w-[380px]" role="img" aria-label="نمونهٔ گفتگوی دستیار سلو با مشتری که به سفارش می‌رسد">
-      <div className="ld-phone rounded-[18px] p-3 sm:p-4">
-        <div className="flex items-center gap-3 px-1.5 pb-3 border-b border-line">
-          <span className="size-10 rounded-full bg-[#111827] text-white grid place-items-center font-black text-[14px]" aria-hidden>م</span>
-          <div className="min-w-0 flex-1">
-            <div className="font-extrabold text-[14px]">مریم · فروشگاه هودی</div>
-            <div className="text-[12px] text-muted">پیوی تلگرام</div>
-          </div>
-          <PlatformIcon platform="telegram" size={24} />
-        </div>
-
-        <div className="flex flex-col gap-2.5 pt-4 pb-1 text-[13.5px] leading-[1.8]">
-          <div className="ld-seq ld-msg-in self-start max-w-[80%] rounded-[12px] rounded-se-[4px] bg-subtle px-3.5 py-2">
-            سلام، این هودی مشکی سایز L داری؟
-            <span className="block text-[10.5px] text-muted text-end tnum">۰۳:۱۲</span>
-          </div>
-
-          <div className="relative self-end w-[84%]">
-            <div className="ld-seq ld-msg-out rounded-[12px] rounded-ss-[4px] bg-primary-soft p-2">
-              <div className="flex gap-3 items-center rounded-[8px] bg-[var(--raised-solid)] p-2">
-                <ProductThumb />
-                <div className="min-w-0">
-                  <div className="font-bold text-[13px]">هودی مشکی قلب هندسی</div>
-                  <div className="text-[12px] text-muted">کد H12 · سایز L موجوده</div>
-                  <div className="font-extrabold text-[13px] text-[var(--primary-hover)] tnum">۸۵۰٬۰۰۰ تومان</div>
-                </div>
-              </div>
-              <p className="px-1.5 pt-1.5">سلام عزیزم، آره داریم 🌱 برات کنار بذارم؟</p>
-            </div>
-          </div>
-
-          <div className="ld-seq ld-msg-in self-start rounded-[12px] rounded-se-[4px] bg-subtle px-3.5 py-2">
-            آره، یکی بفرست
-          </div>
-
-          <div className="ld-seq ld-msg-out self-end w-[84%] rounded-[12px] rounded-ss-[4px] bg-primary-soft px-3.5 py-2.5">
-            <div className="font-bold mb-1">خلاصهٔ سفارشت</div>
-            <Row a="هودی H12 · L × ۱" b="۸۵۰٬۰۰۰" />
-            <Row a="ارسال" b="۹۰٬۰۰۰" muted />
-            <div className="flex justify-between font-extrabold border-t border-line mt-1.5 pt-1.5"><span>جمع</span><span className="tnum">۹۴۰٬۰۰۰ تومان</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div className="ld-seq absolute -bottom-5 start-3 sm:-start-6 ld-float rounded-[10px] px-4 py-2.5 flex items-center gap-2.5 text-[13px] font-bold">
-        <span className="size-5 rounded-full bg-primary text-primary-fg grid place-items-center" aria-hidden><Check className="size-3" strokeWidth={3} /></span>
-        سفارش ثبت شد، منتظر تأیید توئه
-      </div>
-    </div>
   );
 }
 
@@ -161,23 +104,13 @@ function ProductThumb({ size = "size-14" }: { size?: string }) {
   );
 }
 
-/* ---------------- What Sello does: the seven ---------------- */
+/* ---------------- What Sello does: the five ---------------- */
 
-const SEVEN: { title: string; text: string; visual: React.ReactNode }[] = [
+const FIVE: { title: string; text: string; visual: React.ReactNode }[] = [
   {
     title: "کل فروشگاهت توی یه پنل",
-    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا کنار هم: محصول، موجودی، انتشار، گفتگو و سفارش. چند تا فروشگاه هم داشته باشی، همه از همین‌جا.",
+    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا کنار هم: محصول، موجودی و انتشار. چند تا فروشگاه هم داشته باشی، همه از همین‌جا.",
     visual: <VisHub />,
-  },
-  {
-    title: "یه ادمین کامل که با AI با مشتری‌هات حرف می‌زنه",
-    text: "لحن، سؤال‌های پرتکرار، قوانین و جدول سایز رو یادش می‌دی؛ بعد ۲۴ ساعته و با صد نفر هم‌زمان همون‌جوری جواب می‌ده که خودت می‌دادی.",
-    visual: <VisTrain />,
-  },
-  {
-    title: "برات سفارش می‌گیره",
-    text: "رنگ و سایز و آدرس رو می‌پرسه، جمع رو از قیمت واقعی حساب می‌کنه، فیش رو می‌گیره و می‌ذاره جلوت که فقط تأیید کنی.",
-    visual: <VisOrder />,
   },
   {
     title: "محصول‌هات خودشون میان",
@@ -191,7 +124,7 @@ const SEVEN: { title: string; text: string; visual: React.ReactNode }[] = [
   },
   {
     title: "موجودی و انبار همیشه درسته",
-    text: "موجودی هر محصول یه جاست. با هر سفارش خودش کم می‌شه، کم‌موجودها رو نشونت می‌ده و از اکسل هم یه‌جا آپدیت می‌شه.",
+    text: "موجودی هر محصول یه جاست. کم‌موجودها رو نشونت می‌ده و از اکسل هم یه‌جا آپدیت می‌شه.",
     visual: <VisStock />,
   },
   {
@@ -209,11 +142,11 @@ function What() {
           سلو قرار نیست برات فروشگاه بسازه.<br className="hidden sm:block" />
           <span className="text-primary"> قراره فروشگاهت رو بچرخونه.</span>
         </h2>
-        <p className="text-muted text-[17px] mt-4 leading-[1.9]">از روزی که وصلش کنی، این هفت کار با سلوئه:</p>
+        <p className="text-muted text-[17px] mt-4 leading-[1.9]">از روزی که وصلش کنی، این پنج کار با سلوئه:</p>
       </div>
 
       <ol className="mt-10 sm:mt-14 border-t border-line">
-        {SEVEN.map((it, i) => (
+        {FIVE.map((it, i) => (
           <li key={it.title} className="ld-reveal grid grid-cols-[2.75rem_1fr] sm:grid-cols-[4rem_1fr] md:grid-cols-[4rem_1fr_minmax(0,17rem)] gap-x-4 sm:gap-x-6 gap-y-5 py-8 sm:py-10 border-b border-line items-center">
             <span className="ld-numeral self-start text-[36px] sm:text-[52px] font-black" aria-hidden>{(i + 1).toLocaleString("fa-IR")}</span>
             <div>
@@ -274,29 +207,6 @@ function VisStock() {
     </VisBox>
   );
 }
-function VisTrain() {
-  return (
-    <VisBox>
-      <div className="flex flex-wrap gap-1.5">
-        {["لحن: خودمونی", "جدول سایز", "ارسال رایگان بالای ۲ میلیون", "ساعت کاری ۱۰ تا ۲۲", "تخفیف نده"].map((c) => (
-          <span key={c} className="rounded-[6px] bg-subtle px-2 py-1 font-semibold">{c}</span>
-        ))}
-      </div>
-    </VisBox>
-  );
-}
-function VisOrder() {
-  return (
-    <VisBox>
-      <Row a="هودی H12 · L" b="۸۵۰٬۰۰۰" />
-      <Row a="ارسال" b="۹۰٬۰۰۰" muted />
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-line">
-        <span className="font-bold">فیش دریافت شد</span>
-        <span className="rounded-[6px] bg-primary text-primary-fg px-2 py-0.5 font-bold">تأیید</span>
-      </div>
-    </VisBox>
-  );
-}
 function VisMake() {
   return (
     <VisBox>
@@ -330,50 +240,11 @@ function VisPublish() {
   );
 }
 
-/* ---------------- Chatbot spotlight ---------------- */
-
-const CHAT_POINTS = [
-  { icon: UserRound, title: "از پیوی خودت جواب می‌ده", text: "به اسم خودت توی پیوی تلگرامت با مشتری حرف می‌زنه؛ مشتری فکر می‌کنه داره با خودت چت می‌کنه." },
-  { icon: MessageSquareText, title: "تلگرام و بله", text: "روی ربات فروشگاهت توی تلگرام و بله، یا مستقیم توی پیوی تلگرام." },
-  { icon: History, title: "گزارش دقیق از هر گفتگو", text: "تاریخچهٔ کامل هر چت، سفارش‌ها، فیش‌ها و هزینهٔ هر پیام." },
-  { icon: ShieldCheck, title: "حرف بی‌ربط نمی‌زنه", text: "فقط دربارهٔ فروش حرف می‌زنه و هر وقت مشتری آدم بخواد، گفتگو رو می‌ده دست تو." },
-];
-
-function ChatBot() {
-  return (
-    <section id="chat" className="py-16 sm:py-20 scroll-mt-20" aria-labelledby="chat-title">
-      <div className="ld-panel rounded-[20px] p-6 sm:p-10 lg:p-12 grid lg:grid-cols-[1.15fr_1fr] gap-10 lg:gap-14 items-center">
-        <div>
-          <div className="flex items-center gap-2 text-[13px] font-bold text-muted mb-4">
-            <PlatformIcon platform="telegram" size={24} /><PlatformIcon platform="bale" size={24} />
-            یکی از کارهای سلو
-          </div>
-          <h2 id="chat-title" className="text-[26px] sm:text-[34px] font-black tracking-tight leading-[1.35] text-balance">
-            و یه دستیار چت که مشتری نمی‌فهمه رباته.
-          </h2>
-          <ul className="mt-7 grid sm:grid-cols-2 gap-x-7 gap-y-6">
-            {CHAT_POINTS.map((p) => (
-              <li key={p.title} className="flex gap-3">
-                <span className="size-9 shrink-0 rounded-[9px] bg-primary-soft text-primary grid place-items-center"><p.icon className="size-[18px]" aria-hidden /></span>
-                <div>
-                  <h3 className="font-extrabold text-[16px]">{p.title}</h3>
-                  <p className="text-muted text-[15px] leading-[1.8] mt-0.5">{p.text}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <ChatDemo />
-      </div>
-    </section>
-  );
-}
-
 /* ---------------- Start ---------------- */
 
 const STEPS = [
   { title: "کانالت رو وصل کن", text: "تلگرام، بله، اینستاگرام یا دیجی‌کالا. محصول‌هات خودشون میان توی سلو." },
-  { title: "تنظیمش کن", text: "انتشار، موجودی و دستیار چت رو هر جور خواستی روشن کن و به ادمینت یاد بده." },
+  { title: "تنظیمش کن", text: "انتشار، موجودی و کرال رو هر جور خواستی روشن کن و به ادمینت یاد بده." },
   { title: "بسپارش به سلو", text: "از اینجا به بعد سلو فروشگاهت رو می‌چرخونه؛ تو فقط تأیید می‌کنی." },
 ];
 

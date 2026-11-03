@@ -3,7 +3,7 @@
 import { Card, Skeleton, cn } from "@/components/ui/primitives";
 import {
   ActivitySkeleton, AdminAiKeysPageSkeleton, AdminDashboardSkeleton, AdminIntegrationsSkeleton, AdminListSkeleton, AdminDetailSkeleton, AdminFormsSkeleton, AdminTableSkeleton, AdminUsageSkeleton,
-  BillingSkeleton, CalendarSkeleton, CardsStackSkeleton, ChannelsSkeleton, ChatSkeleton, CrawlSkeleton, DashboardSkeleton,
+  BillingSkeleton, CalendarSkeleton, CardsStackSkeleton, ChannelsSkeleton, CrawlSkeleton, DashboardSkeleton,
   OperationSkeleton, ProductEditSkeleton, ProductNewSkeleton, ProductsSkeleton, SettingsSkeleton, StoresSkeleton, WizardSkeleton,
 } from "@/components/ui/skeletons";
 
@@ -87,7 +87,6 @@ export function pageSkeleton(path: string): React.ReactNode {
     if (rest === "/audit") return <AdminListSkeleton icon={false} />;
     if (rest === "/channels") return <AdminListSkeleton filters={2} />;
     if (rest === "/ai/usage") return <AdminUsageSkeleton stats={4} actions={3} />;
-    if (rest === "/chat") return <AdminUsageSkeleton />;
     if (rest === "/ai") return <AdminAiKeysPageSkeleton />;
     if (rest === "/integrations") return <AdminIntegrationsSkeleton />;
     if (rest === "/plans") return <AdminFormsSkeleton />;
@@ -106,7 +105,6 @@ export function pageSkeleton(path: string): React.ReactNode {
     if (rest === "/calendar") return <CalendarSkeleton />;
     if (rest === "/channels") return <ChannelsSkeleton />;
     if (rest === "/crawl") return <CrawlSkeleton />;
-    if (rest === "/chat") return <ChatSkeleton />;
     if (rest === "/settings") return <SettingsSkeleton />;
     return <DashboardSkeleton />;
   }

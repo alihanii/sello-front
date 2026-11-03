@@ -39,7 +39,6 @@ export const storeQueries = {
   crawlSources: (sid: number) => queryOptions({ queryKey: ["crawl-sources", sid], queryFn: () => api<any[]>(`/stores/${sid}/crawl-sources`) }),
   platforms: () => queryOptions({ queryKey: ["platforms"], queryFn: () => api<any[]>("/platforms"), staleTime: 5 * 60_000 }),
   store: (sid: number) => queryOptions({ queryKey: ["store", sid], queryFn: () => api(`/stores/${sid}`) }),
-  chatOverview: (sid: number) => queryOptions({ queryKey: ["chat-overview", sid], queryFn: () => api(`/stores/${sid}/chat/overview`) }),
 };
 
 export function useChannels(storeId: number) {
@@ -50,13 +49,12 @@ export function useChannels(storeId: number) {
 export function prefetchStorePage(qc: QueryClient, sid: number, href: string) {
   const rest = href.replace(`/app/s/${sid}`, "").split("?")[0];
   const jobs: Record<string, () => unknown[]> = {
-    "": () => [storeQueries.dashboard(sid), storeQueries.chatOverview(sid)],
+    "": () => [storeQueries.dashboard(sid)],
     "/products": () => [storeQueries.products(sid, productListParams()), storeQueries.channels(sid)],
     "/activity": () => [storeQueries.operations(sid, activityParams()), storeQueries.channels(sid)],
     "/channels": () => [storeQueries.channels(sid), storeQueries.platforms(), storeQueries.crawlSources(sid)],
     "/crawl": () => [storeQueries.crawlSources(sid), storeQueries.channels(sid)],
     "/settings": () => [storeQueries.store(sid)],
-    "/chat": () => [storeQueries.chatOverview(sid)],
   };
   // prefetchQuery skips anything still fresh, so hovering back and forth costs nothing.
   for (const q of jobs[rest]?.() ?? []) qc.prefetchQuery(q as any);
