@@ -1,15 +1,27 @@
 "use client";
 
 import { Bot, CheckCircle2, Circle, Coins, MessageCircle, ShoppingBag, UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { ago, faNum, toman } from "@/lib/format";
+import { useStoreId } from "@/lib/hooks";
 import { BOT_STATUS, MODE_LABEL } from "@/lib/chat";
 import { PlatformIcon } from "@/components/ui/status";
 import { Button, Card, CardHeader, Chip, cn } from "@/components/ui/primitives";
 import { ChatOverviewSkeleton } from "@/components/ui/skeletons";
 
-const SETUP_TAB: Record<string, string> = {
-  connect: "connections", welcome: "assistant", knowledge: "knowledge", orders: "orders-settings", test: "test",
-};
+function SetupRow({ s, open }: { s: any; open: (s: any) => void }) {
+  return (
+    <button onClick={() => open(s)} disabled={!s.tab}
+      className="w-full flex items-center gap-3 p-2.5 rounded-xl text-start text-[14px] hover:bg-subtle disabled:hover:bg-transparent cursor-pointer disabled:cursor-default">
+      {s.done ? <CheckCircle2 className="size-5 text-success shrink-0" /> : <Circle className={cn("size-5 shrink-0", s.required ? "text-warning" : "text-muted")} />}
+      <span className={cn("flex-1", s.done && "text-muted")}>
+        {s.label}
+        {!s.done && s.required && s.hint && s.hint !== s.label && <span className="block text-[12px] text-muted">مانده: {s.hint}</span>}
+      </span>
+      {!s.done && s.tab && <span className="text-primary text-[13px] font-bold">انجام بده</span>}
+    </button>
+  );
+}
 
 function Stat({ icon: Icon, label, value, hint, onClick }: any) {
   return (
@@ -22,10 +34,16 @@ function Stat({ icon: Icon, label, value, hint, onClick }: any) {
 }
 
 export function ChatOverview({ data, go }: { data: any; go: (t: any, extra?: string) => void }) {
+  const router = useRouter();
+  const sid = useStoreId();
   if (!data) return <ChatOverviewSkeleton />;
   const m = data.month;
   const pct = m.limit ? Math.min(100, Math.round((100 * m.ai_messages) / m.limit)) : 0;
+  const required = data.setup.filter((s: any) => s.required);
+  const advice = data.setup.filter((s: any) => !s.required);
   const done = data.setup.filter((s: any) => s.done).length;
+  // "products" lives on the store's products page; the rest are tabs here.
+  const open = (s: any) => (s.tab === "products" ? router.push(`/app/s/${sid}/products`) : s.tab && go(s.tab));
   return (
     <div className="space-y-4">
       {!data.ai_ready && (
@@ -42,16 +60,13 @@ export function ChatOverview({ data, go }: { data: any; go: (t: any, extra?: str
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2">
-          <CardHeader title="راه‌اندازی" subtitle={`${faNum(done)} از ${faNum(data.setup.length)} مرحله`} />
+          <CardHeader title="راه‌اندازی" subtitle={`${faNum(done)} از ${faNum(data.setup.length)} مرحله`}
+            action={data.ready ? <Chip tone="success">آمادهٔ روشن شدن</Chip> : <Chip tone="warning">مراحل لازم مانده</Chip>} />
           <div className="px-3 pb-3">
-            {data.setup.map((s: any) => (
-              <button key={s.key} onClick={() => SETUP_TAB[s.key] && go(SETUP_TAB[s.key])} disabled={!SETUP_TAB[s.key]}
-                className="w-full flex items-center gap-3 p-2.5 rounded-xl text-start text-[14px] hover:bg-subtle disabled:hover:bg-transparent cursor-pointer disabled:cursor-default">
-                {s.done ? <CheckCircle2 className="size-5 text-success shrink-0" /> : <Circle className="size-5 text-muted shrink-0" />}
-                <span className={cn("flex-1", s.done && "text-muted")}>{s.label}</span>
-                {!s.done && SETUP_TAB[s.key] && <span className="text-primary text-[13px] font-bold">انجام بده</span>}
-              </button>
-            ))}
+            <div className="px-2.5 pt-1 pb-1 text-[12px] font-bold text-muted">لازم برای روشن کردن دستیار</div>
+            {required.map((s: any) => <SetupRow key={s.key} s={s} open={open} />)}
+            <div className="px-2.5 pt-3 pb-1 text-[12px] font-bold text-muted">پیشنهادی: جواب‌های بهتر</div>
+            {advice.map((s: any) => <SetupRow key={s.key} s={s} open={open} />)}
           </div>
         </Card>
         <div className="flex flex-col gap-4">

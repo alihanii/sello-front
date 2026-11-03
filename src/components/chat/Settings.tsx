@@ -361,6 +361,59 @@ function FaqImport({ existing, onClose, onAdd }: { existing: number; onClose: ()
   );
 }
 
+// Placeholders that show what a good answer looks like; the fields themselves come from the server (knowledge_form).
+const POLICY_HINTS: Record<string, string> = {
+  "shipping.areas": "همهٔ شهرهای ایران", "shipping.methods": "پست پیشتاز، تیپاکس، پیک در تهران",
+  "shipping.cost": "۵۰ هزار تومان؛ پیک تهران ۸۰ هزار", "shipping.free_over": "خرید بالای ۲ میلیون تومان",
+  "shipping.time": "۲ تا ۴ روز کاری بعد از ارسال", "shipping.prep": "۱ تا ۲ روز کاری",
+  "returns.days": "۷", "returns.conditions": "برچسب جدا نشده و پوشیده نشده باشد", "returns.cost": "با مشتری، مگر ایراد از ما باشد",
+  "sizing.guide": "۳۸ برای قد ۱۶۰ تا ۱۶۵ و وزن ۵۰ تا ۵۸…", "sizing.fit": "قالب استاندارد؛ اگر بین دو سایزی، بزرگ‌تر را بردار",
+  "products.material": "لینن ۱۰۰٪ ترک", "products.care": "شستشو با آب سرد، اتو با حرارت کم",
+  "products.warranty": "ایراد دوخت تا ۳۰ روز", "products.origin": "تولید داخل، کارگاه خودمان",
+};
+const REQUIRED_POLICY = new Set(["shipping.cost", "shipping.time", "returns.policy"]);
+const LONG_POLICY = new Set(["returns.conditions", "sizing.guide", "products.material", "products.care"]);
+
+/** The shop's policies as short forms: the assistant answers shipping, returns, sizing and care only from these. */
+function ShopPolicies({ draft, set }: { draft: any; set: (p: any) => void }) {
+  const k = draft.knowledge || {};
+  const setField = (sec: string, key: string, v: string) => set({ knowledge: { ...k, [sec]: { ...(k[sec] || {}), [key]: v } } });
+  return (
+    <Card>
+      <CardHeader title="قوانین فروشگاه" subtitle="دستیار سؤال‌های ارسال، مرجوعی، سایز و نگهداری را فقط از همین‌ها جواب می‌دهد و از خودش چیزی نمی‌سازد. موارد * برای روشن کردن دستیار لازم است." />
+      <div className="px-5 pb-5 space-y-5">
+        {(draft.knowledge_form || []).map((sec: any) => (
+          <div key={sec.key}>
+            <div className="font-bold text-[14px] mb-2">{sec.title}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {sec.fields.map((f: any) => {
+                const id = `${sec.key}.${f.key}`;
+                const v = k[sec.key]?.[f.key] ?? "";
+                const label = REQUIRED_POLICY.has(id) ? `${f.label} *` : f.label;
+                if (id === "returns.policy") return (
+                  <Field key={id} label={label}>
+                    <Select value={v} onChange={(e) => setField(sec.key, f.key, e.target.value)}>
+                      <option value="">انتخاب کن</option>
+                      {Object.entries(draft.return_policies || {}).map(([pv, pl]) => <option key={pv} value={pv}>{pl as string}</option>)}
+                    </Select>
+                  </Field>
+                );
+                return (
+                  <Field key={id} label={label} className={cn(LONG_POLICY.has(id) && "sm:col-span-2")}>
+                    {LONG_POLICY.has(id)
+                      ? <Textarea className="!min-h-16" maxLength={f.max} placeholder={POLICY_HINTS[id]} value={v} onChange={(e) => setField(sec.key, f.key, e.target.value)} />
+                      : <Input maxLength={f.max} placeholder={POLICY_HINTS[id]} value={v} onChange={(e) => setField(sec.key, f.key, e.target.value)} />}
+                  </Field>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export function KnowledgeSettings() {
   const { draft, set, save, dirty } = useDraft();
   const [importing, setImporting] = useState(false);
@@ -369,6 +422,7 @@ export function KnowledgeSettings() {
   const setFaq = (i: number, p: any) => set({ faqs: faqs.map((f, j) => (j === i ? { ...f, ...p } : f)) });
   return (
     <div className="space-y-4">
+      <ShopPolicies draft={draft} set={set} />
       {importing && <FaqImport existing={faqs.length} onClose={() => setImporting(false)} onAdd={(items) => {
           const next = { ...draft, faqs: [...faqs, ...items].slice(0, MAX_FAQS) };
           set({ faqs: next.faqs });
@@ -393,7 +447,7 @@ export function KnowledgeSettings() {
         </div>
       </Card>
       <Card className="p-5">
-        <Field label="قوانین و توضیحات فروشگاه" hint={`${draft.rules.length}/۳۰۰۰ — شرایط ارسال، زمان آماده‌سازی، مرجوعی، ضمانت، روش‌های پرداخت…`}>
+        <Field label="توضیحات دیگر" hint={`${faDigits(draft.rules.length)}/۳۰۰۰ — هر چیزی که در فرم‌های بالا جا نشد.`}>
           <Textarea className="min-h-40" maxLength={3000} value={draft.rules} onChange={(e) => set({ rules: e.target.value })} />
         </Field>
       </Card>
