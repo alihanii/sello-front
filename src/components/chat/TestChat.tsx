@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Coins, RotateCcw, Send, Zap } from "lucide-react";
+import { Coins, RotateCcw, Send, Trash2, Zap } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { faNum, toman } from "@/lib/format";
-import { useStoreId } from "@/lib/hooks";
+import { useMe, useStoreId } from "@/lib/hooks";
 import { Button, Card, CardHeader, Input, Skeleton } from "@/components/ui/primitives";
 import { Bubble } from "./Bubbles";
 
@@ -31,6 +31,12 @@ export function TestChat() {
     },
     onError: (e: any) => { toast.error(e.message); qc.invalidateQueries({ queryKey: key }); },
   });
+  const { data: me } = useMe();
+  const wipe = useMutation({
+    mutationFn: () => api(`/chat/conversations/${data?.conversation_id}`, { method: "DELETE" }),
+    onSuccess: () => { toast.success("گفتگوی تست کامل پاک شد"); qc.invalidateQueries({ queryKey: key }); },
+    onError: (e: any) => toast.error(e.message),
+  });
   useEffect(() => { box.current?.scrollTo({ top: box.current.scrollHeight, behavior: "smooth" }); }, [data?.messages?.length, send.isPending]);
   const submit = (t: string) => { if (!t.trim() || send.isPending) return; send.mutate({ text: t.trim() }); setText(""); };
   const msgs: any[] = data?.messages ?? [];
@@ -45,7 +51,13 @@ export function TestChat() {
       <Card strong className="flex flex-col h-[70dvh] min-h-[480px]">
         <div className="flex items-center justify-between px-5 py-3 border-b border-edge">
           <div><div className="font-bold">شبیه‌ساز مشتری</div><div className="text-[12px] text-muted">همان دستیار و تنظیمات واقعی؛ حتی وقتی دستیار خاموش است. در آمار فروشگاه حساب نمی‌شود.</div></div>
-          <Button size="sm" variant="ghost" icon={<RotateCcw className="size-4" />} loading={send.isPending && send.variables?.reset} onClick={() => send.mutate({ reset: true })}>شروع دوباره</Button>
+          <div className="flex gap-1">
+            {me?.role === "admin" && data?.conversation_id && (
+              <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" />} loading={wipe.isPending} title="پیام‌ها، سفارش‌ها و حافظهٔ این گفتگو پاک می‌شود (فقط ادمین)"
+                onClick={() => { if (confirm("همهٔ پیام‌ها، سفارش‌ها و حافظهٔ این گفتگو برای همیشه پاک شود؟")) wipe.mutate(); }}>پاک کردن کامل</Button>
+            )}
+            <Button size="sm" variant="ghost" icon={<RotateCcw className="size-4" />} loading={send.isPending && send.variables?.reset} onClick={() => send.mutate({ reset: true })}>شروع دوباره</Button>
+          </div>
         </div>
         <div ref={box} className="flex-1 overflow-y-auto p-4 space-y-3">
           {!data ? <Skeleton className="h-20" /> : msgs.length === 0 && (

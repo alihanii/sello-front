@@ -1,12 +1,12 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Bot, Hand, MessagesSquare, Search, Send, ShoppingBag } from "lucide-react";
+import { ArrowRight, Bot, Hand, MessagesSquare, Search, Send, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago, faNum, toman } from "@/lib/format";
-import { useStoreId } from "@/lib/hooks";
+import { useMe, useStoreId } from "@/lib/hooks";
 import { CONV_STATUS, MODE_LABEL, ORDER_STATUS } from "@/lib/chat";
 import { PlatformIcon } from "@/components/ui/status";
 import { Button, Card, Chip, EmptyState, Input, Select, Skeleton, Textarea, cn } from "@/components/ui/primitives";
@@ -22,6 +22,13 @@ function Thread({ id, onBack, go }: { id: number; onBack: () => void; go: (t: an
   const send = useMutation({ mutationFn: () => api(`/chat/conversations/${id}/messages`, { method: "POST", json: { text } }), onSuccess: () => { setText(""); refresh(); }, onError: (e: any) => toast.error(e.message) });
   const resume = useMutation({ mutationFn: () => api(`/chat/conversations/${id}/resume`, { method: "POST" }), onSuccess: () => { refresh(); toast.success("گفتگو به دستیار برگشت"); } });
   const pause = useMutation({ mutationFn: () => api(`/chat/conversations/${id}/pause`, { method: "POST" }), onSuccess: refresh });
+  // Site admins only: wipes the chat (messages, orders, the assistant's memory) to test the bot from scratch.
+  const { data: me } = useMe();
+  const wipe = useMutation({
+    mutationFn: () => api(`/chat/conversations/${id}`, { method: "DELETE" }),
+    onSuccess: () => { toast.success("گفتگو کامل پاک شد"); qc.invalidateQueries({ queryKey: ["chat-convs", sid] }); qc.invalidateQueries({ queryKey: ["chat-overview", sid] }); onBack(); },
+    onError: (e: any) => toast.error(e.message),
+  });
   // Scroll the message list itself, not the page, so the header stays in view on phones.
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [data?.messages?.length]);
   if (!data) return <Skeleton className="h-full min-h-96" />;
@@ -38,6 +45,12 @@ function Thread({ id, onBack, go }: { id: number; onBack: () => void; go: (t: an
             <div className="text-[12px] text-muted">{MODE_LABEL[c.mode]}{c.bot_username ? <> · <span dir="ltr">@{c.bot_username}</span></> : null}</div>
           </div>
           <Chip tone={st?.tone}>{st?.label}</Chip>
+          {me?.role === "admin" && (
+            <Button size="sm" variant="ghost" aria-label="پاک کردن کامل گفتگو" title="پاک کردن کامل گفتگو (فقط ادمین)" loading={wipe.isPending}
+              onClick={() => { if (confirm("همهٔ پیام‌ها، سفارش‌ها و حافظهٔ این گفتگو برای همیشه پاک شود؟")) wipe.mutate(); }}>
+              <Trash2 className="size-4 text-danger" />
+            </Button>
+          )}
         </div>
         <div ref={box} className="flex-1 overflow-y-auto p-4 space-y-3">
           {data.messages.map((m: any) => <Bubble key={m.id} m={m} />)}
