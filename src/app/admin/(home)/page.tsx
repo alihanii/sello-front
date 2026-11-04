@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CreditCard, Inbox, MessageCircle, Package, Send, Store, Users } from "lucide-react";
+import { CreditCard, Inbox, Package, Send, Store, Users } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { faNum, toman } from "@/lib/format";
@@ -36,7 +36,6 @@ export default function AdminHome() {
         <Stat icon={CreditCard} label="اشتراک فعال" value={faNum(s.active_subscriptions)} hint={`${faNum(s.expiring_7d)} تا ۷ روز دیگر تمام می‌شود`} />
         <Stat icon={CreditCard} label="فروش ۳۰ روز" value={toman(s.revenue_30d)} />
         <Stat icon={Inbox} label="درخواست خرید در انتظار" value={faNum(s.pending_requests)} href="/admin/requests" />
-        <Stat icon={MessageCircle} label="منتظر قابلیت چت AI" value={faNum(s.chat_waitlist)} />
       </div>
       <Card className="mt-4">
         <CardHeader title="کانال‌های متصل به تفکیک پلتفرم" />

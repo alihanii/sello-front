@@ -29,7 +29,7 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
           <ImageUploader storeId={storeId} value={d.images} onChange={(v) => set("images", v)} hint={false} />
         </Field>
         <Field label="نام محصول"><Input value={d.title} onChange={(e) => set("title", e.target.value)} required maxLength={300} /></Field>
-        <Field label="کد محصول" tip="کوتاه و یکتا، مثل H12. اگر خالی بماند، موقع ساخت محصول از کدی که در توضیحات نوشته‌ای (مثل «کد: H12») و اگر نبود از شمارهٔ محصول پر می‌شود. کد محصول در خط اول توضیحات هم نوشته می‌شود تا در پست کانال دیده شود؛ مشتری با فرستادن همین کد در چت سفارش می‌دهد و دستیار دقیقاً همین محصول را پیدا می‌کند.">
+        <Field label="کد محصول" tip="کوتاه و یکتا، مثل H12. اگر خالی بماند، موقع ساخت محصول از کدی که در توضیحات نوشته‌ای (مثل «کد: H12») و اگر نبود از شمارهٔ محصول پر می‌شود. کد محصول در خط اول توضیحات هم نوشته می‌شود تا در پست کانال دیده شود.">
           <Input dir="ltr" className="text-left w-48" maxLength={80} placeholder="خودکار" value={d.sku ?? ""} onChange={(e) => set("sku", e.target.value.trim())} />
         </Field>
         <Field label="دسته‌بندی" tip="از دسته‌های قبلی انتخاب کن یا یک دستهٔ تازه بنویس.">
@@ -39,7 +39,7 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
           <Field label="برند" tip="فقط اگر برند مشخصی دارد.">
             <Input maxLength={120} placeholder="مثلاً ال‌سی‌من" value={d.brand ?? ""} onChange={(e) => set("brand", e.target.value)} />
           </Field>
-          <Field label="برچسب‌ها" tip="با ویرگول جدا کن. دستیار چت در جستجوی محصول از این‌ها کمک می‌گیرد.">
+          <Field label="برچسب‌ها" tip="با ویرگول جدا کن.">
             <Input placeholder="مثلاً زمستانه، اورسایز" value={tagsText} onChange={(e) => setTagsText(e.target.value)} />
           </Field>
         </div>

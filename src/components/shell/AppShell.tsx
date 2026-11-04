@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, MessageCircle, Moon, Package,
+  Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, Moon, Package,
   Plug, Radar, Settings, Shield, Store, Sun,
 } from "lucide-react";
 import Link from "next/link";
@@ -124,7 +124,6 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم", short: "تقویم", tab: true },
     { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
-    { href: `${base}/chat`, icon: MessageCircle, label: "دستیار چت" },
   ];
   const secondary = [
     { href: `${base}/settings`, icon: Settings, label: "تنظیمات فروشگاه" },
