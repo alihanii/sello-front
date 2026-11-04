@@ -80,5 +80,5 @@ jobs:
           ssh server "set -e; cd '$DEPLOY_PATH'
             gunzip -c sello-front.tar.gz | docker load && rm sello-front.tar.gz
             docker compose up -d --remove-orphans
-            docker image prune -f >/dev/null
+            docker image prune -f >/dev/null || true  # the other repo's deploy may be pruning at the same time
             docker compose ps"
