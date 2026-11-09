@@ -35,19 +35,23 @@ export function NotificationBell({ storeId }: { storeId: number }) {
   const unread = data?.unread ?? 0;
 
   return (
-    <div className="relative" ref={box}>
+    // On phones the panel is anchored to the header bar (the nearest containing block once this wrapper is not
+    // positioned) and spans its width, so it never runs off the screen; from sm up it hangs under the bell. The header's
+    // own backdrop blur stops the panel's blur from working, so the panel gets a solid backing and the page under it
+    // does not show through.
+    <div className="sm:relative" ref={box}>
       <Button variant="ghost" size="sm" aria-label={`اعلان‌ها${unread ? ` (${unread} خوانده‌نشده)` : ""}`} aria-expanded={open}
         onClick={() => setOpen(!open)} className="relative">
         <Bell className="size-[18px]" />
         {unread > 0 && <span className="absolute top-1 end-1 min-w-4 h-4 px-1 rounded-full bg-danger text-white text-[10px] font-bold grid place-items-center tnum">{faNum(Math.min(unread, 99))}</span>}
       </Button>
-      <div className={cn("glass-strong absolute z-40 top-12 -end-2 w-[min(380px,calc(100vw-24px))] rounded-[12px] p-2 origin-top-left transition-all duration-200",
+      <div className={cn("glass-strong [background:linear-gradient(var(--glass-strong),var(--glass-strong)),var(--bg)] absolute z-40 top-[calc(100%+8px)] inset-x-0 sm:inset-x-auto sm:top-12 sm:-end-2 sm:w-[380px] rounded-[12px] p-2 origin-top sm:origin-top-left transition-all duration-200",
         open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-1 pointer-events-none")} role="dialog" aria-label="اعلان‌ها">
         <div className="flex items-center justify-between px-2 py-1.5">
           <span className="font-bold text-[14px]">اعلان‌ها</span>
           {unread > 0 && <Button size="sm" variant="ghost" icon={<CheckCheck className="size-4" />} onClick={() => read.mutate()}>همه خوانده شد</Button>}
         </div>
-        <div className="max-h-[60dvh] overflow-y-auto no-scrollbar">
+        <div className="max-h-[min(60dvh,calc(100dvh-180px))] sm:max-h-[60dvh] overflow-y-auto no-scrollbar">
           {!data?.items?.length ? <p className="text-[13px] text-muted px-3 py-8 text-center">اعلانی نداری.</p> : data.items.map((n: any) => {
             const Icon = ICON[n.kind] ?? Bell;
             return (
