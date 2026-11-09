@@ -35,7 +35,7 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
             if (v && i < 5) refs.current[i + 1]?.focus();
           }}
           onKeyDown={(e) => { if (e.key === "Backspace" && !d.trim() && i > 0) refs.current[i - 1]?.focus(); }}
-          className="size-12 text-center text-[20px] font-bold rounded-xl bg-glass-strong border border-edge outline-none focus:border-primary focus:ring-4 focus:ring-primary/15 tnum"
+          className="size-12 text-center text-[20px] font-bold rounded-xl bg-control border border-control-border outline-none focus:bg-glass-strong focus:border-primary focus:ring-4 focus:ring-primary/15 tnum"
         />
       ))}
     </div>
