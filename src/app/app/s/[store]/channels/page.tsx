@@ -97,7 +97,7 @@ function InstagramCrawlDialog({ onClose }: { onClose: () => void }) {
   const [reels, setReels] = useState(false);
   const [done, setDone] = useState(false);
   const add = useMutation({
-    mutationFn: () => api(`/stores/${sid}/crawl-sources`, { method: "POST", json: { type: "instagram_profile", url: username, include_reels: reels, schedule: "manual", extraction_mode: "auto" } }),
+    mutationFn: () => api(`/stores/${sid}/crawl-sources`, { method: "POST", json: { type: "instagram_profile", url: username, include_reels: reels, schedule: "manual", extraction_mode: "llm" } }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["crawl-sources", sid] }); setDone(true); toast.success("پیج اینستاگرام اضافه شد"); },
     onError: (e: any) => toast.error(e.message),
   });
