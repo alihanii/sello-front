@@ -12,7 +12,7 @@ import { Card, Skeleton, cn } from "./primitives";
 
 /** A line of text: height ≈ the line box of the font size it replaces. */
 /**
- * A line of text. The outer box has the real line height of that font size (Vazirmatn ≈ 1.7×), the bar inside is about
+ * A line of text. The outer box has the real line height of that font size (Estedad ≈ 1.7×), the bar inside is about
  * the x-height, so a skeleton paragraph takes exactly the vertical space the text will take.
  */
 export function SkLine({ className, style, size = 13 }: { className?: string; style?: React.CSSProperties; size?: number }) {
