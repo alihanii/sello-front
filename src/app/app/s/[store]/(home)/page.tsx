@@ -1,22 +1,26 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, MessageCircle, Package, Radar, Send, Sparkles, TrendingUp } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MessageCircle, Package, Send, Sparkles, TrendingUp, Wallet } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { faDigits, faNum, jDate } from "@/lib/format";
+import { faDigits, faNum, jDate, toman } from "@/lib/format";
 import { storeQueries, useStoreId } from "@/lib/hooks";
-import { Button, Card, CardHeader, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, PageHeader, Skeleton, Tabs } from "@/components/ui/primitives";
 import { DashboardSkeleton, SkLine } from "@/components/ui/skeletons";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 
-function Stat({ icon: Icon, label, value, hint }: any) {
+function Stat({ icon: Icon, label, value, unit, hint }: any) {
   return (
     <Card className="p-4 sm:p-5">
       <div className="flex items-center gap-2 text-muted text-[12px] sm:text-[13px] font-semibold">
         <Icon className="size-4 shrink-0" aria-hidden /><span className="truncate">{label}</span>
       </div>
-      <div className="text-[24px] sm:text-[30px] font-black tnum mt-2 leading-none">{value}</div>
+      <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1 mt-2 leading-none">
+        <span className={`${String(value).length > 7 ? "text-[20px] sm:text-[26px]" : "text-[24px] sm:text-[30px]"} font-black tnum`}>{value}</span>
+        {unit && <span className="text-[12px] sm:text-[13px] font-semibold text-muted">{unit}</span>}
+      </div>
       {hint && <div className="text-muted text-[12px] mt-2">{hint}</div>}
     </Card>
   );
@@ -58,12 +62,16 @@ function ChatCard({ sid }: { sid: number }) {
 export default function Dashboard() {
   const sid = useStoreId();
   const { data } = useQuery(storeQueries.dashboard(sid));
+  const [view, setView] = useState<"sales" | "publish">("sales");
   if (!data) return <DashboardSkeleton />;
   const k = data.kpis;
   const series = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(Date.now() - (29 - i) * 864e5).toISOString().slice(0, 10);
     const v = data.series[d] ?? {};
-    return { day: jDate(d, "d MMM"), انتشار: v.publish_ok ?? 0, کرال: v.crawl_item ?? 0, خطا: (v.publish_failed ?? 0) + (v.crawl_failed ?? 0) };
+    return {
+      day: jDate(d, "d MMM"), انتشار: v.publish_ok ?? 0, کرال: v.crawl_item ?? 0, خطا: (v.publish_failed ?? 0) + (v.crawl_failed ?? 0),
+      "گفتگوی پاسخ‌داده": v.chats_answered ?? 0, سفارش: v.orders ?? 0, درآمد: v.sale_toman ?? 0,
+    };
   });
   const lim = data.usage.limits;
   const pct = Math.min(100, Math.round((100 * data.usage.publishes_month) / (lim.monthly_publishes || 1)));
@@ -78,22 +86,49 @@ export default function Dashboard() {
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <Stat icon={Package} label="کل محصولات" value={faNum(k.products)} hint={`${faNum(k.unpublished)} منتشرنشده`} />
         <Stat icon={Send} label="منتشرشده" value={faNum(k.published_any)} hint={`امروز ${faNum(k.published_today)} انتشار`} />
-        <Stat icon={Radar} label="کرال امروز" value={faNum(k.crawled_today)} />
+        <Stat icon={Wallet} label="درآمد امروز" value={faNum(k.income_today ?? 0)} unit="تومان"
+          hint={`کل فروش: ${toman(k.sales_total)}`} />
         <Stat icon={TrendingUp} label="موفقیت انتشار" value={k.success_rate == null ? "—" : `${faDigits(k.success_rate)}٪`} hint="۳۰ روز اخیر" />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mt-4">
         <Card className="lg:col-span-2">
-          <CardHeader title="۳۰ روز اخیر" subtitle={<span className="flex flex-wrap gap-x-3"><span><i className="inline-block size-2 rounded-full bg-primary me-1" />انتشار</span><span><i className="inline-block size-2 rounded-full bg-neutral/40 me-1" />کرال</span><span><i className="inline-block size-2 rounded-full bg-danger me-1" />خطا</span></span>} />
-          <div className="h-56 sm:h-72 px-2 pb-4" dir="ltr">
+          <CardHeader title="۳۰ روز اخیر"
+            subtitle={<span className="flex flex-wrap gap-x-3">{view === "sales" ? <>
+              <span><i className="inline-block size-2 rounded-full bg-primary me-1" />گفتگوی پاسخ‌داده</span>
+              <span><i className="inline-block size-2 rounded-full bg-ai me-1" />سفارش</span>
+            </> : <>
+              <span><i className="inline-block size-2 rounded-full bg-primary me-1" />انتشار</span>
+              <span><i className="inline-block size-2 rounded-full bg-neutral/40 me-1" />کرال</span>
+              <span><i className="inline-block size-2 rounded-full bg-danger me-1" />خطا</span>
+            </>}</span>}
+            action={<Tabs value={view} onChange={setView} items={[{ value: "sales", label: "چت و سفارش" }, { value: "publish", label: "انتشار و کرال" }]} />} />
+          {view === "sales" && (
+            <div className="grid grid-cols-3 gap-2 px-4 sm:px-5 text-center">
+              <div className="rounded-xl bg-subtle py-2"><div className="text-[17px] font-black tnum">{faNum(k.chats_answered_today ?? 0)}</div><div className="text-[11px] text-muted">چت جواب‌داده امروز</div></div>
+              <div className="rounded-xl bg-subtle py-2"><div className="text-[17px] font-black tnum">{faNum(k.ai_replies_today ?? 0)}</div><div className="text-[11px] text-muted">پاسخ دستیار امروز</div></div>
+              <div className="rounded-xl bg-subtle py-2"><div className="text-[17px] font-black tnum">{faNum(k.orders_today ?? 0)}</div><div className="text-[11px] text-muted">سفارش امروز</div></div>
+            </div>
+          )}
+          <div className="h-56 sm:h-72 px-2 pb-4 pt-3" dir="ltr">
             <ResponsiveContainer>
               <BarChart data={series} margin={{ left: 0, right: 8, top: 8 }} barGap={2}>
                 <CartesianGrid stroke="var(--glass-edge)" vertical={false} />
                 <XAxis dataKey="day" tick={{ fill: "var(--muted-fg)", fontSize: 11 }} tickLine={false} axisLine={false} interval={6} reversed />
                 <YAxis orientation="right" width={28} tick={{ fill: "var(--muted-fg)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={faNum} />
-                <Tooltip cursor={{ fill: "var(--subtle)" }} contentStyle={{ background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-card)", direction: "rtl", fontFamily: "inherit" }} formatter={(v: any) => faNum(v)} />
-                <Bar dataKey="کرال" fill="var(--neutral)" fillOpacity={0.35} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="انتشار" stackId="p" fill="var(--primary)" />
-                <Bar dataKey="خطا" stackId="p" fill="var(--danger)" radius={[4, 4, 0, 0]} />
+                <Tooltip cursor={{ fill: "var(--subtle)" }} contentStyle={{ background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-card)", direction: "rtl", fontFamily: "inherit" }}
+                  formatter={(v: any) => faNum(v)}
+                  labelFormatter={(label: any, p: any) => {
+                    const income = p?.[0]?.payload?.درآمد;
+                    return view === "sales" && income ? `${label} · درآمد ${toman(income)}` : label;
+                  }} />
+                {view === "sales" ? <>
+                  <Bar dataKey="گفتگوی پاسخ‌داده" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="سفارش" fill="var(--ai)" radius={[4, 4, 0, 0]} />
+                </> : <>
+                  <Bar dataKey="کرال" fill="var(--neutral)" fillOpacity={0.35} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="انتشار" stackId="p" fill="var(--primary)" />
+                  <Bar dataKey="خطا" stackId="p" fill="var(--danger)" radius={[4, 4, 0, 0]} />
+                </>}
               </BarChart>
             </ResponsiveContainer>
           </div>
