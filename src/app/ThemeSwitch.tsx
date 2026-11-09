@@ -17,7 +17,7 @@ export function ThemeSwitch() {
     setDark(!dark);
   };
   return (
-    <button type="button" onClick={toggle} aria-label="تغییر تم" className="size-10 grid place-items-center rounded-[10px] text-fg hover:bg-subtle cursor-pointer">
+    <button type="button" onClick={toggle} aria-label="تغییر تم" className="size-10 grid place-items-center rounded-control text-fg hover:bg-subtle cursor-pointer">
       {dark ? <Sun className="size-4" aria-hidden /> : <Moon className="size-4" aria-hidden />}
     </button>
   );

@@ -143,7 +143,7 @@ export function ProductCardsSkeleton({ count = 8 }: { count?: number }) {
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4" aria-hidden>
       {Array.from({ length: count }, (_, i) => (
         <Card key={i} className="p-1.5">
-          <Skeleton className="aspect-square rounded-[10px]" />
+          <Skeleton className="aspect-square rounded-control" />
           <div className="p-2 sm:p-2.5 space-y-2">
             <SkLine size={15} className="w-3/4" />
             <div className="flex justify-between"><SkLine className="w-16" /><Skeleton className="h-6 w-12 rounded-full" /></div>
@@ -317,7 +317,7 @@ export function CalendarSkeleton({ header = true }: { header?: boolean }) {
           <PageHeaderSkeleton />
           <Card className="p-3 mb-4 flex flex-wrap items-center gap-2">
             <TabsSkeleton count={3} />
-            <Skeleton className="h-9 w-56 rounded-[10px]" />
+            <Skeleton className="h-9 w-56 rounded-control" />
             <div className="flex-1" />
             <Skeleton className="h-11 w-36 rounded-2xl" />
           </Card>
@@ -364,7 +364,7 @@ export function ChannelsBodySkeleton() {
             <Skeleton className="size-11 rounded-xl" />
             <SkLine size={15} className="w-24 mt-3" />
             <div className="flex gap-1 mt-2"><Skeleton className="h-6 w-14 rounded-full" /><Skeleton className="h-6 w-12 rounded-full" /></div>
-            <Skeleton className="h-9 mt-4 rounded-[10px]" />
+            <Skeleton className="h-9 mt-4 rounded-control" />
           </Card>
         ))}
       </div>

@@ -138,7 +138,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
   return (
     <div className="min-h-dvh lg:ps-[292px]">
       {/* Desktop: floating glass sidebar */}
-      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-[14px] p-4 hidden lg:flex flex-col gap-4 z-20">
+      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
         <div className="px-1 pt-1"><Logo /></div>
         <StoreSwitcher storeId={storeId} />
         <nav className="flex flex-col gap-1 overflow-y-auto no-scrollbar" aria-label="منوی اصلی">

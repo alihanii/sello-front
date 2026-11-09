@@ -17,7 +17,7 @@ export default function AiUsage() {
   if (!data) return <AdminUsageSkeleton stats={4} actions={3} />;
   const t = data.totals;
   const chart = data.daily.map((d: any) => ({ day: jDate(d.day, "d MMM"), موفق: d.ok, ناموفق: d.failed }));
-  const tip = { contentStyle: { background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: 12, direction: "rtl" as const, fontFamily: "inherit" }, formatter: (v: any) => faNum(v) };
+  const tip = { contentStyle: { background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-card)", direction: "rtl" as const, fontFamily: "inherit" }, formatter: (v: any) => faNum(v) };
   return (
     <>
       <PageHeader title="مانیتورینگ AI" subtitle="مصرف، هزینه و خطای هر کلید"

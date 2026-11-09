@@ -90,7 +90,7 @@ export default function Dashboard() {
                 <CartesianGrid stroke="var(--glass-edge)" vertical={false} />
                 <XAxis dataKey="day" tick={{ fill: "var(--muted-fg)", fontSize: 11 }} tickLine={false} axisLine={false} interval={6} reversed />
                 <YAxis orientation="right" width={28} tick={{ fill: "var(--muted-fg)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={faNum} />
-                <Tooltip cursor={{ fill: "var(--subtle)" }} contentStyle={{ background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: 14, direction: "rtl", fontFamily: "inherit" }} formatter={(v: any) => faNum(v)} />
+                <Tooltip cursor={{ fill: "var(--subtle)" }} contentStyle={{ background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-card)", direction: "rtl", fontFamily: "inherit" }} formatter={(v: any) => faNum(v)} />
                 <Bar dataKey="کرال" fill="var(--neutral)" fillOpacity={0.35} radius={[4, 4, 0, 0]} />
                 <Bar dataKey="انتشار" stackId="p" fill="var(--primary)" />
                 <Bar dataKey="خطا" stackId="p" fill="var(--danger)" radius={[4, 4, 0, 0]} />
