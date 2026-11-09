@@ -28,8 +28,8 @@ export default function Crawl() {
   const { data: caps } = useQuery({ queryKey: ["crawl-caps"], queryFn: () => api<any>("/crawl/capabilities") });
   const ig = caps?.instagram_profile ?? { available: false, reason: "" };
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<any>({ type: "", schedule: "manual", extraction_mode: "auto" });
-  const openNew = () => { setForm({ type: "channel_posts", schedule: "manual", extraction_mode: "auto" }); setOpen(true); };
+  const [form, setForm] = useState<any>({ type: "", schedule: "manual", extraction_mode: "llm" });
+  const openNew = () => { setForm({ type: "channel_posts", schedule: "manual", extraction_mode: "llm" }); setOpen(true); };
   const openEdit = (src: any) => {
     setForm({ ...src, channel_id: src.channel_id ? String(src.channel_id) : "", url: src.type === "instagram_profile" ? `@${src.url}` : src.url });
     setOpen(true);
