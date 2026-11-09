@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { api, setToken } from "@/lib/api";
 import { faDigits } from "@/lib/format";
 import { Logo, ThemeToggle } from "@/components/shell/AppShell";
-import { Button, Card, Field, Input } from "@/components/ui/primitives";
+import { Button, Field, Input } from "@/components/ui/primitives";
 
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -86,7 +86,7 @@ export default function Login() {
   return (
     <div className="min-h-dvh grid place-items-center p-4">
       <div className="absolute top-4 start-4"><ThemeToggle /></div>
-      <Card strong className="w-full max-w-[420px] p-8">
+      <main className="w-full max-w-[380px] py-8">
         <Link href="/" className="inline-block mb-8"><Logo /></Link>
         {step === "phone" ? (
           <form onSubmit={(e) => { e.preventDefault(); send(); }} className="space-y-5">
@@ -121,7 +121,7 @@ export default function Login() {
           </form>
         )}
         <p className="mt-8 flex items-center gap-1.5 text-[12px] text-muted"><ShieldCheck className="size-4" /> اطلاعات حساب‌های متصل رمزنگاری‌شده نگهداری می‌شود.</p>
-      </Card>
+      </main>
     </div>
   );
 }

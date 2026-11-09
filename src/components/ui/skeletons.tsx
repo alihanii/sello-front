@@ -529,7 +529,7 @@ export function WizardSkeleton() {
   return (
     <div className="max-w-xl mx-auto px-4 py-8" aria-busy="true">
       <Skeleton className="h-9 w-28 rounded-full mb-8" />
-      <div className="flex gap-2 mb-6">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-2 flex-1 rounded-full" />)}</div>
+      <div className="flex gap-2 mb-6">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-2 flex-1 rounded-full" />)}</div>
       <FormCardSkeleton fields={2} />
     </div>
   );
