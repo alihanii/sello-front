@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, PartyPopper, Send, Sparkles } from "lucide-react";
+import { Activity, CalendarDays, Check, ChevronLeft, FileSpreadsheet, FolderTree, MessageCircle, PartyPopper, Radar, Send, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,7 +12,17 @@ import { ImageUploader } from "@/components/products/ImageUploader";
 import { PlatformIcon } from "@/components/ui/status";
 import { Button, Card, Field, Input, Textarea, cn } from "@/components/ui/primitives";
 
-const STEPS = ["فروشگاه", "کانال", "اولین محصول", "انتشار"];
+const STEPS = ["فروشگاه", "کانال", "محصول", "دستیار فروش", "آماده"];
+
+/** What else Sello does, shown on the last step. Each tile finishes the wizard and opens its page. */
+const FEATURES = [
+  { path: "/chat", icon: MessageCircle, title: "دستیار چت فروش", text: "در تلگرام و بله جواب مشتری را می‌دهد، محصول معرفی می‌کند و سفارش و فیش می‌گیرد." },
+  { path: "/crawl", icon: Radar, title: "ورود از کانال تلگرام", text: "پست‌های کانال فعلی‌ات را بخوان و خودکار محصول بساز؛ اینستاگرام و لینک هم هست." },
+  { path: "/products", icon: FolderTree, title: "دسته‌بندی و ویرایش گروهی", text: "محصولات را دسته‌بندی کن و قیمت، موجودی یا دستهٔ چند محصول را یک‌جا عوض کن." },
+  { path: "/products/new?mode=ai", icon: Sparkles, title: "ساخت محصول با AI", text: "از عکس و یک خط توضیح، عنوان و متن فروش و هشتگ بساز." },
+  { path: "/calendar", icon: CalendarDays, title: "تقویم", text: "هر روز چه منتشر شد، چه کرال شد و کجا خطا بود را روی تقویم ببین." },
+  { path: "/activity", icon: Activity, title: "فعالیت‌ها و لاگ", text: "هر انتشار، کرال و ساخت با AI را زنده دنبال کن و دلیل هر خطا را ببین." },
+];
 
 export default function Onboarding() {
   const router = useRouter();
@@ -31,6 +41,9 @@ export default function Onboarding() {
   const [aiOp, setAiOp] = useState<number | null>(null);
   const [productId, setProductId] = useState<number | null>(null);
   const [publishOp, setPublishOp] = useState<number | null>(null);
+  const [chatPlatform, setChatPlatform] = useState<"telegram" | "bale">("telegram");
+  const [chatToken, setChatToken] = useState("");
+  const [chatBot, setChatBot] = useState<any>(null);
 
   const createStore = useMutation({
     mutationFn: () => api("/stores", { method: "POST", json: { name } }),
@@ -52,6 +65,16 @@ export default function Onboarding() {
     onSuccess: (p) => { setProductId(p.id); setStep(3); },
     onError: (e: any) => toast.error(e.message),
   });
+  const connectChat = useMutation({
+    mutationFn: async () => {
+      const bot = await api(`/stores/${storeId}/chat/bots`, { method: "POST", json: { platform: chatPlatform, mode: "bot", bot_token: chatToken } });
+      // Turn the assistant on right away; if the AI isn't ready yet the bot stays connected and the owner turns it on later.
+      try { await api(`/stores/${storeId}/chat/agent`, { method: "PUT", json: { enabled: true } }); } catch { /* turned on later from the chat page */ }
+      return bot;
+    },
+    onSuccess: (b) => { setChatBot(b); qc.invalidateQueries({ queryKey: ["chat-bots", storeId] }); qc.invalidateQueries({ queryKey: ["chat-agent", storeId] }); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const publish = useMutation({
     mutationFn: async () => {
       await api(`/products/${productId}`, { method: "PATCH", json: { status: "ready" } });
@@ -60,16 +83,16 @@ export default function Onboarding() {
     onSuccess: (ops) => setPublishOp(ops[0].id),
     onError: (e: any) => toast.error(e.message),
   });
-  const finish = async () => {
+  const finish = async (path?: string) => {
     await api("/auth/me", { method: "PATCH", json: { onboarded: true } });
     qc.invalidateQueries({ queryKey: ["me"] });
-    router.replace(`/app/s/${storeId}${productId ? `/products/${productId}` : ""}`);
+    router.replace(`/app/s/${storeId}${path ?? (productId ? `/products/${productId}` : "")}`);
   };
   const { data: product } = useQuery({ queryKey: ["product", String(productId)], queryFn: () => api(`/products/${productId}`), enabled: !!productId });
 
   return (
     <div className="min-h-dvh max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8"><Logo /><Button variant="ghost" size="sm" onClick={finish} disabled={!storeId}>رد شدن</Button></div>
+      <div className="flex items-center justify-between mb-8"><Logo /><Button variant="ghost" size="sm" onClick={() => finish()} disabled={!storeId}>رد شدن</Button></div>
       <ol className="flex items-center gap-2 mb-8">
         {STEPS.map((s, i) => (
           <li key={s} className="flex-1">
@@ -128,30 +151,94 @@ export default function Onboarding() {
               <Button variant="secondary" size="lg" disabled={!note.trim()} loading={manual.isPending} onClick={() => manual.mutate()}>بدون AI ذخیره کن</Button>
             </div>
           )}
+          {!aiOp && (
+            <div className="border-t border-edge pt-4 space-y-2">
+              <p className="text-[13px] text-muted">محصولاتت از قبل جای دیگری هست؟</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button onClick={() => finish("/crawl")} className="p-3 rounded-xl border border-edge hover:bg-subtle flex items-center gap-3 text-start cursor-pointer">
+                  <Radar className="size-5 text-primary shrink-0" />
+                  <span><span className="block font-bold text-[14px]">ورود از کانال تلگرام</span><span className="block text-[12px] text-muted">پست‌های کانالت محصول می‌شوند</span></span>
+                </button>
+                <button onClick={() => finish("/products")} className="p-3 rounded-xl border border-edge hover:bg-subtle flex items-center gap-3 text-start cursor-pointer">
+                  <FileSpreadsheet className="size-5 text-primary shrink-0" />
+                  <span><span className="block font-bold text-[14px]">ورود از اکسل</span><span className="block text-[12px] text-muted">یک فایل، همهٔ محصولات</span></span>
+                </button>
+              </div>
+              <button onClick={() => setStep(3)} className="text-[13px] text-muted hover:text-fg cursor-pointer">بعداً محصول اضافه می‌کنم</button>
+            </div>
+          )}
         </Card>
       )}
 
       {step === 3 && (
         <Card strong className="p-7 space-y-5">
-          <div><h1 className="text-[22px] font-black flex items-center gap-2">آماده است <PartyPopper className="size-6 text-ai" /></h1>
-            <p className="text-muted">این محصولی است که ساخته شد. با یک کلیک در کانالت منتشرش کن و مراحلش را زنده ببین.</p></div>
-          {product && (
-            <div className="rounded-2xl bg-subtle p-4">
-              <div className="font-bold">{product.title}</div>
-              <p className="text-[14px] text-muted mt-1 line-clamp-4 whitespace-pre-line">{product.description}</p>
-            </div>
-          )}
-          {publishOp ? (
+          <div><h1 className="text-[22px] font-black">دستیار فروش را روشن کن</h1>
+            <p className="text-muted">یک ربات جدا بساز تا به‌جای ادمین در تلگرام یا بله جواب مشتری را بدهد، قیمت و موجودی بگوید و سفارش بگیرد.</p></div>
+          {chatBot ? (
             <>
-              <OperationWatcher opId={publishOp} storeId={storeId} />
-              <Button size="lg" className="w-full" icon={<Check className="size-4" />} onClick={finish}>رفتن به پنل</Button>
+              <div className="rounded-xl bg-success/10 p-4 text-[14px] leading-7">
+                ربات <b dir="ltr">@{chatBot.bot_username}</b> وصل شد. لینکش را در بیو کانال بگذار. لحن، ساعت کاری، سؤالات متداول و روش پرداخت را بعداً در «دستیار چت» تنظیم کن.
+              </div>
+              <Button size="lg" className="w-full" onClick={() => setStep(4)}>ادامه</Button>
             </>
-          ) : channelId ? (
-            <Button size="lg" className="w-full" icon={<Send className="size-4" />} loading={publish.isPending} onClick={() => publish.mutate()}>انتشار در کانال</Button>
-          ) : (
-            <Button size="lg" className="w-full" onClick={finish}>رفتن به پنل</Button>
-          )}
+          ) : <>
+            <div className="grid grid-cols-2 gap-2">
+              {(["telegram", "bale"] as const).map((p) => (
+                <button key={p} onClick={() => setChatPlatform(p)} className={cn("p-4 rounded-xl border flex items-center gap-3 cursor-pointer", chatPlatform === p ? "border-primary bg-primary/8" : "border-edge")}>
+                  <PlatformIcon platform={p} size={32} /><span className="font-bold">{p === "telegram" ? "تلگرام" : "بله"}</span>
+                </button>
+              ))}
+            </div>
+            <ol className="list-decimal ps-5 space-y-1 text-[13px] text-muted">
+              <li>در {chatPlatform === "telegram" ? "تلگرام به ‎@BotFather" : "بله به ‎@botfather"} پیام بده و یک ربات جدید بساز (جدا از ربات کانال).</li>
+              <li>توکنی که می‌دهد را اینجا بگذار.</li>
+            </ol>
+            <Field label="توکن ربات دستیار"><Input dir="ltr" className="text-left font-mono text-[13px]" placeholder="123456:ABC…" value={chatToken} onChange={(e) => setChatToken(e.target.value)} /></Field>
+            <div className="flex gap-2">
+              <Button size="lg" className="flex-1" icon={<MessageCircle className="size-4" />} disabled={!chatToken.trim()} loading={connectChat.isPending} onClick={() => connectChat.mutate()}>اتصال و روشن کردن</Button>
+              <Button size="lg" variant="ghost" onClick={() => setStep(4)}>بعداً</Button>
+            </div>
+          </>}
         </Card>
+      )}
+
+      {step === 4 && (
+        <div className="space-y-4">
+          <Card strong className="p-7 space-y-5">
+            <div><h1 className="text-[22px] font-black flex items-center gap-2">آماده است <PartyPopper className="size-6 text-ai" /></h1>
+              <p className="text-muted">{product ? "این محصولی است که ساخته شد. با یک کلیک در کانالت منتشرش کن و مراحلش را زنده ببین." : "فروشگاهت ساخته شد. از اینجا هر بخشی را که می‌خواهی شروع کن."}</p></div>
+            {product && (
+              <div className="rounded-2xl bg-subtle p-4">
+                <div className="font-bold">{product.title}</div>
+                <p className="text-[14px] text-muted mt-1 line-clamp-4 whitespace-pre-line">{product.description}</p>
+              </div>
+            )}
+            {publishOp ? (
+              <>
+                <OperationWatcher opId={publishOp} storeId={storeId} />
+                <Button size="lg" className="w-full" icon={<Check className="size-4" />} onClick={() => finish()}>رفتن به پنل</Button>
+              </>
+            ) : product && channelId ? (
+              <Button size="lg" className="w-full" icon={<Send className="size-4" />} loading={publish.isPending} onClick={() => publish.mutate()}>انتشار در کانال</Button>
+            ) : (
+              <Button size="lg" className="w-full" onClick={() => finish()}>رفتن به پنل</Button>
+            )}
+          </Card>
+          <div>
+            <h2 className="text-[15px] font-extrabold mb-3 px-1">کارهای دیگری که Sello برایت می‌کند</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {FEATURES.map((f) => (
+                <Card key={f.path} className="p-4 flex gap-3 cursor-pointer hover:bg-glass-strong transition" onClick={() => finish(f.path)}>
+                  <f.icon className="size-5 text-primary shrink-0 mt-0.5" aria-hidden />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-[14px] flex items-center justify-between gap-2">{f.title}<ChevronLeft className="size-4 text-muted" aria-hidden /></div>
+                    <p className="text-[12px] text-muted mt-1 leading-6">{f.text}</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
