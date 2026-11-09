@@ -17,6 +17,10 @@
   --subtle: rgba(15, 23, 42, 0.05);
   --line: rgba(15, 23, 42, 0.08);
   --raised: #ffffff;
+  /* Inputs, selects and secondary buttons: white like the cards, set apart by a visible border. */
+  --control: #ffffff;
+  --control-hover: #f6f8f7;
+  --control-border: rgba(15, 23, 42, 0.16);
   --primary: #047857;
   --primary-hover: #065f46;
   --primary-fg: #ffffff;
@@ -54,6 +58,9 @@
     --subtle: rgba(255, 255, 255, 0.06);
     --line: rgba(255, 255, 255, 0.08);
     --raised: rgba(255, 255, 255, 0.12);
+    --control: rgba(18, 26, 23, 0.82);
+    --control-hover: rgba(18, 26, 23, 0.96);
+    --control-border: rgba(255, 255, 255, 0.09);
     --primary: #34d399;
     --primary-hover: #6ee7b7;
     --primary-fg: #022c22;
@@ -90,6 +97,9 @@
   --subtle: rgba(255, 255, 255, 0.06);
   --line: rgba(255, 255, 255, 0.08);
   --raised: rgba(255, 255, 255, 0.12);
+  --control: rgba(18, 26, 23, 0.82);
+  --control-hover: rgba(18, 26, 23, 0.96);
+  --control-border: rgba(255, 255, 255, 0.09);
   --primary: #34d399;
   --primary-hover: #6ee7b7;
   --primary-fg: #022c22;
@@ -123,6 +133,9 @@
   --color-primary-soft: var(--primary-soft);
   --color-line: var(--line);
   --color-raised: var(--raised);
+  --color-control: var(--control);
+  --color-control-hover: var(--control-hover);
+  --color-control-border: var(--control-border);
   --color-ink: var(--ink);
   --color-ink-fg: var(--ink-fg);
   --color-ai: var(--ai);
