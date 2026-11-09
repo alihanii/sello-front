@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, MessageCircle, Moon, Package,
   Plug, Radar, Settings, Shield, Store, Sun,
+  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -124,7 +125,8 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: `${base}/products`, icon: Package, label: "محصولات", short: "محصولات", tab: true },
     { href: `${base}/activity`, icon: Activity, label: "فعالیت‌ها و لاگ", short: "فعالیت"},
     { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم" },
-    { href: `${base}/channels`, icon: Plug, label: "کانال‌ها", tab: true , short: "کانال‌ها"},
+    { href: `${base}/orders`, icon: ShoppingBag, label: "سفارشات", tab: true, short: "سفارشات" },
+    { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
     { href: `${base}/chat`, icon: MessageCircle, label: "AI چت", short: "AI چت", tab: true },
   ];

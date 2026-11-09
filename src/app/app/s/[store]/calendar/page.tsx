@@ -246,13 +246,13 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
       {s.orders_toman > 0 && <p className="text-[13px] text-muted -mt-2">جمع سفارش‌های این روز: <b className="text-fg tnum">{toman(s.orders_toman)}</b></p>}
       {data.orders?.length > 0 && (
         <div>
-          <div className="font-bold text-[14px] mb-2 flex items-center gap-1.5"><ShoppingBag className="size-4 text-success" />سفارش‌های گرفته‌شده در چت</div>
+          <div className="font-bold text-[14px] mb-2 flex items-center gap-1.5"><ShoppingBag className="size-4 text-success" />سفارش‌های گرفته‌شده</div>
           <ul className="space-y-1">
             {data.orders.map((o: any) => (
-              <li key={o.id}>
-                <Link href={`/app/s/${sid}/chat?tab=orders&o=${o.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
+              <li key={`${o.kind}-${o.id}`}>
+                <Link href={`/app/s/${sid}/orders?o=${o.kind === "ai" || !o.kind ? "ai" : "inv"}-${o.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
                   <span className="tnum text-muted w-11">{faDigits(jf(new Date(o.created_at.endsWith("Z") || o.created_at.includes("+") ? o.created_at : o.created_at + "Z"), "HH:mm"))}</span>
-                  <span className="flex-1 min-w-0 truncate">{o.customer_name || `سفارش #${faNum(o.id)}`}</span>
+                  <span className="flex-1 min-w-0 truncate">{o.customer_name || (o.number ? `${o.kind === "invoice" ? "فاکتور" : "سفارش چت"} ${faDigits(o.number)}` : `سفارش #${faNum(o.id)}`)}</span>
                   <span className="tnum text-muted shrink-0">{toman(o.total_toman)}</span>
                   <Chip tone={ORDER_STATUS[o.status]?.tone}>{ORDER_STATUS[o.status]?.label ?? o.status}</Chip>
                 </Link>
