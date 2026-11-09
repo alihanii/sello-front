@@ -18,7 +18,7 @@ export default function NewProduct() {
   const params = useSearchParams();
   const [mode, setMode] = useState<Mode>(params.get("mode") === "manual" ? "manual" : "ai");
   return (
-    <>
+    <div className="max-w-2xl mx-auto">
       <PageHeader title="افزودن محصول" />
       <div className="mb-4 max-w-2xl">
         <Tabs value={mode} onChange={setMode} items={[
@@ -27,7 +27,7 @@ export default function NewProduct() {
         ]} />
       </div>
       {mode === "ai" ? <AiCreate storeId={sid} /> : <ManualCreate storeId={sid} />}
-    </>
+    </div>
   );
 }
 

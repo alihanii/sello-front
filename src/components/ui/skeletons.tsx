@@ -453,7 +453,7 @@ export function ProductFormSkeleton() {
 
 export function ProductEditSkeleton() {
   return (
-    <div aria-busy="true">
+    <div className="max-w-2xl mx-auto" aria-busy="true">
       <BackTitleSkeleton />
       <ProductFormSkeleton />
     </div>
@@ -462,7 +462,7 @@ export function ProductEditSkeleton() {
 
 export function ProductNewSkeleton() {
   return (
-    <div aria-busy="true">
+    <div className="max-w-2xl mx-auto" aria-busy="true">
       <PageHeaderSkeleton subtitle={false} />
       <div className="mb-4"><TabsSkeleton count={2} /></div>
       <ProductFormSkeleton />
