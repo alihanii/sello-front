@@ -193,7 +193,7 @@ export default function CalendarPage() {
                     {days.map((d) => {
                       const n = stats(d).crawl_item ?? 0;
                       return <button key={iso(d)} onClick={() => setSelected(d)} title={`${jfa(d, "d MMMM")}: ${faNum(n)} دیتا`}
-                        className={cn("size-3.5 rounded-[4px] cursor-pointer", !isSameMonth(d, ms) && "invisible")} style={{ background: `var(--heat-${heat(n)})` }} />;
+                        className={cn("size-3.5 rounded-sm cursor-pointer", !isSameMonth(d, ms) && "invisible")} style={{ background: `var(--heat-${heat(n)})` }} />;
                     })}
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default function CalendarPage() {
             })}
           </div>
           <div className="flex items-center gap-1 text-[11px] text-muted mt-4">
-            کم {[0, 1, 2, 3, 4, 5].map((i) => <span key={i} className="size-3 rounded-[3px]" style={{ background: `var(--heat-${i})` }} />)} زیاد
+            کم {[0, 1, 2, 3, 4, 5].map((i) => <span key={i} className="size-3 rounded-sm" style={{ background: `var(--heat-${i})` }} />)} زیاد
             <span className="ms-3">(۰، ۱–۲، ۳–۷، ۸–۱۹، ۲۰–۴۹، ۵۰+ آیتم)</span>
           </div>
         </Card>
@@ -231,7 +231,7 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
     return (
       <div className="space-y-4" aria-busy="true">
         <div className="grid grid-cols-2 gap-2">{Array.from({ length: 6 }, (_, i) => <div key={i} className="rounded-xl bg-subtle p-3 space-y-2"><SkLine size={12} className="w-16" /><SkLine size={20} className="w-8" /></div>)}</div>
-        <Skeleton className="h-9 rounded-[10px]" />
+        <Skeleton className="h-9 rounded-card" />
         <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-8 rounded-xl" />)}</div>
       </div>
     );
