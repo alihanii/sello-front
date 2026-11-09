@@ -1,12 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, MessageCircle, Package, Send, Sparkles, TrendingUp, Wallet } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronLeft, MessageCircle, Package, Plug, Send, Sparkles, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { faDigits, faNum, jDate, toman } from "@/lib/format";
-import { storeQueries, useStoreId } from "@/lib/hooks";
+import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { Button, Card, CardHeader, PageHeader, Skeleton, Tabs } from "@/components/ui/primitives";
 import { DashboardSkeleton, SkLine } from "@/components/ui/skeletons";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
@@ -31,6 +31,35 @@ const ATTENTION_LINK: Record<string, string> = {
   ai_orders: "chat?tab=orders", chat: "chat?tab=conversations",
 };
 
+function SetupAlert({ href, icon: Icon, title, text }: { href: string; icon: any; title: string; text: string }) {
+  return (
+    <Link href={href} className="fade-in flex items-center gap-3 rounded-2xl border border-primary/25 bg-primary/8 px-4 py-3 hover:bg-primary/12 transition">
+      <Icon className="size-5 text-primary shrink-0" aria-hidden />
+      <p className="flex-1 min-w-0 text-[13px] leading-6"><b>{title}</b> <span className="text-muted">{text}</span></p>
+      <ChevronLeft className="size-5 text-primary shrink-0" aria-hidden />
+    </Link>
+  );
+}
+
+// Shown at the top of the dashboard until the store has a connected channel and a running AI chat.
+function SetupAlerts({ sid }: { sid: number }) {
+  const { data: channels } = useChannels(sid);
+  const { data: chat } = useQuery(storeQueries.chatOverview(sid));
+  const noChannel = !!channels && !channels.some((c: any) => c.status === "connected");
+  const noBot = !!chat && (chat as any).bots?.length === 0;
+  const chatOff = !!chat && !noBot && !(chat as any).enabled;
+  if (!noChannel && !noBot && !chatOff) return null;
+  return (
+    <div className="mb-5 space-y-2">
+      {noChannel && <SetupAlert href={`/app/s/${sid}/channels`} icon={Plug} title="اولین فروشگاهت رو وصل کن."
+        text="کانال یا پیجت رو وصل کن تا محصول‌ها خودکار اونجا منتشر بشن." />}
+      {(noBot || chatOff) && <SetupAlert href={`/app/s/${sid}/chat${noBot ? "?tab=connections" : ""}`} icon={MessageCircle}
+        title={noBot ? "چت هوشمند و سفارش‌گیر رو وصل کن." : "چت هوشمند و سفارش‌گیر رو راه بنداز."}
+        text={noBot ? "رباتش رو وصل کن تا به‌جای ادمین جواب مشتری رو بده و سفارش بگیره." : "رباتت وصله ولی دستیار خاموشه؛ روشنش کن تا جواب مشتری رو بده و سفارش بگیره."} />}
+    </div>
+  );
+}
+
 function ChatCard({ sid, today }: { sid: number; today: { chats: number; replies: number; orders: number } }) {
   const { data, isPending } = useQuery(storeQueries.chatOverview(sid));
   if (isPending) {
@@ -46,7 +75,7 @@ function ChatCard({ sid, today }: { sid: number; today: { chats: number; replies
     <Link href={`/app/s/${sid}/chat`}>
       <Card className="p-5 hover:bg-glass-strong transition">
         <div className="flex items-center justify-between text-[13px]">
-          <span className="font-bold flex items-center gap-2"><MessageCircle className="size-4 text-primary" />دستیار چت</span>
+          <span className="font-bold flex items-center gap-2"><MessageCircle className="size-4 text-primary" />AI چت</span>
           <span className={data.enabled ? "text-success font-bold" : "text-muted"}>{data.enabled ? "روشن" : "خاموش"}</span>
         </div>
         <div className="text-[11px] text-muted mt-3">امروز</div>
@@ -94,6 +123,7 @@ export default function Dashboard() {
           <Link href={`/app/s/${sid}/products/new?mode=manual`}><Button variant="secondary">افزودن دستی</Button></Link>
         </>} />
       <AiSetupBanner />
+      <SetupAlerts sid={sid} />
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <Stat icon={Package} label="کل محصولات" value={faNum(k.products)} hint={`${faNum(k.unpublished)} منتشرنشده`} />
         <Stat icon={Send} label="منتشرشده" value={faNum(k.published_any)} hint={`امروز ${faNum(k.published_today)} انتشار`} />

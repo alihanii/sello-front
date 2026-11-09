@@ -177,7 +177,7 @@ export default function Onboarding() {
           {chatBot ? (
             <>
               <div className="rounded-xl bg-success/10 p-4 text-[14px] leading-7">
-                ربات <b dir="ltr">@{chatBot.bot_username}</b> وصل شد. لینکش را در بیو کانال بگذار. لحن، ساعت کاری، سؤالات متداول و روش پرداخت را بعداً در «دستیار چت» تنظیم کن.
+                ربات <b dir="ltr">@{chatBot.bot_username}</b> وصل شد. لینکش را در بیو کانال بگذار. لحن، ساعت کاری، سؤالات متداول و روش پرداخت را بعداً در «AI چت» تنظیم کن.
               </div>
               <Button size="lg" className="w-full" onClick={() => setStep(4)}>ادامه</Button>
             </>
