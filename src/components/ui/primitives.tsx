@@ -46,10 +46,10 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
 ) {
   const v = {
     primary: "bg-primary text-primary-fg shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_6px_18px_-8px_color-mix(in_oklab,var(--primary)_70%,transparent)] hover:bg-primary-hover",
-    secondary: "glass text-fg hover:bg-glass-strong",
+    secondary: "bg-control border border-control-border text-fg shadow-[var(--shadow)] hover:bg-control-hover",
     ghost: "text-fg hover:bg-subtle",
     danger: "bg-danger/12 text-danger hover:bg-danger/20",
-    ai: "glass text-fg hover:bg-glass-strong [&>svg]:text-primary",
+    ai: "bg-control border border-control-border text-fg shadow-[var(--shadow)] hover:bg-control-hover [&>svg]:text-primary",
   }[variant];
   const s = { sm: "h-9 min-w-9 px-3 text-[13px] gap-1.5", md: "h-11 px-5 text-[14px] gap-2", lg: "h-12 px-7 text-[15px] gap-2" }[size];
   return (
