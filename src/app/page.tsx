@@ -55,6 +55,7 @@ function Hero() {
         <p className="text-muted text-[17px] sm:text-[19px] leading-[1.9] mt-6 max-w-[33rem]">
           محصول، موجودی، انتشار، گفتگو با مشتری و سفارش؛ سلو همهٔ کارهای فروشگاهت رو از یه پنل می‌چرخونه. تو فقط تصمیم می‌گیری.
         </p>
+        <p> افزایش فروش با سلو</p>
         <div className="flex flex-wrap gap-3 mt-9">
           <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary">
             شروع رایگان <ArrowLeft className="ld-arrow size-4" aria-hidden />
@@ -186,7 +187,7 @@ const SEVEN: { title: string; text: string; visual: React.ReactNode }[] = [
     visual: <VisCrawl />,
   },
   {
-    title: "عکس و اطلاعات محصول با AI",
+    title: "ساخت عکس و محصول با AI",
     text: "یه عکس با گوشی و یه خط توضیح کافیه. عکس تمیز با زمینهٔ سفید، عنوان، توضیحات، دسته و ویژگی‌ها رو سلو می‌سازه.",
     visual: <VisMake />,
   },
