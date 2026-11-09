@@ -17,11 +17,10 @@
   --subtle: rgba(15, 23, 42, 0.05);
   --line: rgba(15, 23, 42, 0.08);
   --raised: #ffffff;
-  /* Inputs, selects and secondary buttons: a touch darker than the white cards so they stand out
-     in light mode, but far from the grey of a disabled control. */
-  --control: #eef1f0;
-  --control-hover: #e7ebe9;
-  --control-border: rgba(15, 23, 42, 0.11);
+  /* Inputs, selects and secondary buttons: white like the cards, set apart by a visible border. */
+  --control: #ffffff;
+  --control-hover: #f6f8f7;
+  --control-border: rgba(15, 23, 42, 0.16);
   --primary: #047857;
   --primary-hover: #065f46;
   --primary-fg: #ffffff;
