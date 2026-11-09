@@ -6,7 +6,7 @@ import Link from "next/link";
 import { faDigits, faNum, toman } from "@/lib/format";
 import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { Button, Card, CardHeader, PageHeader, Skeleton } from "@/components/ui/primitives";
-import { FinanceChart, OrdersCalendar } from "@/components/dashboard/Finance";
+import { FinanceChart } from "@/components/dashboard/Finance";
 import { DashboardSkeleton, SkLine } from "@/components/ui/skeletons";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 import { Banner } from "@/components/ui/Banner";
@@ -120,7 +120,6 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mt-4">
         <div className="lg:col-span-2 flex flex-col gap-4">
           <FinanceChart sid={sid} />
-          <OrdersCalendar sid={sid} />
         </div>
         <div className="flex flex-col gap-4">
           <Card>

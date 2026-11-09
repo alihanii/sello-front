@@ -3,10 +3,12 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { Copy, Eye, EyeOff, FileText, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Controller } from "react-hook-form";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDateTime, toman } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
+import { rules, useZodForm, z } from "@/lib/form";
 import { INVOICE_STATUS, copyText, orderQueries, usePatchInvoice, useInvalidateOrders } from "@/lib/orders";
 import { Button, Card, Chip, EmptyState, Field, Input, NumberInput, Switch, Tabs, Textarea } from "@/components/ui/primitives";
 import { FormCardSkeleton, ListRowsSkeleton } from "@/components/ui/skeletons";
@@ -76,63 +78,81 @@ export function InvoiceList({ onNew }: { onNew: () => void }) {
   );
 }
 
+const settingsSchema = z.object({
+  card_number: rules.card, sheba: rules.sheba, holder: rules.text(120), bank_name: rules.text(60), pay_link: rules.url,
+  require_receipt: z.boolean(), seller_name: rules.text(120), phone: rules.phone, address: rules.text(500),
+  next_number: z.number().int().min(1, "حداقل ۱."), note: rules.text(1500),
+  expire_hours: z.number().int().min(0).max(1440, "حداکثر ۶۰ روز (۱۴۴۰ ساعت)."), default_shipping_toman: rules.toman,
+  ask_phone: z.boolean(), ask_address: z.boolean(), thank_you: rules.text(500),
+});
+type SettingsForm = z.infer<typeof settingsSchema>;
+const SETTINGS_KEYS = Object.keys(settingsSchema.shape) as (keyof SettingsForm)[];
+const pick = (d: any) => Object.fromEntries(SETTINGS_KEYS.map((k) => [k, d[k] ?? (typeof d[k] === "number" ? 0 : "")])) as SettingsForm;
+
 export function InvoiceSettings() {
   const sid = useStoreId();
   const refresh = useInvalidateOrders(sid);
   const { data } = useQuery(orderQueries.settings(sid));
-  const [f, setF] = useState<any>(null);
-  useEffect(() => { if (data && !f) setF(data); }, [data, f]);
+  const { register, control, handleSubmit, reset, formState: { errors } } = useZodForm(settingsSchema);
+  useEffect(() => { if (data) reset(pick(data)); }, [data, reset]);
   const save = useMutation({
-    mutationFn: () => api(`/stores/${sid}/invoice-settings`, { method: "PUT", json: {
-      seller_name: f.seller_name, phone: f.phone, address: f.address, card_number: f.card_number, sheba: f.sheba, holder: f.holder,
-      bank_name: f.bank_name, pay_link: f.pay_link, require_receipt: f.require_receipt, ask_address: f.ask_address, ask_phone: f.ask_phone,
-      expire_hours: f.expire_hours, default_shipping_toman: f.default_shipping_toman, note: f.note, thank_you: f.thank_you, next_number: f.next_number,
-    } }),
-    onSuccess: (d) => { setF(d); refresh(); toast.success("تنظیمات فاکتور ذخیره شد"); },
+    mutationFn: (v: SettingsForm) => api(`/stores/${sid}/invoice-settings`, { method: "PUT", json: v }),
+    onSuccess: (d) => { reset(pick(d)); refresh(); toast.success("تنظیمات فاکتور ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
-  if (!f) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"><FormCardSkeleton fields={4} /><FormCardSkeleton fields={4} /></div>;
-  const bind = (k: string) => ({ value: f[k] ?? "", onChange: (e: any) => setF({ ...f, [k]: e.target.value }) });
-  const toggle = (k: string, title: string, hint: string) => (
-    <label className="flex items-center justify-between gap-3 rounded-2xl bg-subtle p-3 cursor-pointer">
-      <span><b className="text-[14px]">{title}</b><span className="block text-[12px] text-muted">{hint}</span></span>
-      <Switch checked={!!f[k]} onChange={(v) => setF({ ...f, [k]: v })} label={title} />
-    </label>
+  if (!data) return <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"><FormCardSkeleton fields={4} /><FormCardSkeleton fields={4} /></div>;
+  const err = (k: keyof SettingsForm) => errors[k]?.message as string | undefined;
+  const text = (k: keyof SettingsForm, label: string, props: React.ComponentProps<typeof Input> & { hint?: string } = {}) => {
+    const { hint, ...rest } = props;
+    return <Field label={label} hint={hint} error={err(k)}><Input {...rest} {...register(k)} aria-invalid={!!err(k)} /></Field>;
+  };
+  const num = (k: keyof SettingsForm, label: string, hint?: string, grouping = true) => (
+    <Field label={label} hint={hint} error={err(k)}>
+      <Controller control={control} name={k} render={({ field }) => <NumberInput grouping={grouping} value={field.value as number} onChange={field.onChange} onBlur={field.onBlur} />} />
+    </Field>
+  );
+  const toggle = (k: keyof SettingsForm, title: string, hint: string) => (
+    <Controller control={control} name={k} render={({ field }) => (
+      <label className="flex items-center justify-between gap-3 rounded-2xl bg-subtle p-3 cursor-pointer">
+        <span><b className="text-[14px]">{title}</b><span className="block text-[12px] text-muted">{hint}</span></span>
+        <Switch checked={!!field.value} onChange={field.onChange} label={title} />
+      </label>
+    )} />
   );
   return (
-    <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+    <form onSubmit={handleSubmit((v) => save.mutate(v as SettingsForm))} noValidate className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
       <Card className="p-5 space-y-3">
         <h3 className="font-extrabold text-[15px]">اطلاعات پرداخت</h3>
         <p className="text-[13px] text-muted -mt-2">مشتری روی فاکتور همین‌ها را می‌بیند و با یک ضربه کپی می‌کند.</p>
-        <Field label="شماره کارت"><Input dir="ltr" inputMode="numeric" className="text-left tnum" placeholder="6037 9911 1234 5678" {...bind("card_number")} /></Field>
-        <Field label="شماره شبا" hint="اختیاری"><Input dir="ltr" className="text-left tnum" placeholder="IR..." {...bind("sheba")} /></Field>
+        {text("card_number", "شماره کارت", { dir: "ltr", inputMode: "numeric", className: "text-left tnum", placeholder: "6037 9911 1234 5678" })}
+        {text("sheba", "شماره شبا", { dir: "ltr", className: "text-left tnum", placeholder: "IR...", hint: "اختیاری" })}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="به نام"><Input {...bind("holder")} /></Field>
-          <Field label="بانک"><Input placeholder="ملت، سامان…" {...bind("bank_name")} /></Field>
+          {text("holder", "به نام")}
+          {text("bank_name", "بانک", { placeholder: "ملت، سامان…" })}
         </div>
-        <Field label="لینک پرداخت آنلاین" hint="اختیاری: لینک درگاه خودت (زرین‌لینک، آیدی‌پی…). روی فاکتور دکمهٔ «پرداخت آنلاین» می‌آید."><Input dir="ltr" className="text-left" placeholder="https://zarinp.al/..." {...bind("pay_link")} /></Field>
+        {text("pay_link", "لینک پرداخت آنلاین", { dir: "ltr", className: "text-left", placeholder: "https://zarinp.al/...", hint: "اختیاری: لینک درگاه خودت (زرین‌لینک، آیدی‌پی…). روی فاکتور دکمهٔ «پرداخت آنلاین» می‌آید." })}
         {toggle("require_receipt", "عکس فیش اجباری باشد", "خاموش باشد، مشتری می‌تواند فقط کد پیگیری بزند.")}
       </Card>
       <div className="space-y-4">
         <Card className="p-5 space-y-3">
           <h3 className="font-extrabold text-[15px]">سربرگ فاکتور</h3>
-          <Field label="نام فروشنده روی فاکتور"><Input {...bind("seller_name")} /></Field>
+          {text("seller_name", "نام فروشنده روی فاکتور", { hint: "لوگو از تنظیمات فروشگاه می‌آید." })}
           <div className="grid grid-cols-2 gap-3">
-            <Field label="تلفن پشتیبانی"><Input dir="ltr" className="text-left" {...bind("phone")} /></Field>
-            <Field label="شمارهٔ فاکتور بعدی"><NumberInput grouping={false} value={f.next_number} onChange={(v) => setF({ ...f, next_number: v || 1 })} /></Field>
+            {text("phone", "تلفن پشتیبانی", { dir: "ltr", className: "text-left" })}
+            {num("next_number", "شمارهٔ فاکتور بعدی", undefined, false)}
           </div>
-          <Field label="آدرس"><Input {...bind("address")} /></Field>
-          <Field label="توضیحات پایین فاکتور" hint="شرایط ارسال، مرجوعی، زمان تحویل…"><Textarea rows={3} {...bind("note")} /></Field>
+          {text("address", "آدرس")}
+          <Field label="توضیحات پایین فاکتور" hint="شرایط ارسال، مرجوعی، زمان تحویل…" error={err("note")}><Textarea rows={3} {...register("note")} /></Field>
         </Card>
         <Card className="p-5 space-y-3">
           <h3 className="font-extrabold text-[15px]">رفتار فاکتور</h3>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="مهلت پرداخت (ساعت)" hint="۰ یعنی بدون مهلت"><NumberInput grouping={false} value={f.expire_hours} onChange={(v) => setF({ ...f, expire_hours: v })} /></Field>
-            <Field label="هزینهٔ ارسال پیش‌فرض"><NumberInput value={f.default_shipping_toman} onChange={(v) => setF({ ...f, default_shipping_toman: v })} /></Field>
+            {num("expire_hours", "مهلت پرداخت (ساعت)", "۰ یعنی بدون مهلت", false)}
+            {num("default_shipping_toman", "هزینهٔ ارسال پیش‌فرض")}
           </div>
           {toggle("ask_phone", "موبایل مشتری را بپرس", "اگر روی فاکتور نزده باشی، مشتری هنگام ارسال فیش وارد می‌کند.")}
           {toggle("ask_address", "آدرس تحویل را بپرس", "برای کالای فیزیکی روشن بماند.")}
-          <Field label="پیام بعد از ارسال فیش"><Input placeholder="ممنون از خریدت! بعد از تأیید، سفارش ارسال می‌شود." {...bind("thank_you")} /></Field>
+          {text("thank_you", "پیام بعد از ارسال فیش", { placeholder: "ممنون از خریدت! بعد از تأیید، سفارش ارسال می‌شود." })}
         </Card>
         <Button type="submit" size="lg" className="w-full" loading={save.isPending}>ذخیرهٔ تنظیمات</Button>
       </div>

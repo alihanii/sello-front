@@ -2,17 +2,17 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Copy, ExternalLink, FileText, Minus, Package, Plus, Search, Send, Settings2, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
 import { faDigits, faNum, toman } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
+import { rules, useZodForm, z } from "@/lib/form";
 import { ORDER_PLATFORMS, copyText, orderQueries, useInvalidateOrders } from "@/lib/orders";
 import { Banner } from "@/components/ui/Banner";
 import { Button, Card, CardHeader, Dialog, Field, Input, NumberInput, Select, Switch, Textarea, cn } from "@/components/ui/primitives";
 
-type Line = { key: number; product_id?: number | null; title: string; variant: string; qty: number; unit_price: number; image_url?: string; stock?: number };
-let seq = 0;
 
 function ProductPicker({ onPick }: { onPick: (p: any) => void }) {
   const sid = useStoreId();
@@ -75,43 +75,75 @@ function Created({ inv, onClose, onAnother }: { inv: any; onClose: () => void; o
   );
 }
 
+const lineSchema = z.object({
+  product_id: z.number().nullable(),
+  title: z.string().trim().min(1, "نام ردیف را بنویس.").max(300),
+  variant: rules.text(120),
+  qty: z.number().int().min(1, "حداقل ۱."),
+  unit_price: rules.toman,
+  image_url: z.string().optional(),
+  stock: z.number().nullable().optional(),
+});
+
+const makeSchema = (chat: boolean) => z.object({
+  items: z.array(lineSchema).min(1, "حداقل یک محصول اضافه کن."),
+  customer_name: rules.text(160),
+  customer_phone: rules.mobile,
+  customer_address: rules.text(1000),
+  discount_toman: rules.toman,
+  shipping_toman: rules.toman,
+  note: rules.text(1500),
+  platform: z.string(),
+  paid: z.boolean(),
+}).superRefine((v, ctx) => {
+  const subtotal = v.items.reduce((a, l) => a + l.qty * l.unit_price, 0);
+  if (!chat && subtotal - Math.min(v.discount_toman, subtotal) + v.shipping_toman <= 0) {
+    ctx.addIssue({ code: "custom", path: ["items"], message: "جمع فاکتور باید بیشتر از صفر باشد؛ قیمت ردیف‌ها را بزن." });
+  }
+});
+type InvoiceValues = z.infer<ReturnType<typeof makeSchema>>;
+
+const blank = (shipping = 0): InvoiceValues => ({
+  items: [], customer_name: "", customer_phone: "", customer_address: "", discount_toman: 0, shipping_toman: shipping,
+  note: "", platform: "instagram", paid: false,
+});
+
 /** New invoice (a payment link for the customer), or with `chat`, an order the seller took in a chat by hand. */
 export function InvoiceForm({ chat = false, onDone }: { chat?: boolean; onDone: () => void }) {
   const sid = useStoreId();
   const refresh = useInvalidateOrders(sid);
   const { data: conf } = useQuery(orderQueries.settings(sid));
-  const [lines, setLines] = useState<Line[]>([]);
-  const [customer, setCustomer] = useState({ name: "", phone: "", address: "" });
-  const [discount, setDiscount] = useState(0);
-  const [shipping, setShipping] = useState<number | null>(null);
-  const [note, setNote] = useState("");
-  const [platform, setPlatform] = useState("instagram");
-  const [paid, setPaid] = useState(false);
+  const [schema] = useState(() => makeSchema(chat));
+  const { register, control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useZodForm(schema, { defaultValues: blank() });
+  const { fields, append, remove, update } = useFieldArray({ control, name: "items" });
   const [created, setCreated] = useState<any>(null);
-  const ship = shipping ?? conf?.default_shipping_toman ?? 0;
-  const subtotal = lines.reduce((a, l) => a + l.qty * l.unit_price, 0);
-  const total = Math.max(0, subtotal - Math.min(discount, subtotal) + ship);
-  const set = (key: number, patch: Partial<Line>) => setLines((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)));
-  const add = (p: any) => setLines((ls) => {
-    const hit = ls.find((l) => l.product_id === p.id);
-    if (hit) return ls.map((l) => (l === hit ? { ...l, qty: l.qty + 1 } : l));
-    return [...ls, { key: ++seq, product_id: p.id, title: p.title, variant: "", qty: 1, unit_price: p.price, image_url: p.images?.[0]?.url, stock: p.stock_qty }];
-  });
-  const reset = () => { setLines([]); setCustomer({ name: "", phone: "", address: "" }); setDiscount(0); setShipping(null); setNote(""); setPaid(false); setCreated(null); };
+  // The store's default shipping arrives after the form mounts; use it until the seller types their own.
+  useEffect(() => { if (conf && !getValues("shipping_toman")) setValue("shipping_toman", conf.default_shipping_toman ?? 0); }, [conf, getValues, setValue]);
+  const [items, discount, shipping] = useWatch({ control, name: ["items", "discount_toman", "shipping_toman"] });
+  const subtotal = (items ?? []).reduce((a: number, l: any) => a + (l.qty || 0) * (l.unit_price || 0), 0);
+  const total = Math.max(0, subtotal - Math.min(discount || 0, subtotal) + (shipping || 0));
+  const add = (p: any) => {
+    const at = (getValues("items") ?? []).findIndex((l: any) => l.product_id === p.id);
+    if (at >= 0) update(at, { ...getValues(`items.${at}`), qty: getValues(`items.${at}.qty`) + 1 });
+    else append({ product_id: p.id, title: p.title, variant: "", qty: 1, unit_price: p.price, image_url: p.images?.[0]?.url ?? "", stock: p.stock_qty });
+  };
+  const again = () => { reset(blank(conf?.default_shipping_toman ?? 0)); setCreated(null); };
   const save = useMutation({
-    mutationFn: () => api(`/stores/${sid}/invoices`, { method: "POST", json: {
-      source: chat ? "chat" : "invoice", platform: chat ? platform : "", customer_name: customer.name, customer_phone: customer.phone,
-      customer_address: customer.address, discount_toman: discount, shipping_toman: ship, note,
-      status: chat && paid ? "confirmed" : "awaiting_payment",
-      items: lines.map((l) => ({ product_id: l.product_id ?? null, title: l.title, variant: l.variant, qty: l.qty, unit_price: l.unit_price })),
+    mutationFn: (v: InvoiceValues) => api(`/stores/${sid}/invoices`, { method: "POST", json: {
+      source: chat ? "chat" : "invoice", platform: chat ? v.platform : "", customer_name: v.customer_name, customer_phone: v.customer_phone,
+      customer_address: v.customer_address, discount_toman: v.discount_toman, shipping_toman: v.shipping_toman, note: v.note,
+      status: chat && v.paid ? "confirmed" : "awaiting_payment",
+      items: v.items.map(({ product_id, title, variant, qty, unit_price }) => ({ product_id, title, variant, qty, unit_price })),
     } }),
     onSuccess: (inv) => { refresh(); setCreated(inv); },
     onError: (e: any) => toast.error(e.message),
   });
-  const valid = lines.length > 0 && lines.every((l) => l.title.trim() && l.qty > 0) && (chat || total > 0);
+  const submit = handleSubmit((v) => save.mutate(v as InvoiceValues));
+  const itemsError = (errors.items as any)?.message ?? (errors.items as any)?.root?.message;
 
   return (
     <>
+    <form onSubmit={submit} noValidate>
       {!chat && conf && !conf.ready && (
         <div className="mb-4"><Banner icon={Settings2} href={`/app/s/${sid}/orders?tab=settings`}><b>اول اطلاعات پرداخت را وارد کن.</b> <span className="text-muted">شماره کارت، شبا یا لینک پرداختت را در تنظیمات فاکتور بزن تا روی فاکتور مشتری نمایش داده شود.</span></Banner></div>
       )}
@@ -122,45 +154,59 @@ export function InvoiceForm({ chat = false, onDone }: { chat?: boolean; onDone: 
             <div className="px-4 sm:px-5 pb-5 space-y-3">
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1"><ProductPicker onPick={add} /></div>
-                <Button variant="secondary" icon={<Plus className="size-4" />} onClick={() => setLines((ls) => [...ls, { key: ++seq, title: "", variant: "", qty: 1, unit_price: 0 }])}>ردیف دستی</Button>
+                <Button type="button" variant="secondary" icon={<Plus className="size-4" />} onClick={() => append({ product_id: null, title: "", variant: "", qty: 1, unit_price: 0, image_url: "", stock: null })}>ردیف دستی</Button>
               </div>
-              {lines.length === 0 ? (
+              {fields.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-edge p-8 text-center text-[14px] text-muted"><FileText className="size-6 mx-auto mb-2" />هنوز محصولی اضافه نشده.</div>
               ) : (
                 <ul className="space-y-2">
-                  {lines.map((l) => (
-                    <li key={l.key} className="rounded-2xl bg-subtle p-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        {l.image_url ? <img src={mediaUrl(l.image_url)} alt="" className="size-12 rounded-xl object-cover shrink-0" /> : <span className="size-12 rounded-xl bg-glass grid place-items-center shrink-0"><Package className="size-4 text-muted" /></span>}
-                        <div className="flex-1 min-w-0 space-y-1.5">
-                          {l.product_id ? <div className="font-semibold text-[14px] truncate">{l.title}</div>
-                            : <Input className="!h-9" placeholder="نام کالا یا خدمت" value={l.title} onChange={(e) => set(l.key, { title: e.target.value })} aria-label="نام ردیف" />}
-                          <Input className="!h-9 text-[13px]" placeholder="رنگ، سایز… (اختیاری)" value={l.variant} onChange={(e) => set(l.key, { variant: e.target.value })} aria-label="مشخصات" />
+                  {fields.map((l, i) => {
+                    const e = (errors.items as any)?.[i];
+                    const qty = items?.[i]?.qty ?? l.qty;
+                    return (
+                      <li key={l.id} className="rounded-2xl bg-subtle p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {l.image_url ? <img src={mediaUrl(l.image_url)} alt="" className="size-12 rounded-xl object-cover shrink-0" /> : <span className="size-12 rounded-xl bg-glass grid place-items-center shrink-0"><Package className="size-4 text-muted" /></span>}
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            {l.product_id ? <div className="font-semibold text-[14px] truncate">{l.title}</div> : <>
+                              <Input className="!h-9" placeholder="نام کالا یا خدمت" {...register(`items.${i}.title`)} aria-label="نام ردیف" aria-invalid={!!e?.title} />
+                              {e?.title && <span className="block text-[12px] text-danger">{e.title.message}</span>}
+                            </>}
+                            <Input className="!h-9 text-[13px]" placeholder="رنگ، سایز… (اختیاری)" {...register(`items.${i}.variant`)} aria-label="مشخصات" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center rounded-xl bg-glass border border-edge h-9">
-                          <button type="button" className="size-9 grid place-items-center cursor-pointer" onClick={() => set(l.key, { qty: Math.max(1, l.qty - 1) })} aria-label="کم کردن"><Minus className="size-3.5" /></button>
-                          <span className="w-8 text-center tnum text-[14px] font-bold">{faNum(l.qty)}</span>
-                          <button type="button" className="size-9 grid place-items-center cursor-pointer" onClick={() => set(l.key, { qty: l.qty + 1 })} aria-label="زیاد کردن"><Plus className="size-3.5" /></button>
+                        <div className="flex items-center gap-2">
+                          <Controller control={control} name={`items.${i}.qty`} render={({ field }) => (
+                            <div className="flex items-center rounded-xl bg-glass border border-edge h-9">
+                              <button type="button" className="size-9 grid place-items-center cursor-pointer" onClick={() => field.onChange(Math.max(1, field.value - 1))} aria-label="کم کردن"><Minus className="size-3.5" /></button>
+                              <span className="w-8 text-center tnum text-[14px] font-bold">{faNum(field.value)}</span>
+                              <button type="button" className="size-9 grid place-items-center cursor-pointer" onClick={() => field.onChange(field.value + 1)} aria-label="زیاد کردن"><Plus className="size-3.5" /></button>
+                            </div>
+                          )} />
+                          <Controller control={control} name={`items.${i}.unit_price`} render={({ field }) => (
+                            <NumberInput className="!h-9 w-32" value={field.value} onChange={field.onChange} onBlur={field.onBlur} aria-label="قیمت واحد (تومان)" placeholder="قیمت" />
+                          )} />
+                          <Button type="button" size="sm" variant="ghost" onClick={() => remove(i)} aria-label="حذف ردیف"><Trash2 className="size-4 text-danger" /></Button>
                         </div>
-                        <NumberInput className="!h-9 w-32" value={l.unit_price} onChange={(v) => set(l.key, { unit_price: v })} aria-label="قیمت واحد (تومان)" placeholder="قیمت" />
-                        <Button size="sm" variant="ghost" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} aria-label="حذف ردیف"><Trash2 className="size-4 text-danger" /></Button>
-                      </div>
-                      {l.stock != null && l.qty > l.stock && <div className="text-[12px] text-warning sm:hidden">موجودی فقط {faNum(l.stock)} عدد است.</div>}
-                    </li>
-                  ))}
+                        {l.stock != null && qty > l.stock && <div className="text-[12px] text-warning">موجودی فقط {faNum(l.stock)} عدد است.</div>}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
+              {itemsError && <p className="text-[13px] text-danger font-semibold" role="alert">{itemsError}</p>}
             </div>
           </Card>
           <Card>
             <CardHeader title="مشتری" subtitle={chat ? "مشخصات کسی که در چت سفارش داد." : "اختیاری؛ اگر خالی بماند، مشتری هنگام ارسال فیش خودش وارد می‌کند."} />
             <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {chat && <Field label="از کجا سفارش داد؟"><Select value={platform} onChange={(e) => setPlatform(e.target.value)}>{ORDER_PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</Select></Field>}
-              <Field label="نام"><Input value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} /></Field>
-              <Field label="موبایل"><Input dir="ltr" inputMode="tel" className="text-left" value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} /></Field>
-              <Field label="آدرس" className="sm:col-span-2"><Textarea rows={2} className="!min-h-16" value={customer.address} onChange={(e) => setCustomer({ ...customer, address: e.target.value })} /></Field>
+              {chat && <Field label="از کجا سفارش داد؟">
+                <Controller control={control} name="platform" render={({ field }) => (
+                  <Select value={field.value} onChange={(e) => field.onChange(e.target.value)}>{ORDER_PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</Select>
+                )} /></Field>}
+              <Field label="نام" error={errors.customer_name?.message as string}><Input {...register("customer_name")} /></Field>
+              <Field label="موبایل" error={errors.customer_phone?.message as string}><Input dir="ltr" inputMode="tel" className="text-left" placeholder="09xxxxxxxxx" {...register("customer_phone")} aria-invalid={!!errors.customer_phone} /></Field>
+              <Field label="آدرس" className="sm:col-span-2" error={errors.customer_address?.message as string}><Textarea rows={2} className="!min-h-16" {...register("customer_address")} /></Field>
             </div>
           </Card>
         </div>
@@ -168,16 +214,23 @@ export function InvoiceForm({ chat = false, onDone }: { chat?: boolean; onDone: 
           <CardHeader title={chat ? "جمع سفارش" : "جمع فاکتور"} />
           <div className="px-4 sm:px-5 pb-5 space-y-3 text-[14px]">
             <div className="flex justify-between"><span className="text-muted">جمع اقلام</span><span className="tnum font-semibold">{faNum(subtotal)} تومان</span></div>
-            <Field label="تخفیف (تومان)"><NumberInput value={discount} onChange={setDiscount} /></Field>
-            <Field label="هزینهٔ ارسال (تومان)"><NumberInput value={ship} onChange={(v) => setShipping(v)} /></Field>
-            <Field label={chat ? "یادداشت" : "توضیح روی فاکتور"} hint={chat ? undefined : "مشتری این را روی فاکتور می‌بیند."}><Textarea rows={2} className="!min-h-16" value={note} onChange={(e) => setNote(e.target.value)} /></Field>
-            {chat && <label className="flex items-center justify-between gap-3 rounded-2xl bg-subtle p-3 cursor-pointer"><span><b>پرداختش را گرفته‌ام</b><span className="block text-[12px] text-muted">سفارش تأییدشده ثبت می‌شود و موجودی کم می‌شود.</span></span><Switch checked={paid} onChange={setPaid} label="پرداخت‌شده" /></label>}
+            {(["discount_toman", "shipping_toman"] as const).map((k) => (
+              <Field key={k} label={k === "discount_toman" ? "تخفیف (تومان)" : "هزینهٔ ارسال (تومان)"} error={errors[k]?.message as string}>
+                <Controller control={control} name={k} render={({ field }) => <NumberInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
+              </Field>
+            ))}
+            <Field label={chat ? "یادداشت" : "توضیح روی فاکتور"} hint={chat ? undefined : "مشتری این را روی فاکتور می‌بیند."} error={errors.note?.message as string}>
+              <Textarea rows={2} className="!min-h-16" {...register("note")} /></Field>
+            {chat && <Controller control={control} name="paid" render={({ field }) => (
+              <label className="flex items-center justify-between gap-3 rounded-2xl bg-subtle p-3 cursor-pointer"><span><b>پرداختش را گرفته‌ام</b><span className="block text-[12px] text-muted">سفارش تأییدشده ثبت می‌شود و موجودی کم می‌شود.</span></span><Switch checked={field.value} onChange={field.onChange} label="پرداخت‌شده" /></label>
+            )} />}
             <div className="flex justify-between items-baseline border-t border-edge pt-3"><span className="font-bold">مبلغ قابل پرداخت</span><span className="tnum font-black text-[20px]">{faNum(total)} <span className="text-[12px] font-semibold text-muted">تومان</span></span></div>
-            <Button className="w-full" size="lg" disabled={!valid} loading={save.isPending} onClick={() => save.mutate()}>{chat ? "ثبت سفارش" : "ساخت فاکتور و لینک پرداخت"}</Button>
+            <Button type="submit" className="w-full" size="lg" loading={save.isPending}>{chat ? "ثبت سفارش" : "ساخت فاکتور و لینک پرداخت"}</Button>
           </div>
         </Card>
       </div>
-      {created && <Created inv={created} onClose={() => { reset(); onDone(); }} onAnother={reset} />}
+    </form>
+    {created && <Created inv={created} onClose={() => { again(); onDone(); }} onAnother={again} />}
     </>
   );
 }

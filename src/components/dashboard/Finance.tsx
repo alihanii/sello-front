@@ -96,8 +96,9 @@ const WEEKDAYS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 const jfa = (d: Date, f: string) => faDigits(jf(d, f, { locale: faIR }));
 
 /** Month calendar of orders taken: each day shows how many orders came in and how much was earned. */
-export function OrdersCalendar({ sid }: { sid: number }) {
-  const [cursor, setCursor] = useState(new Date());
+export function OrdersCalendar({ sid, month: controlled }: { sid: number; month?: Date }) {
+  const [own, setCursor] = useState(new Date());
+  const cursor = controlled ?? own;
   const gridStart = startOfWeek(startOfMonth(cursor), { weekStartsOn: 6 });
   const cells = useMemo(() => Array.from({ length: 42 }, (_, i) => addDays(gridStart, i)), [gridStart.getTime()]); // eslint-disable-line
   const { data } = useQuery({ ...orderQueries.finance(sid, isoDay(cells[0]), isoDay(cells[41])), placeholderData: keepPreviousData });
@@ -113,7 +114,7 @@ export function OrdersCalendar({ sid }: { sid: number }) {
     <Card>
       <CardHeader title="تقویم سفارش‌ها"
         subtitle={data ? <span className="tnum">{jfa(cursor, "MMMM")}: {faNum(month.orders)} سفارش · {month.toman ? toman(month.toman) : "بدون درآمد"}</span> : <span className="inline-block h-3 w-40 rounded bg-subtle animate-pulse" />}
-        action={<div className="flex items-center gap-1">
+        action={!controlled && <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => setCursor(addMonths(cursor, -1))} aria-label="ماه قبل"><ChevronRight className="size-4" /></Button>
           <span className="font-bold text-[14px] min-w-24 text-center">{jfa(cursor, "MMMM yyyy")}</span>
           <Button variant="ghost" size="sm" onClick={() => setCursor(addMonths(cursor, 1))} aria-label="ماه بعد"><ChevronLeft className="size-4" /></Button>

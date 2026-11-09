@@ -1,13 +1,14 @@
 "use client";
 
-import { CheckCircle2, Clock, Copy, CreditCard, ExternalLink, ImagePlus, Loader2, Phone, ReceiptText, Store, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Copy, CreditCard, ExternalLink, Loader2, Phone, ReceiptText, Store, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { API_URL, mediaUrl } from "@/lib/api";
 import { faDigits, faNum, jDate, jDateTime } from "@/lib/format";
-import { Button, Card, Field, Input, Textarea, cn } from "@/components/ui/primitives";
+import { Button, Card, cn } from "@/components/ui/primitives";
 import { Logo } from "@/components/shell/Brand";
+import { ReceiptForm } from "@/components/orders/ReceiptForm";
 
 const card4 = (v: string) => faDigits(v.replace(/(\d{4})(?=\d)/g, "$1 "));
 
@@ -35,48 +36,13 @@ export default function PublicInvoice() {
   const { code } = useParams<{ code: string }>();
   const [inv, setInv] = useState<any>(null);
   const [error, setError] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
-  const [form, setForm] = useState({ name: "", phone: "", address: "", payment_ref: "", note: "" });
-  const [sending, setSending] = useState(false);
-  const [formError, setFormError] = useState("");
-  const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/v1/public/invoices/${code}`)
       .then(async (r) => (r.ok ? r.json() : Promise.reject((await r.json().catch(() => null))?.detail?.message ?? "فاکتور پیدا نشد.")))
-      .then((d) => { setInv(d); setForm((f) => ({ ...f, name: d.customer.name, phone: d.customer.phone, address: d.customer.address })); })
+      .then(setInv)
       .catch((e) => setError(typeof e === "string" ? e : "ارتباط با سرور برقرار نشد."));
   }, [code]);
-  useEffect(() => {
-    if (!file) return setPreview("");
-    const u = URL.createObjectURL(file);
-    setPreview(u);
-    return () => URL.revokeObjectURL(u);
-  }, [file]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError("");
-    if (inv.require_receipt && !file) return setFormError("عکس فیش واریز را انتخاب کن.");
-    if (!file && !form.payment_ref.trim()) return setFormError("عکس فیش یا کد پیگیری را وارد کن.");
-    const body = new FormData();
-    if (file) body.append("file", file);
-    Object.entries(form).forEach(([k, v]) => body.append(k, v));
-    setSending(true);
-    try {
-      const r = await fetch(`${API_URL}/api/v1/public/invoices/${code}/receipt`, { method: "POST", body });
-      const d = await r.json().catch(() => null);
-      if (!r.ok) throw new Error(d?.detail?.message ?? "ارسال نشد؛ دوباره امتحان کن.");
-      setInv(d);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err: any) {
-      setFormError(err.message === "Failed to fetch" ? "ارتباط برقرار نشد؛ دوباره امتحان کن." : err.message);
-    } finally {
-      setSending(false);
-    }
-  };
-
   if (error) {
     return (
       <main className="min-h-dvh grid place-items-center p-4">
@@ -87,9 +53,31 @@ export default function PublicInvoice() {
   }
   if (!inv) return <main className="min-h-dvh grid place-items-center"><Loader2 className="size-7 animate-spin text-primary" aria-label="در حال بارگذاری" /></main>;
 
-  const closed = inv.status === "confirmed" || inv.status === "cancelled" || inv.expired;
-  const sent = inv.status === "payment_submitted";
+  const closed = inv.closed || inv.status === "confirmed" || inv.status === "cancelled" || inv.status === "payment_submitted" || inv.expired;
   const pay = inv.payment;
+  if (closed) {
+    const st = inv.status === "confirmed" ? { icon: CheckCircle2, tone: "text-success bg-success/12", title: "پرداخت تأیید شد", text: "سفارشت ثبت شد و در حال آماده‌سازی است. ممنون از خریدت." }
+      : inv.status === "payment_submitted" ? { icon: Clock, tone: "text-warning bg-warning/14", title: "فیش ارسال شد؛ منتظر تأیید فروشنده", text: inv.thank_you || "فروشنده فیش را بررسی می‌کند و بعد از تأیید، سفارشت ارسال می‌شود." }
+      : inv.status === "cancelled" ? { icon: XCircle, tone: "text-danger bg-danger/12", title: "این فاکتور لغو شده است", text: "این لینک دیگر قابل پرداخت نیست. اگر هنوز خرید می‌خواهی، از فروشنده فاکتور تازه بخواه." }
+      : { icon: Clock, tone: "text-muted bg-subtle", title: "مهلت پرداخت این فاکتور تمام شده", text: "این لینک دیگر قابل پرداخت نیست. برای فاکتور تازه به فروشنده پیام بده." };
+    return (
+      <main className="min-h-dvh grid place-items-center px-4 py-10">
+        <Card strong className="w-full max-w-md p-7 text-center">
+          <span className={cn("size-16 rounded-full grid place-items-center mx-auto mb-4", st.tone)}><st.icon className="size-8" /></span>
+          <h1 className="font-black text-[19px]">{st.title}</h1>
+          <p className="text-muted text-[14px] mt-2 leading-7">{st.text}</p>
+          <div className="mt-5 rounded-2xl bg-subtle p-4 text-[14px] space-y-1.5 text-start">
+            <div className="flex justify-between"><span className="text-muted">فروشنده</span><b>{inv.seller.seller_name}</b></div>
+            <div className="flex justify-between"><span className="text-muted">شمارهٔ فاکتور</span><b className="tnum">{faDigits(inv.number)}</b></div>
+            <div className="flex justify-between"><span className="text-muted">مبلغ</span><Money v={inv.total_toman} /></div>
+            {inv.submitted_at && <div className="flex justify-between"><span className="text-muted">ارسال فیش</span><span className="tnum">{jDateTime(inv.submitted_at)}</span></div>}
+          </div>
+          {inv.seller.phone && <a href={`tel:${inv.seller.phone}`} className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-primary font-bold"><Phone className="size-4" />تماس با فروشنده <span dir="ltr" className="tnum">{faDigits(inv.seller.phone)}</span></a>}
+          <Link href="/" className="flex items-center justify-center gap-1.5 text-[12px] text-muted mt-6">فاکتور با <Logo className="text-[14px]" /></Link>
+        </Card>
+      </main>
+    );
+  }
   return (
     <main className="min-h-dvh px-4 py-6 sm:py-10">
       <div className="mx-auto max-w-xl space-y-4">
@@ -102,12 +90,8 @@ export default function PublicInvoice() {
           </div>
         </header>
 
-        {inv.status === "confirmed" && <Card className="p-4 flex items-center gap-3 border-success/30"><CheckCircle2 className="size-6 text-success shrink-0" /><div><b>پرداخت تأیید شد.</b><div className="text-[13px] text-muted">سفارشت در حال آماده‌سازی است. ممنون از خریدت.</div></div></Card>}
-        {sent && <Card className="p-4 flex items-center gap-3"><Clock className="size-6 text-warning shrink-0" /><div><b>فیش رسید؛ منتظر تأیید فروشنده.</b><div className="text-[13px] text-muted">{inv.thank_you || "بعد از بررسی، سفارشت ثبت و ارسال می‌شود."}</div></div></Card>}
-        {inv.status === "rejected" && <Card className="p-4 flex items-center gap-3"><XCircle className="size-6 text-danger shrink-0" /><div><b>فیش قبلی تأیید نشد.</b><div className="text-[13px] text-muted">اگر واریز کرده‌ای، فیش درست را دوباره بفرست یا با فروشنده تماس بگیر.</div></div></Card>}
-        {inv.status === "cancelled" && <Card className="p-4 flex items-center gap-3"><XCircle className="size-6 text-muted shrink-0" /><b>این فاکتور لغو شده است.</b></Card>}
-        {inv.expired && <Card className="p-4 flex items-center gap-3"><Clock className="size-6 text-muted shrink-0" /><div><b>مهلت پرداخت تمام شده.</b><div className="text-[13px] text-muted">برای فاکتور تازه به فروشنده پیام بده.</div></div></Card>}
-
+                        {inv.status === "rejected" && <Card className="p-4 flex items-center gap-3"><XCircle className="size-6 text-danger shrink-0" /><div><b>فیش قبلی تأیید نشد.</b><div className="text-[13px] text-muted">اگر واریز کرده‌ای، فیش درست را دوباره بفرست یا با فروشنده تماس بگیر.</div></div></Card>}
+                
         <Card strong className="p-5">
           <div className="flex items-center gap-2 font-extrabold text-[15px] mb-3"><ReceiptText className="size-4 text-primary" />اقلام فاکتور</div>
           <ul className="divide-y divide-[var(--glass-edge)]">
@@ -132,7 +116,7 @@ export default function PublicInvoice() {
           {inv.expires_at && inv.status === "awaiting_payment" && !inv.expired && <p className="mt-3 text-[12px] text-muted flex items-center gap-1"><Clock className="size-3.5" />مهلت پرداخت تا {jDateTime(inv.expires_at)}</p>}
         </Card>
 
-        {!closed && (
+        {(
           <>
             <Card className="p-5 space-y-3">
               <div className="flex items-center gap-2 font-extrabold text-[15px]"><CreditCard className="size-4 text-primary" />پرداخت</div>
@@ -144,25 +128,7 @@ export default function PublicInvoice() {
             </Card>
 
             <Card className="p-5">
-              <form onSubmit={submit} className="space-y-3">
-                <div className="font-extrabold text-[15px]">{sent ? "ارسال دوبارهٔ فیش" : "بعد از واریز، فیش را بفرست"}</div>
-                <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-                <button type="button" onClick={() => input.current?.click()}
-                  className="w-full rounded-2xl border-2 border-dashed border-edge hover:border-primary transition p-4 flex flex-col items-center gap-2 cursor-pointer">
-                  {preview ? <img src={preview} alt="فیش انتخاب‌شده" className="max-h-56 rounded-xl" /> : <ImagePlus className="size-8 text-primary" />}
-                  <span className="text-[14px] font-bold">{preview ? "تغییر عکس فیش" : `عکس فیش واریز${inv.require_receipt ? "" : " (اختیاری)"}`}</span>
-                  {!preview && <span className="text-[12px] text-muted">اسکرین‌شات پیامک بانک یا رسید اپ بانکی</span>}
-                </button>
-                <Field label={`کد پیگیری / شمارهٔ ارجاع${inv.require_receipt ? " (اختیاری)" : ""}`}><Input dir="ltr" inputMode="numeric" className="text-left tnum" value={form.payment_ref} onChange={(e) => setForm({ ...form, payment_ref: e.target.value })} /></Field>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Field label="نام و نام خانوادگی"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" /></Field>
-                  {inv.ask_phone && <Field label="موبایل"><Input dir="ltr" inputMode="tel" className="text-left" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} autoComplete="tel" required /></Field>}
-                </div>
-                {inv.ask_address && <Field label="آدرس کامل و کد پستی"><Textarea rows={2} className="!min-h-20" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} autoComplete="street-address" required /></Field>}
-                <Field label="توضیح برای فروشنده (اختیاری)"><Input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></Field>
-                {formError && <p className="text-[13px] text-danger font-semibold" role="alert">{formError}</p>}
-                <Button type="submit" size="lg" className="w-full" loading={sending}>ارسال فیش و ثبت سفارش</Button>
-              </form>
+              <ReceiptForm inv={inv} code={code} onSent={(d) => { setInv({ ...d, closed: true }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
             </Card>
           </>
         )}
