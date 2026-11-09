@@ -35,7 +35,7 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
             if (v && i < 5) refs.current[i + 1]?.focus();
           }}
           onKeyDown={(e) => { if (e.key === "Backspace" && !d.trim() && i > 0) refs.current[i - 1]?.focus(); }}
-          className="size-12 text-center text-[20px] font-bold rounded-xl bg-glass-strong border border-edge outline-none focus:border-primary focus:ring-4 focus:ring-primary/15 tnum"
+          className="size-12 text-center text-[20px] font-bold rounded-xl bg-glass-strong border border-fg/20 hover:border-fg/30 outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15 tnum"
         />
       ))}
     </div>
@@ -101,7 +101,7 @@ export default function Login() {
               </div>
               <div className="space-y-4">
                 <Field label="شمارهٔ موبایل">
-                  <Input dir="ltr" inputMode="tel" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum" />
+                  <Input dir="ltr" inputMode="tel" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
                 </Field>
                 <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>دریافت کد تأیید</Button>
               </div>
