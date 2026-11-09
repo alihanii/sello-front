@@ -18,9 +18,9 @@ export default function Landing() {
           <nav className="flex items-center gap-1">
             <a href="#what" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">چی کار می‌کنه</a>
             <a href="#chat" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">دستیار چت</a>
-            <Link prefetch={false} href="/pricing" className="inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">پلن‌ها</Link>
             <ThemeSwitch />
-            <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary ld-btn-sm">ورود</Link>
+            <Link prefetch={false} href="/login" className="ld-btn ld-btn-quiet ld-btn-sm">ورود</Link>
+            <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary ld-btn-sm">شروع رایگان</Link>
           </nav>
         </header>
       </div>
