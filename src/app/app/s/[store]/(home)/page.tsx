@@ -31,7 +31,7 @@ const ATTENTION_LINK: Record<string, string> = {
   ai_orders: "chat?tab=orders", chat: "chat?tab=conversations",
 };
 
-function ChatCard({ sid }: { sid: number }) {
+function ChatCard({ sid, today }: { sid: number; today: { chats: number; replies: number; orders: number } }) {
   const { data, isPending } = useQuery(storeQueries.chatOverview(sid));
   if (isPending) {
     return (
@@ -49,11 +49,22 @@ function ChatCard({ sid }: { sid: number }) {
           <span className="font-bold flex items-center gap-2"><MessageCircle className="size-4 text-primary" />دستیار چت</span>
           <span className={data.enabled ? "text-success font-bold" : "text-muted"}>{data.enabled ? "روشن" : "خاموش"}</span>
         </div>
-        <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-          <div><div className="text-[18px] font-black tnum">{faNum(data.today.customer_messages)}</div><div className="text-[11px] text-muted">پیام امروز</div></div>
-          <div><div className="text-[18px] font-black tnum">{faNum(data.orders.payment_submitted)}</div><div className="text-[11px] text-muted">فیش منتظر</div></div>
-          <div><div className="text-[18px] font-black tnum">{faNum(data.month.tokens)}</div><div className="text-[11px] text-muted">توکن ماه</div></div>
+        <div className="text-[11px] text-muted mt-3">امروز</div>
+        <div className="grid grid-cols-3 gap-2 mt-1.5 text-center">
+          <div className="rounded-xl bg-subtle py-2">
+            <div className="text-[18px] font-black tnum flex items-center justify-center gap-1.5"><i className="inline-block size-2 rounded-full bg-primary" aria-hidden />{faNum(today.chats)}</div>
+            <div className="text-[11px] text-muted">گفتگوی پاسخ‌داده</div>
+          </div>
+          <div className="rounded-xl bg-subtle py-2">
+            <div className="text-[18px] font-black tnum flex items-center justify-center gap-1.5"><i className="inline-block size-2 rounded-full bg-ai" aria-hidden />{faNum(today.orders)}</div>
+            <div className="text-[11px] text-muted">سفارش</div>
+          </div>
+          <div className="rounded-xl bg-subtle py-2">
+            <div className="text-[18px] font-black tnum">{faNum(data.orders.payment_submitted)}</div>
+            <div className="text-[11px] text-muted">فیش منتظر تأیید</div>
+          </div>
         </div>
+        <div className="text-[12px] text-muted mt-2.5 tnum">{faNum(today.replies)} پاسخ دستیار امروز · {faNum(data.month.tokens)} توکن این ماه</div>
       </Card>
     </Link>
   );
@@ -91,7 +102,7 @@ export default function Dashboard() {
         <Stat icon={TrendingUp} label="موفقیت انتشار" value={k.success_rate == null ? "—" : `${faDigits(k.success_rate)}٪`} hint="۳۰ روز اخیر" />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mt-4">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 flex flex-col">
           <CardHeader title="۳۰ روز اخیر"
             subtitle={<span className="flex flex-wrap gap-x-3">{view === "sales" ? <>
               <span><i className="inline-block size-2 rounded-full bg-primary me-1" />گفتگوی پاسخ‌داده</span>
@@ -102,14 +113,7 @@ export default function Dashboard() {
               <span><i className="inline-block size-2 rounded-full bg-danger me-1" />خطا</span>
             </>}</span>}
             action={<Tabs value={view} onChange={setView} items={[{ value: "sales", label: "چت و سفارش" }, { value: "publish", label: "انتشار و کرال" }]} />} />
-          {view === "sales" && (
-            <div className="grid grid-cols-3 gap-2 px-4 sm:px-5 text-center">
-              <div className="rounded-xl bg-subtle py-2"><div className="text-[17px] font-black tnum">{faNum(k.chats_answered_today ?? 0)}</div><div className="text-[11px] text-muted">چت جواب‌داده امروز</div></div>
-              <div className="rounded-xl bg-subtle py-2"><div className="text-[17px] font-black tnum">{faNum(k.ai_replies_today ?? 0)}</div><div className="text-[11px] text-muted">پاسخ دستیار امروز</div></div>
-              <div className="rounded-xl bg-subtle py-2"><div className="text-[17px] font-black tnum">{faNum(k.orders_today ?? 0)}</div><div className="text-[11px] text-muted">سفارش امروز</div></div>
-            </div>
-          )}
-          <div className="h-56 sm:h-72 px-2 pb-4 pt-3" dir="ltr">
+          <div className="h-56 sm:h-72 lg:h-auto lg:flex-1 lg:min-h-72 px-2 pb-4" dir="ltr">
             <ResponsiveContainer>
               <BarChart data={series} margin={{ left: 0, right: 8, top: 8 }} barGap={2}>
                 <CartesianGrid stroke="var(--glass-edge)" vertical={false} />
@@ -146,7 +150,7 @@ export default function Dashboard() {
               ))}
             </div>
           </Card>
-          <ChatCard sid={sid} />
+          <ChatCard sid={sid} today={{ chats: k.chats_answered_today ?? 0, replies: k.ai_replies_today ?? 0, orders: k.orders_today ?? 0 }} />
           <Card className="p-5">
             <div className="flex justify-between text-[13px]"><span className="font-bold">مصرف پلن</span><span className="text-muted">{data.usage.plan ?? "رایگان"}</span></div>
             <div className="mt-3 text-[13px] text-muted tnum">{faNum(data.usage.publishes_month)} از {faNum(lim.monthly_publishes)} انتشار این ماه</div>
