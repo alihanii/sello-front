@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, History, MessageSquareText, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, Check, Clock, History, Layers, MessageSquareText, ShieldCheck, TrendingUp, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/shell/Brand";
 import { PlatformIcon } from "@/components/ui/PlatformIcon";
@@ -29,6 +29,7 @@ export default function Landing() {
         <Hero />
         <What />
         <ChatBot />
+        <Why />
         <Start />
       </main>
 
@@ -190,8 +191,8 @@ const SEVEN: { title: string; text: string; visual: React.ReactNode }[] = [
     visual: <VisMake />,
   },
   {
-    title: "موجودی و انبار همیشه درسته",
-    text: "موجودی هر محصول یه جاست. با هر سفارش خودش کم می‌شه، کم‌موجودها رو نشونت می‌ده و از اکسل هم یه‌جا آپدیت می‌شه.",
+    title: "مدیریت موجودی و انبارداری رو برات انجام می‌ده",
+    text: "انبارت یه جاست و موجودی هر محصول بین همهٔ کانال‌ها یکیه. با هر سفارش خودکار کم می‌شه، کم‌موجودها رو قبل از تموم شدن نشونت می‌ده و با اکسل یا ویرایش گروهی، موجودی ده‌ها محصول رو یه‌جا آپدیت می‌کنی.",
     visual: <VisStock />,
   },
   {
@@ -365,6 +366,37 @@ function ChatBot() {
         </div>
         <ChatDemo />
       </div>
+    </section>
+  );
+}
+
+/* ---------------- Why Sello ---------------- */
+
+const WHY = [
+  { icon: TrendingUp, title: "توی چند پلتفرم بفروش", text: "هر پلتفرم یه دسته مشتری تازه‌ست. با سلو تلگرام، بله، اینستاگرام و دیجی‌کالا رو هم‌زمان داری، بدون این که کارت چند برابر بشه." },
+  { icon: Layers, title: "کارت یکدسته می‌شه", text: "یه پنل، یه انبار، یه لیست محصول و سفارش. هر چیزی رو یه بار وارد می‌کنی و همه‌جا درست و هماهنگ می‌مونه." },
+  { icon: Clock, title: "کارهای تکراری خودکار", text: "انتشار، موجودی، جواب مشتری و سفارش خودکار انجام می‌شن؛ وقت تو می‌مونه برای این که فروشگاهت رو بزرگ‌تر کنی." },
+];
+
+function Why() {
+  return (
+    <section id="why" className="py-16 sm:py-20 scroll-mt-20" aria-labelledby="why-title">
+      <div className="max-w-2xl">
+        <h2 id="why-title" className="text-[30px] sm:text-[42px] font-black tracking-tight leading-[1.3] text-balance">
+          چرا سلو؟<br className="hidden sm:block" />
+          <span className="text-primary"> چون خودکاره، و خودکار یعنی فروش بیشتر.</span>
+        </h2>
+        <p className="text-muted text-[17px] mt-4 leading-[1.9]">یکی از مطمئن‌ترین راه‌های افزایش فروش اینه که هم‌زمان توی چند پلتفرم بفروشی. بدون اتوماسیون این یعنی چند برابر کار؛ با سلو یعنی همون کار همیشگی.</p>
+      </div>
+      <ul className="mt-10 grid sm:grid-cols-3 gap-4 sm:gap-5">
+        {WHY.map((w) => (
+          <li key={w.title} className="ld-vis rounded-[16px] p-6">
+            <span className="size-10 rounded-[10px] bg-primary-soft text-primary grid place-items-center"><w.icon className="size-5" aria-hidden /></span>
+            <h3 className="font-extrabold text-[18px] mt-4">{w.title}</h3>
+            <p className="text-muted text-[15px] leading-[1.85] mt-1.5">{w.text}</p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
