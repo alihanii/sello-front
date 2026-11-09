@@ -174,7 +174,7 @@ const STEPS_ALL: { title: string; text: string; visual: React.ReactNode }[] = [
   },
   {
     title: "ادمین AI برای چت با مشتری‌ها و سفارش‌گیر",
-    text: "لحن، قوانین و جدول سایزت رو یاد می‌گیره و ۲۴ ساعته با صد نفر هم‌زمان حرف می‌زنه. رنگ و سایز و آدرس رو می‌پرسه، فیش رو می‌گیره و سفارش رو می‌ذاره جلوت که فقط تأیید کنی.",
+    text: "مشتری هر جا پیام بده، تلگرام، بله یا پیوی خودت، همون لحظه جواب می‌گیره. ادمین AI سؤال‌هاش رو جواب می‌ده و سفارشش رو ثبت می‌کنه؛ تو فقط تأیید می‌کنی. شب و روز، حتی وقتی خوابی.",
     visual: <VisChat />,
   },
   {
@@ -227,8 +227,7 @@ function What() {
           <li key={it.title} className={`ld-step ${i % 2 ? "ld-step-alt" : ""}`}>
             <span className="ld-node tnum" aria-hidden>{(i + 1).toLocaleString("fa-IR")}</span>
             <div className="ld-step-text">
-              <span className="ld-kicker">قدم {(i + 1).toLocaleString("fa-IR")} از {STEPS_ALL.length.toLocaleString("fa-IR")}</span>
-              <h3 className="text-[21px] sm:text-[26px] font-black tracking-tight leading-[1.5] text-balance mt-1">{it.title}</h3>
+              <h3 className="text-[21px] sm:text-[26px] font-black tracking-tight leading-[1.5] text-balance">{it.title}</h3>
               <p className="text-[16px] sm:text-[17px] leading-[1.95] mt-2 text-muted max-w-[34rem]">{it.text}</p>
             </div>
             <div className="ld-step-vis" aria-hidden>
@@ -272,6 +271,12 @@ function VisHub() {
 function VisChat() {
   return (
     <VisBox>
+      <div className="ld-in flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-line" style={I(0)}>
+        <PlatformIcon platform="telegram" size={20} />
+        <PlatformIcon platform="bale" size={20} />
+        <span className="ms-1 font-bold">یه ادمین، همه‌جا</span>
+        <span className="ms-auto flex items-center gap-1 text-primary font-bold"><span className="size-1.5 rounded-full bg-success" />آنلاین</span>
+      </div>
       <div className="flex flex-col gap-2 leading-[1.8]">
         <div className="ld-pop ld-msg-in self-start rounded-[10px] rounded-se-[3px] bg-subtle px-3 py-1.5" style={I(0)}>هودی مشکی L دارین؟</div>
         <div className="ld-pop ld-msg-out self-end rounded-[10px] rounded-ss-[3px] bg-primary-soft px-3 py-1.5 max-w-[85%]" style={I(1)}>
