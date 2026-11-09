@@ -31,7 +31,7 @@
   gap: 0.5rem;
   height: 3rem;
   padding-inline: 1.5rem;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-weight: 800;
   font-size: 15px;
   white-space: nowrap;
@@ -68,9 +68,9 @@
 .ld-panel { background: color-mix(in oklab, var(--raised-solid) 70%, transparent); border: 1px solid var(--line); }
 
 /* The hero illustration is drawn for a light page; in dark mode it sits on a light stage so its cut-out edges stay clean. */
-:root[data-theme="dark"] .ld-hero-art { background: radial-gradient(120% 90% at 50% 45%, #f4f8f6, #dfe8e4); border-radius: 1rem; padding: 1rem; }
+:root[data-theme="dark"] .ld-hero-art { background: radial-gradient(120% 90% at 50% 45%, #f4f8f6, #dfe8e4); border-radius: var(--radius-sheet); padding: 1rem; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .ld-hero-art { background: radial-gradient(120% 90% at 50% 45%, #f4f8f6, #dfe8e4); border-radius: 1rem; padding: 1rem; }
+  :root:not([data-theme="light"]) .ld-hero-art { background: radial-gradient(120% 90% at 50% 45%, #f4f8f6, #dfe8e4); border-radius: var(--radius-sheet); padding: 1rem; }
 }
 
 .ld-numeral { font-variant-numeric: tabular-nums; line-height: 1; color: var(--primary); }

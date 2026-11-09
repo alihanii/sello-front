@@ -12,7 +12,7 @@ import { PlatformIcon } from "@/components/ui/status";
 import { Card, CardHeader, Select } from "@/components/ui/primitives";
 import { ChatUsageSkeleton } from "@/components/ui/skeletons";
 
-export const tip = { contentStyle: { background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: 12, direction: "rtl" as const, fontFamily: "inherit" }, formatter: (v: any) => faNum(v) };
+export const tip = { contentStyle: { background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-card)", direction: "rtl" as const, fontFamily: "inherit" }, formatter: (v: any) => faNum(v) };
 
 export function ChatUsage() {
   const sid = useStoreId();
