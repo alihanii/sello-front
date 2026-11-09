@@ -50,7 +50,7 @@ export function useChannels(storeId: number) {
 export function prefetchStorePage(qc: QueryClient, sid: number, href: string) {
   const rest = href.replace(`/app/s/${sid}`, "").split("?")[0];
   const jobs: Record<string, () => unknown[]> = {
-    "": () => [storeQueries.dashboard(sid), storeQueries.chatOverview(sid)],
+    "": () => [storeQueries.dashboard(sid), storeQueries.chatOverview(sid), storeQueries.channels(sid)],
     "/products": () => [storeQueries.products(sid, productListParams()), storeQueries.channels(sid)],
     "/activity": () => [storeQueries.operations(sid, activityParams()), storeQueries.channels(sid)],
     "/channels": () => [storeQueries.channels(sid), storeQueries.platforms(), storeQueries.crawlSources(sid)],

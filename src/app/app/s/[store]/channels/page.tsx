@@ -206,7 +206,7 @@ export default function Channels() {
         <span className="size-11 rounded-2xl bg-primary-soft text-primary grid place-items-center shrink-0"><MessageCircle className="size-5" /></span>
         <div className="flex-1">
           <div className="font-bold">دستیار چت فروش</div>
-          <div className="text-[13px] text-muted">ربات چت تلگرام و بله (مستقل یا متصل به پیوی) از صفحهٔ دستیار چت وصل می‌شود، جدا از ربات‌های انتشار کانال.</div>
+          <div className="text-[13px] text-muted">ربات چت تلگرام و بله (مستقل یا متصل به پیوی) از صفحهٔ AI چت وصل می‌شود، جدا از ربات‌های انتشار کانال.</div>
         </div>
         <Link href={`/app/s/${sid}/chat?tab=connections`}><Button variant="secondary">اتصال‌های چت</Button></Link>
       </Card>

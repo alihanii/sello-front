@@ -30,7 +30,7 @@ export default function Chat() {
 
   return (
     <>
-      <PageHeader title="دستیار چت فروش" subtitle="در تلگرام و بله به‌جای ادمین جواب مشتری را می‌دهد، محصول توضیح می‌دهد و سفارش می‌گیرد."
+      <PageHeader title="AI چت" subtitle="در تلگرام و بله به‌جای ادمین جواب مشتری را می‌دهد، محصول توضیح می‌دهد و سفارش می‌گیرد."
         actions={!agent ? <Skeleton className="h-11 w-44 rounded-full" /> : (
           <label className="glass rounded-full h-11 ps-4 pe-2 flex items-center gap-3 text-[14px] font-bold cursor-pointer">
             {agent.enabled ? <Chip tone="success">روشن</Chip> : <Chip>خاموش</Chip>}
