@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { CircleHelp, Loader2, X } from "lucide-react";
-import { Children, Fragment, forwardRef, isValidElement, useEffect, useState } from "react";
+import { Children, Fragment, forwardRef, isValidElement, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dropdown, type DropdownOption } from "./Dropdown";
 import { fieldCls, widthCls } from "./styles";
 
@@ -96,6 +96,17 @@ export function Field({ label, hint, tip, error, children, className }: { label?
 /** A question-mark icon that shows `text` on hover, keyboard focus or tap. */
 export function InfoTip({ text, className }: { text: string; className?: string }) {
   const [open, setOpen] = useState(false);
+  const tip = useRef<HTMLSpanElement>(null);
+  const [shift, setShift] = useState(0);
+  // Nudge the bubble sideways so it stays on screen when the icon sits near either edge of a phone.
+  useLayoutEffect(() => {
+    if (!open || !tip.current) { setShift(0); return; }
+    const r = tip.current.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const base = r.left - shift;
+    const width = r.width;
+    setShift(base < 8 ? 8 - base : base + width > vw - 8 ? vw - 8 - width - base : 0);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <span className={cn("relative inline-flex", className)} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <button type="button" aria-label="راهنما" aria-expanded={open}
@@ -106,8 +117,8 @@ export function InfoTip({ text, className }: { text: string; className?: string 
         <CircleHelp className="size-4" />
       </button>
       {open && (
-        <span role="tooltip"
-          className="glass-strong absolute top-full start-0 mt-1.5 z-[60] w-64 max-w-[calc(100vw-2.5rem)] rounded-xl px-3 py-2 text-[12px] font-normal leading-6 text-fg shadow-[var(--shadow)] fade-in">
+        <span role="tooltip" ref={tip} style={shift ? { transform: `translateX(${shift}px)` } : undefined}
+          className="glass-strong absolute top-full start-0 mt-1.5 z-[60] w-64 max-w-[calc(100vw-1rem)] rounded-control px-3 py-2 text-[12px] font-normal leading-6 text-fg shadow-[var(--shadow)] fade-in">
           {text}
         </span>
       )}

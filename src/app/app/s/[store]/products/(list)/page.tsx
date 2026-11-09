@@ -15,6 +15,7 @@ import { ImportDialog } from "@/components/products/ImportDialog";
 import { BulkEditDialog } from "@/components/products/BulkEditDialog";
 import { Button, Card, EmptyState, Input, PageHeader, Select, Tabs, cn } from "@/components/ui/primitives";
 import { InlineSkeleton, ProductsBodySkeleton } from "@/components/ui/skeletons";
+import { ActionSheet, useIsPhone } from "@/components/ui/ActionSheet";
 
 export default function Products() {
   const sid = useStoreId();
@@ -321,26 +322,31 @@ type MenuItem = { label: string; icon: React.ReactNode; href?: string; onClick?:
 function MoreMenu({ items }: { items: MenuItem[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const phone = useIsPhone();
   useEffect(() => {
-    if (!open) return;
+    // On phones the menu is a bottom sheet that closes from its own backdrop.
+    if (!open || phone) return;
     const onDown = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("pointerdown", onDown, true);
     window.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("pointerdown", onDown, true); window.removeEventListener("keydown", onKey); };
-  }, [open]);
-  const row = "flex w-full items-center gap-2.5 h-10 px-3 rounded-xl text-[14px] sm:text-[13px] font-semibold hover:bg-subtle cursor-pointer [&>svg]:text-muted";
+  }, [open, phone]);
+  const row = "flex w-full items-center gap-2.5 h-12 sm:h-10 px-3 rounded-control text-[15px] sm:text-[13px] font-semibold hover:bg-subtle cursor-pointer [&>svg]:text-muted";
+  const list = items.map((it) => it.href ? (
+    <Link key={it.label} role="menuitem" href={it.href} className={row} onClick={() => setOpen(false)}>{it.icon}{it.label}</Link>
+  ) : (
+    <button key={it.label} role="menuitem" type="button" className={row} onClick={() => { setOpen(false); it.onClick?.(); }}>{it.icon}{it.label}</button>
+  ));
   return (
     <div ref={ref} className="relative !flex-none order-last sm:order-none">
       <Button variant="secondary" className="px-3" aria-label="کارهای بیشتر" aria-haspopup="menu" aria-expanded={open}
         icon={<MoreHorizontal className="size-5" />} onClick={() => setOpen(!open)} />
-      {open && (
-        <div role="menu" className="glass-strong absolute z-50 top-full mt-1.5 end-0 w-52 rounded-2xl p-1.5 shadow-[var(--shadow)] fade-in">
-          {items.map((it) => it.href ? (
-            <Link key={it.label} role="menuitem" href={it.href} className={row} onClick={() => setOpen(false)}>{it.icon}{it.label}</Link>
-          ) : (
-            <button key={it.label} role="menuitem" type="button" className={row} onClick={() => { setOpen(false); it.onClick?.(); }}>{it.icon}{it.label}</button>
-          ))}
+      {phone ? (
+        <ActionSheet open={open} onClose={() => setOpen(false)} title="کارهای بیشتر"><div role="menu">{list}</div></ActionSheet>
+      ) : open && (
+        <div role="menu" className="glass-strong absolute z-50 top-full mt-1.5 end-0 w-52 rounded-card p-1.5 shadow-[var(--shadow)] fade-in">
+          {list}
         </div>
       )}
     </div>
