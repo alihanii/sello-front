@@ -31,7 +31,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh lg:ps-[292px]">
-      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
+      <aside className="on-nav fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
         <div className="flex items-center justify-between px-1 pt-1"><Logo /><Chip tone="warning">ادمین</Chip></div>
         <nav className="flex flex-col gap-1" aria-label="منوی ادمین">
           {ITEMS.map((it) => {
@@ -39,8 +39,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             return (
               <Link key={it.href} href={it.href} aria-current={active ? "page" : undefined}
                 className={cn("group flex items-center gap-3 h-11 px-3 rounded-2xl text-[14px] font-bold transition",
-                  active ? "bg-primary-soft text-primary" : "text-muted hover:text-fg hover:bg-subtle")}>
-                <it.icon className={cn("size-[18px]", active && "text-warning")} aria-hidden />{it.label}
+                  active ? "bg-nav-active text-fg shadow-[inset_-3px_0_0_var(--accent)]" : "text-muted hover:text-fg hover:bg-subtle")}>
+                <it.icon className={cn("size-[18px]", active && "text-accent")} aria-hidden />{it.label}
               </Link>
             );
           })}
@@ -51,7 +51,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4 max-w-[1440px] mx-auto">
-        <div className="glass rounded-2xl h-14 px-2 sm:px-3 flex items-center gap-2">
+        <div className="on-nav shadow-[var(--shadow)] rounded-2xl h-14 px-2 sm:px-3 flex items-center gap-2">
           <div className="lg:hidden flex items-center gap-2 ps-1"><Logo className="text-[18px]" /><Chip tone="warning">ادمین</Chip></div>
           <div className="flex-1" />
           <ThemeToggle />
@@ -60,21 +60,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <main key={path} className="page-in px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px] mx-auto">{children}</main>
 
-      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-card px-1.5 pt-1.5 pb-safe" aria-label="منوی ادمین">
+      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 on-nav shadow-[var(--shadow)] rounded-card px-1.5 pt-1.5 pb-safe" aria-label="منوی ادمین">
         <div className="grid grid-cols-5">
           {ITEMS.filter((it) => it.tab).map((it) => {
             const active = isActive(it);
             return (
               <Link key={it.href} href={it.href} aria-current={active ? "page" : undefined}
                 className={cn("flex flex-col items-center justify-center gap-0.5 h-14 text-[11px] font-bold", active ? "text-fg" : "text-muted")}>
-                <span className={cn("grid place-items-center h-8 w-12 rounded-full", active && "bg-primary-soft text-primary")}><it.icon className="size-[19px]" aria-hidden /></span>
+                <span className={cn("grid place-items-center h-8 w-12 rounded-full", active && "bg-nav-active text-accent")}><it.icon className="size-[19px]" aria-hidden /></span>
                 {it.short}
               </Link>
             );
           })}
           <button onClick={() => setMore(true)} aria-expanded={more}
             className={cn("flex flex-col items-center justify-center gap-0.5 h-14 text-[11px] font-bold cursor-pointer", moreActive ? "text-fg" : "text-muted")}>
-            <span className={cn("grid place-items-center h-8 w-12 rounded-full", moreActive && "bg-primary-soft text-primary")}><Menu className="size-[19px]" aria-hidden /></span>
+            <span className={cn("grid place-items-center h-8 w-12 rounded-full", moreActive && "bg-nav-active text-accent")}><Menu className="size-[19px]" aria-hidden /></span>
             بیشتر
           </button>
         </div>

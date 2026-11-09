@@ -15,7 +15,7 @@ export function ShellSkeleton({ admin, children }: { admin?: boolean; children?:
   const items = admin ? 11 : 7;
   return (
     <div className="min-h-dvh lg:ps-[292px]" aria-busy="true" aria-label="در حال بارگذاری">
-      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
+      <aside className="on-nav fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
         <div className="flex items-center justify-between px-1 pt-1">
           <span className="flex items-center gap-2.5"><Skeleton className="size-9 rounded-control" /><Skeleton className="h-5 w-16 rounded-md" /></span>
           {admin && <Skeleton className="h-6 w-12 rounded-full" />}
@@ -30,7 +30,7 @@ export function ShellSkeleton({ admin, children }: { admin?: boolean; children?:
       </aside>
 
       <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4 max-w-[1440px] mx-auto">
-        <div className="glass rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
+        <div className="on-nav shadow-[var(--shadow)] rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
           <span className="lg:hidden ps-1 flex items-center gap-2"><Skeleton className="size-9 rounded-control" /><Skeleton className="h-4 w-14 rounded-md" /></span>
           <div className="flex-1" />
           {Array.from({ length: admin ? 1 : 3 }, (_, i) => <Skeleton key={i} className="size-9 rounded-full" />)}
@@ -40,7 +40,7 @@ export function ShellSkeleton({ admin, children }: { admin?: boolean; children?:
 
       <main className="px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px] mx-auto">{children}</main>
 
-      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-card px-1.5 pt-1.5 pb-safe">
+      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 on-nav shadow-[var(--shadow)] rounded-card px-1.5 pt-1.5 pb-safe">
         <div className="grid grid-cols-5">
           {Array.from({ length: 5 }, (_, i) => (
             <div key={i} className="flex flex-col items-center justify-center gap-1 h-14">

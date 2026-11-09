@@ -1,125 +1,173 @@
 @import "tailwindcss";
 
-/* Sello tokens. Palette from ui-ux-pro-max (E-commerce / Inventory rows): slate text, emerald
-   "commerce green" as the single brand colour, warm orange only for AI. Minimal glass: light
-   frosted surfaces on a near-neutral field, AA contrast (emerald-700 on white 5.5:1). */
+/* Sello tokens, 60/30/10:
+     60% warm ivory  (#F8F7F3 field, #F0EFE9 secondary, white cards, #E7E5DE lines)
+     30% deep emerald (#173D35 sidebar/header/tab bar, #28594D active item and brand text)
+     10% champagne gold (#C6A66B, hover #B18D50) for the main buttons and highlights only.
+   Text #252923 / secondary #777C75. The page tokens (--page-*) feed --fg, --muted-fg… so that a
+   .on-nav region (emerald) can swap them for light-on-dark values and popovers inside it can swap back. */
 :root {
-  --bg: #f3f5f4;
-  --orb-1: rgba(16, 185, 129, 0.20);
-  --orb-2: rgba(245, 158, 11, 0.13);
-  --glass: rgba(255, 255, 255, 0.8);
-  --glass-strong: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(255, 255, 255, 0.85);
-  --glass-edge: rgba(15, 23, 42, 0.08);
-  --sheen: rgba(255, 255, 255, 0.6);
-  --fg: #0f172a;
-  --muted-fg: #475569;
-  --subtle: rgba(15, 23, 42, 0.05);
-  --line: rgba(15, 23, 42, 0.08);
+  /* 60% base: warm ivory field, white cards, ivory-grey secondary surfaces. */
+  --bg: #f8f7f3;
+  --bg-2: #f0efe9;
+  --orb-1: rgba(23, 61, 53, 0.05);
+  --orb-2: rgba(198, 166, 107, 0.08);
+  --glass: #ffffff;
+  --glass-strong: #ffffff;
+  --glass-border: #e7e5de;
+  --glass-edge: #e7e5de;
+  --sheen: rgba(255, 255, 255, 0);
+  --page-fg: #252923;
+  --page-muted: #777c75;
+  --page-subtle: #f0efe9;
+  --page-line: #e7e5de;
+  --page-edge: #e7e5de;
+  --page-primary: #28594d;
+  --page-primary-soft: rgba(40, 89, 77, 0.09);
   --raised: #ffffff;
-  /* Inputs, selects and secondary buttons: white like the cards, set apart by a visible border. */
   --control: #ffffff;
-  --control-hover: #f6f8f7;
-  --control-border: rgba(15, 23, 42, 0.16);
-  --primary: #047857;
-  --primary-hover: #065f46;
+  --control-hover: #f8f7f3;
+  --control-border: #e7e5de;
+  /* 30% structure: deep emerald for the sidebar, header, tab bar and the active menu item.
+     Also the brand colour for links, icons and selected states on the ivory field (7.9:1 on white). */
+  --primary-hover: #173d35;
   --primary-fg: #ffffff;
-  --primary-soft: rgba(4, 120, 87, 0.10);
-  --ink: #0f172a;
+  --nav: #173d35;
+  --nav-active: #28594d;
+  --nav-fg: #f8f7f3;
+  --nav-muted: rgba(248, 247, 243, 0.66);
+  --nav-subtle: rgba(248, 247, 243, 0.08);
+  --nav-line: rgba(248, 247, 243, 0.12);
+  /* 10% accent: champagne gold, only on main call-to-action buttons and highlights. Emerald text on it (5:1). */
+  --accent: #c6a66b;
+  --accent-hover: #b18d50;
+  --accent-fg: #173d35;
+  --accent-soft: rgba(198, 166, 107, 0.16);
+  --ink: #252923;
   --ink-fg: #ffffff;
-  --ai: #c2410c;
+  --ai: #b45309;
   --crawl: #1d4ed8;
-  --success: #047857;
-  --warning: #b45309;
-  --danger: #dc2626;
-  --neutral: #64748b;
-  --ring: #059669;
-  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.9), 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px -16px rgba(15, 23, 42, 0.16);
-  --heat-0: rgba(15, 23, 42, 0.06);
-  --heat-1: #d1fae5;
-  --heat-2: #6ee7b7;
-  --heat-3: #10b981;
-  --heat-4: #047857;
-  --heat-5: #064e3b;
+  --success: #2f7a5f;
+  --warning: #a16207;
+  --danger: #c2410c;
+  --neutral: #777c75;
+  --ring: #28594d;
+  --shadow: 0 1px 2px rgba(37, 41, 35, 0.04), 0 10px 28px -18px rgba(37, 41, 35, 0.18);
+  --heat-0: #f0efe9;
+  --heat-1: #dde8e3;
+  --heat-2: #a7c6bb;
+  --heat-3: #5f9484;
+  --heat-4: #28594d;
+  --heat-5: #173d35;
+  --fg: var(--page-fg);
+  --muted-fg: var(--page-muted);
+  --subtle: var(--page-subtle);
+  --line: var(--page-line);
+  --primary: var(--page-primary);
+  --primary-soft: var(--page-primary-soft);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0a0f0d;
-    --orb-1: rgba(16, 185, 129, 0.16);
-    --orb-2: rgba(245, 158, 11, 0.07);
-    --glass: rgba(18, 26, 23, 0.82);
-    --glass-strong: rgba(18, 26, 23, 0.96);
-    --glass-border: rgba(255, 255, 255, 0.09);
-    --glass-edge: rgba(255, 255, 255, 0.08);
-    --sheen: rgba(255, 255, 255, 0.06);
-    --fg: #ecf2ef;
-    --muted-fg: #9aa8a2;
-    --subtle: rgba(255, 255, 255, 0.06);
-    --line: rgba(255, 255, 255, 0.08);
-    --raised: rgba(255, 255, 255, 0.12);
-    --control: rgba(18, 26, 23, 0.82);
-    --control-hover: rgba(18, 26, 23, 0.96);
-    --control-border: rgba(255, 255, 255, 0.09);
-    --primary: #34d399;
-    --primary-hover: #6ee7b7;
-    --primary-fg: #022c22;
-    --primary-soft: rgba(52, 211, 153, 0.12);
-    --ink: #ecf2ef;
-    --ink-fg: #0a0f0d;
-    --ai: #fb923c;
+    --bg: #161d1a;
+    --bg-2: #1b231f;
+    --orb-1: rgba(40, 89, 77, 0.18);
+    --orb-2: rgba(198, 166, 107, 0.06);
+    --glass: #1f2824;
+    --glass-strong: #232d28;
+    --glass-border: rgba(248, 247, 243, 0.1);
+    --glass-edge: rgba(248, 247, 243, 0.08);
+    --sheen: rgba(255, 255, 255, 0);
+    --page-fg: #eceae3;
+    --page-muted: #aeb3ab;
+    --page-subtle: rgba(248, 247, 243, 0.06);
+    --page-line: rgba(248, 247, 243, 0.08);
+    --page-edge: rgba(248, 247, 243, 0.08);
+    --page-primary: #8cc9b4;
+    --page-primary-soft: rgba(140, 201, 180, 0.12);
+    --raised: rgba(255, 255, 255, 0.1);
+    --control: #25302a;
+    --control-hover: #2a3630;
+    --control-border: rgba(248, 247, 243, 0.1);
+    --primary-hover: #a9dac8;
+    --primary-fg: #161d1a;
+    --nav: #173d35;
+    --nav-active: #28594d;
+    --nav-fg: #eceae3;
+    --nav-muted: rgba(236, 234, 227, 0.62);
+    --nav-subtle: rgba(236, 234, 227, 0.07);
+    --nav-line: rgba(236, 234, 227, 0.09);
+    --accent: #d2b47a;
+    --accent-hover: #dfc490;
+    --accent-fg: #173d35;
+    --accent-soft: rgba(210, 180, 122, 0.14);
+    --ink: #eceae3;
+    --ink-fg: #161d1a;
+    --ai: #f59e0b;
     --crawl: #60a5fa;
-    --success: #34d399;
+    --success: #6fcf9f;
     --warning: #fbbf24;
     --danger: #f87171;
-    --neutral: #8b9893;
-    --ring: #34d399;
-    --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.06), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
+    --neutral: #8f958d;
+    --ring: #8cc9b4;
+    --shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.5);
     --heat-0: rgba(255, 255, 255, 0.06);
-    --heat-1: #064e3b;
-    --heat-2: #047857;
-    --heat-3: #10b981;
-    --heat-4: #34d399;
-    --heat-5: #a7f3d0;
+    --heat-1: #173d35;
+    --heat-2: #28594d;
+    --heat-3: #3f7d6b;
+    --heat-4: #6fae99;
+    --heat-5: #a9dac8;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0a0f0d;
-  --orb-1: rgba(16, 185, 129, 0.16);
-  --orb-2: rgba(245, 158, 11, 0.07);
-  --glass: rgba(18, 26, 23, 0.82);
-  --glass-strong: rgba(18, 26, 23, 0.96);
-  --glass-border: rgba(255, 255, 255, 0.09);
-  --glass-edge: rgba(255, 255, 255, 0.08);
-  --sheen: rgba(255, 255, 255, 0.06);
-  --fg: #ecf2ef;
-  --muted-fg: #9aa8a2;
-  --subtle: rgba(255, 255, 255, 0.06);
-  --line: rgba(255, 255, 255, 0.08);
-  --raised: rgba(255, 255, 255, 0.12);
-  --control: rgba(18, 26, 23, 0.82);
-  --control-hover: rgba(18, 26, 23, 0.96);
-  --control-border: rgba(255, 255, 255, 0.09);
-  --primary: #34d399;
-  --primary-hover: #6ee7b7;
-  --primary-fg: #022c22;
-  --primary-soft: rgba(52, 211, 153, 0.12);
-  --ink: #ecf2ef;
-  --ink-fg: #0a0f0d;
-  --ai: #fb923c;
+  --bg: #161d1a;
+  --bg-2: #1b231f;
+  --orb-1: rgba(40, 89, 77, 0.18);
+  --orb-2: rgba(198, 166, 107, 0.06);
+  --glass: #1f2824;
+  --glass-strong: #232d28;
+  --glass-border: rgba(248, 247, 243, 0.1);
+  --glass-edge: rgba(248, 247, 243, 0.08);
+  --sheen: rgba(255, 255, 255, 0);
+  --page-fg: #eceae3;
+  --page-muted: #aeb3ab;
+  --page-subtle: rgba(248, 247, 243, 0.06);
+  --page-line: rgba(248, 247, 243, 0.08);
+  --page-edge: rgba(248, 247, 243, 0.08);
+  --page-primary: #8cc9b4;
+  --page-primary-soft: rgba(140, 201, 180, 0.12);
+  --raised: rgba(255, 255, 255, 0.1);
+  --control: #25302a;
+  --control-hover: #2a3630;
+  --control-border: rgba(248, 247, 243, 0.1);
+  --primary-hover: #a9dac8;
+  --primary-fg: #161d1a;
+  --nav: #173d35;
+  --nav-active: #28594d;
+  --nav-fg: #eceae3;
+  --nav-muted: rgba(236, 234, 227, 0.62);
+  --nav-subtle: rgba(236, 234, 227, 0.07);
+  --nav-line: rgba(236, 234, 227, 0.09);
+  --accent: #d2b47a;
+  --accent-hover: #dfc490;
+  --accent-fg: #173d35;
+  --accent-soft: rgba(210, 180, 122, 0.14);
+  --ink: #eceae3;
+  --ink-fg: #161d1a;
+  --ai: #f59e0b;
   --crawl: #60a5fa;
-  --success: #34d399;
+  --success: #6fcf9f;
   --warning: #fbbf24;
   --danger: #f87171;
-  --neutral: #8b9893;
-  --ring: #34d399;
-  --shadow: 0 1px 0 inset rgba(255, 255, 255, 0.06), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
+  --neutral: #8f958d;
+  --ring: #8cc9b4;
+  --shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.5);
   --heat-0: rgba(255, 255, 255, 0.06);
-  --heat-1: #064e3b;
-  --heat-2: #047857;
-  --heat-3: #10b981;
-  --heat-4: #34d399;
-  --heat-5: #a7f3d0;
+  --heat-1: #173d35;
+  --heat-2: #28594d;
+  --heat-3: #3f7d6b;
+  --heat-4: #6fae99;
+  --heat-5: #a9dac8;
 }
 
 @theme inline {
@@ -133,6 +181,13 @@
   --color-primary-soft: var(--primary-soft);
   --color-line: var(--line);
   --color-raised: var(--raised);
+  --color-bg-2: var(--bg-2);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-nav: var(--nav);
+  --color-nav-active: var(--nav-active);
   --color-control: var(--control);
   --color-control-hover: var(--control-hover);
   --color-control-border: var(--control-border);
@@ -214,6 +269,31 @@ body {
   background: linear-gradient(140deg, var(--sheen), transparent 50%), var(--glass-strong);
   backdrop-filter: blur(12px) saturate(130%);
   -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+/* Emerald structure (sidebar, header, tab bar): light text and quiet light tints inside it. Glass
+   popovers that open from it (store list, notifications) go back to the page colours. */
+.on-nav {
+  background: var(--nav);
+  color: var(--nav-fg);
+  --fg: var(--nav-fg);
+  --muted-fg: var(--nav-muted);
+  --subtle: var(--nav-subtle);
+  --line: var(--nav-line);
+  --glass-edge: var(--nav-line);
+  --primary: var(--nav-fg);
+  --primary-soft: var(--nav-active);
+  --ring: var(--accent);
+}
+.on-nav :is(.glass, .glass-strong) {
+  color: var(--page-fg);
+  --fg: var(--page-fg);
+  --muted-fg: var(--page-muted);
+  --subtle: var(--page-subtle);
+  --line: var(--page-line);
+  --glass-edge: var(--page-edge);
+  --primary: var(--page-primary);
+  --primary-soft: var(--page-primary-soft);
+  --ring: var(--page-primary);
 }
 @supports not (backdrop-filter: blur(1px)) {
   .glass { background: var(--glass-strong); }
