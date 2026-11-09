@@ -50,11 +50,11 @@ function NavItem({ href, icon: Icon, label, active, badge, storeId }: { href: st
       onMouseEnter={() => warm(href)} onFocus={() => warm(href)} onTouchStart={() => warm(href)}
       className={cn(
         "group flex items-center gap-3 h-11 px-3 rounded-2xl text-[14px] font-bold transition-all",
-        active ? "bg-primary-soft text-primary" : "text-muted hover:text-fg hover:bg-subtle",
+        active ? "bg-nav-active text-fg shadow-[inset_-3px_0_0_var(--accent)]" : "text-muted hover:text-fg hover:bg-subtle",
       )}
       aria-current={active ? "page" : undefined}
     >
-      <Icon className={cn("size-[18px]", active ? "text-primary" : "group-hover:text-fg")} aria-hidden />
+      <Icon className={cn("size-[18px]", active ? "text-accent" : "group-hover:text-fg")} aria-hidden />
       <span className="flex-1">{label}</span>
       {badge}
     </Link>
@@ -67,7 +67,7 @@ function StoreSwitcher({ storeId }: { storeId: number }) {
   const current = stores?.find((s) => s.id === storeId);
   return (
     <div className="relative">
-      <button onClick={() => setOpen(!open)} className="w-full bg-subtle hover:bg-glass-strong transition rounded-2xl p-2.5 flex items-center gap-2.5 cursor-pointer text-start" aria-expanded={open}>
+      <button onClick={() => setOpen(!open)} className="w-full bg-subtle hover:bg-[color-mix(in_oklab,var(--fg)_12%,transparent)] transition rounded-2xl p-2.5 flex items-center gap-2.5 cursor-pointer text-start" aria-expanded={open}>
         <span className="size-9 rounded-xl bg-primary/15 text-primary grid place-items-center"><Store className="size-4" /></span>
         <span className="flex-1 min-w-0">
           <span className="block text-[11px] text-muted">فروشگاه</span>
@@ -140,7 +140,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
   return (
     <div className="min-h-dvh lg:ps-[292px]">
       {/* Desktop: floating glass sidebar */}
-      <aside className="glass fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
+      <aside className="on-nav fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
         <div className="px-1 pt-1"><Logo /></div>
         <StoreSwitcher storeId={storeId} />
         <nav className="flex flex-col gap-1 overflow-y-auto no-scrollbar" aria-label="منوی اصلی">
@@ -152,7 +152,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
       </aside>
 
       <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4 max-w-[1440px] mx-auto">
-        <div className="glass rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
+        <div className="on-nav shadow-[var(--shadow)] rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
           <Link href={base} className="lg:hidden ps-1 flex items-center" aria-label="داشبورد"><Logo className="text-[18px]" /></Link>
           <div className="flex-1" />
           <ActivityIndicator storeId={storeId} />
@@ -169,21 +169,21 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
       <main key={path} className="page-in px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px] mx-auto">{children}</main>
 
       {/* Mobile/tablet: bottom tab bar (4 primary destinations + more) */}
-      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-sheet px-1.5 pt-1.5 pb-safe" aria-label="منوی اصلی">
+      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 on-nav shadow-[var(--shadow)] rounded-sheet px-1.5 pt-1.5 pb-safe" aria-label="منوی اصلی">
         <div className="grid grid-cols-5">
           {items.filter((i) => i.tab).map((it) => {
             const active = isActive(it.href, it.exact);
             return (
               <Link key={it.href} href={it.href} aria-current={active ? "page" : undefined} onTouchStart={() => warm(it.href)} onMouseEnter={() => warm(it.href)}
                 className={cn("flex flex-col items-center justify-center gap-0.5 h-14 rounded-2xl text-[11px] font-bold transition", active ? "text-fg" : "text-muted")}>
-                <span className={cn("grid place-items-center h-8 w-12 rounded-full transition", active && "bg-primary-soft text-primary")}><it.icon className="size-[19px]" aria-hidden /></span>
+                <span className={cn("grid place-items-center h-8 w-12 rounded-full transition", active && "bg-nav-active text-accent")}><it.icon className="size-[19px]" aria-hidden /></span>
                 {it.short}
               </Link>
             );
           })}
           <button onClick={() => setMore(true)} aria-expanded={more}
             className={cn("flex flex-col items-center justify-center gap-0.5 h-14 rounded-2xl text-[11px] font-bold cursor-pointer", moreActive ? "text-fg" : "text-muted")}>
-            <span className={cn("grid place-items-center h-8 w-12 rounded-full", moreActive && "bg-primary-soft text-primary")}><Menu className="size-[19px]" aria-hidden /></span>
+            <span className={cn("grid place-items-center h-8 w-12 rounded-full", moreActive && "bg-nav-active text-accent")}><Menu className="size-[19px]" aria-hidden /></span>
             بیشتر
           </button>
         </div>

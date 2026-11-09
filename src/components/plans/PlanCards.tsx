@@ -49,7 +49,7 @@ export function PlanCards({ plans, onSelect, currentPlanId, loadingId }: {
                 <span className="flex-1 min-w-0">
                   <span className="flex items-center gap-2 font-bold text-[15px]">
                     {LABEL[p.duration_months] ?? `${faDigits(p.duration_months)} ماهه`}
-                    {d > 0 && <span className="text-[11px] font-bold rounded-full px-2 py-0.5 bg-primary text-primary-fg">{faDigits(d)}٪ تخفیف</span>}
+                    {d > 0 && <span className="text-[11px] font-bold rounded-full px-2 py-0.5 bg-accent text-accent-fg">{faDigits(d)}٪ تخفیف</span>}
                   </span>
                   <span className="block text-[12px] text-muted tnum">
                     {p.duration_months > 1 ? <>ماهی {toman(Math.round(p.price_toman / p.duration_months))}</> : "پرداخت ماهانه"}

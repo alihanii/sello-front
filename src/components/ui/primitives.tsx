@@ -45,7 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
   { variant = "primary", size = "md", loading, icon, className, children, disabled, ...p }, ref,
 ) {
   const v = {
-    primary: "bg-primary text-primary-fg shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_6px_18px_-8px_color-mix(in_oklab,var(--primary)_70%,transparent)] hover:bg-primary-hover",
+    primary: "bg-accent text-accent-fg shadow-[inset_0_1px_0_rgba(255,255,255,.25),0_6px_18px_-8px_color-mix(in_oklab,var(--accent)_75%,transparent)] hover:bg-accent-hover",
     secondary: "bg-control border border-control-border text-fg shadow-[var(--shadow)] hover:bg-control-hover",
     ghost: "text-fg hover:bg-subtle",
     danger: "bg-danger/12 text-danger hover:bg-danger/20",

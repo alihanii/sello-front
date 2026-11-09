@@ -41,14 +41,14 @@
 .ld-btn:active { transform: scale(0.97); }
 .ld-btn-sm { height: 2.5rem; padding-inline: 1rem; font-size: 13px; }
 .ld-btn-primary {
-  background: var(--primary);
-  color: var(--primary-fg);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 16px -8px color-mix(in oklab, var(--primary) 80%, transparent);
+  background: var(--accent);
+  color: var(--accent-fg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 16px -8px color-mix(in oklab, var(--accent) 80%, transparent);
 }
 .ld-btn-quiet { color: var(--fg); background: var(--subtle); }
 .ld-arrow { transition: transform 200ms var(--ld-ease); }
 @media (hover: hover) and (pointer: fine) {
-  .ld-btn-primary:hover { background: var(--primary-hover); }
+  .ld-btn-primary:hover { background: var(--accent-hover); }
   .ld-btn-quiet:hover { background: color-mix(in oklab, var(--fg) 9%, transparent); }
   .ld-btn:hover .ld-arrow { transform: translateX(-3px); }
 }
