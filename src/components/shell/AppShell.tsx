@@ -126,7 +126,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم" },
     { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
-    { href: `${base}/chat`, icon: MessageCircle, label: "دستیار چت", short: "چت", tab: true },
+    { href: `${base}/chat`, icon: MessageCircle, label: "AI چت", short: "AI چت", tab: true },
   ];
   const secondary = [
     { href: `${base}/settings`, icon: Settings, label: "تنظیمات فروشگاه" },
