@@ -5,11 +5,12 @@ import {
   addDays, addMonths, endOfMonth, endOfYear, format as jf, isSameDay, isSameMonth, startOfMonth, startOfWeek, startOfYear,
 } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
-import { AlertTriangle, ChevronLeft, ChevronRight, CircleOff, Clock } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, CircleOff, Clock, MessageCircle, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import { faDigits, faNum } from "@/lib/format";
+import { faDigits, faNum, toman } from "@/lib/format";
+import { ORDER_STATUS } from "@/lib/chat";
 import { useStoreId } from "@/lib/hooks";
 import { OP_TYPES } from "@/lib/meta";
 import { StatusChip } from "@/components/ui/status";
@@ -87,7 +88,7 @@ export default function CalendarPage() {
   const stats = (d: Date) => data?.days?.[iso(d)] ?? {};
   const flags = (d: Date): string[] => data?.flags?.[iso(d)] ?? [];
   const monthTotals = useMemo(() => {
-    const t = { crawl_item: 0, product_created: 0, publish_ok: 0, publish_failed: 0 };
+    const t = { crawl_item: 0, product_created: 0, publish_ok: 0, publish_failed: 0, orders: 0, chats_answered: 0 };
     cells.filter((d) => isSameMonth(d, cursor)).forEach((d) => { const s = stats(d); for (const k in t) (t as any)[k] += s[k] ?? 0; });
     return t;
   }, [data, cells]); // eslint-disable-line
@@ -97,7 +98,7 @@ export default function CalendarPage() {
 
   return (
     <>
-      <PageHeader title="تقویم" subtitle="هر روز چقدر کرال شد، چه دیتایی آمد، چه منتشر شد و کجا خطا بود." />
+      <PageHeader title="تقویم" subtitle="هر روز چقدر کرال شد، چه منتشر شد، دستیار چند چت را جواب داد و چند سفارش گرفت." />
       <Card className="p-3 mb-4 flex flex-wrap items-center gap-2">
         <Tabs value={view} onChange={setView} items={[{ value: "month", label: "ماه" }, { value: "year", label: "سال" }, { value: "day", label: "روز" }]} />
         <div className="flex items-center gap-1">
@@ -109,7 +110,7 @@ export default function CalendarPage() {
         <div className="flex-1" />
         {view === "month" && (
           <Select className="w-auto" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="نوع رویداد">
-            <option value="all">همهٔ رویدادها</option><option value="crawl">فقط کرال و دیتا</option><option value="publish">فقط انتشار</option><option value="errors">فقط خطاها</option>
+            <option value="all">همهٔ رویدادها</option><option value="crawl">فقط کرال و دیتا</option><option value="publish">فقط انتشار</option><option value="sales">فقط چت و سفارش</option><option value="errors">فقط خطاها</option>
           </Select>
         )}
       </Card>
@@ -117,8 +118,9 @@ export default function CalendarPage() {
       {view === "month" && !data && <CalendarMonthSkeleton />}
       {view === "month" && data && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            {[["دیتای کرال‌شده", monthTotals.crawl_item, "crawl"], ["محصول جدید", monthTotals.product_created, "ai"],
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
+            {[["سفارش گرفته‌شده", monthTotals.orders, "success"], ["چت پاسخ‌داده‌شده", monthTotals.chats_answered, "ai"],
+              ["دیتای کرال‌شده", monthTotals.crawl_item, "crawl"], ["محصول جدید", monthTotals.product_created, "ai"],
               ["انتشار موفق", monthTotals.publish_ok, "success"], ["انتشار ناموفق", monthTotals.publish_failed, "danger"]].map(([l, v, t]) => (
               <Card key={l as string} className="p-4"><div className="text-[12px] text-muted">{l} این ماه</div>
                 <div className={cn("text-[22px] font-black tnum", t === "danger" && (v as number) > 0 && "text-danger")}>{faNum(v as number)}</div></Card>
@@ -130,23 +132,27 @@ export default function CalendarPage() {
               {cells.map((d) => {
                 const s = stats(d), f = flags(d), inMonth = isSameMonth(d, cursor), isToday = isSameDay(d, today);
                 const future = d > today;
-                const show = (k: string) => filter === "all" || (filter === "crawl" && k === "crawl") || (filter === "publish" && k === "publish") || (filter === "errors" && k === "err");
+                const show = (k: string) => filter === "all" || (filter === "crawl" && k === "crawl") || (filter === "publish" && k === "publish") || (filter === "sales" && k === "sales") || (filter === "errors" && k === "err");
                 return (
                   <button key={iso(d)} onClick={() => setSelected(d)}
-                    className={cn("min-w-0 overflow-hidden text-start rounded-xl sm:rounded-2xl p-1.5 sm:p-2 min-h-[58px] md:min-h-[112px] transition cursor-pointer border border-transparent hover:border-primary/40 flex flex-col gap-1",
+                    className={cn("min-w-0 overflow-hidden text-start rounded-xl sm:rounded-2xl p-1.5 sm:p-2 min-h-[58px] md:min-h-[124px] transition cursor-pointer border border-transparent hover:border-primary/40 flex flex-col gap-1",
                       inMonth ? "bg-subtle/70" : "opacity-40", isToday && "ring-2 ring-primary")}
-                    aria-label={`${jfa(d, "d MMMM")}: ${faNum(s.crawl_item ?? 0)} دیتا، ${faNum(s.publish_ok ?? 0)} انتشار`}>
+                    aria-label={`${jfa(d, "d MMMM")}: ${faNum(s.orders ?? 0)} سفارش، ${faNum(s.chats_answered ?? 0)} چت پاسخ‌داده‌شده، ${faNum(s.crawl_item ?? 0)} دیتا، ${faNum(s.publish_ok ?? 0)} انتشار`}>
                     <div className="flex items-center justify-between">
                       <span className={cn("text-[13px] font-bold tnum", isToday && "text-primary")}>{jfa(d, "d")}</span>
                       {f.includes("no_crawl") && show("err") && <CircleOff className="size-3.5 text-warning" aria-label="کرال انجام نشد" />}
                       {f.includes("errors") && show("err") && <AlertTriangle className="size-3.5 text-danger" aria-label="خطا" />}
                     </div>
                     <div className="md:hidden flex flex-wrap gap-0.5 mt-auto" aria-hidden>
+                      {show("sales") && s.orders ? <span className="size-1.5 rounded-full bg-success" /> : null}
+                      {show("sales") && s.chats_answered ? <span className="size-1.5 rounded-full bg-ai" /> : null}
                       {show("crawl") && s.crawl_item ? <span className="size-1.5 rounded-full bg-crawl" /> : null}
                       {show("publish") && s.publish_ok ? <span className="size-1.5 rounded-full bg-primary" /> : null}
                       {s.publish_failed && (show("publish") || show("err")) ? <span className="size-1.5 rounded-full bg-danger" /> : null}
                     </div>
                     <div className="hidden md:flex flex-col gap-1">
+                    {show("sales") && s.orders ? <span className="text-[11px] rounded-md px-1.5 py-0.5 bg-success/12 text-success tnum truncate">{faNum(s.orders)} سفارش</span> : null}
+                    {show("sales") && s.chats_answered ? <span className="text-[11px] rounded-md px-1.5 py-0.5 bg-ai/12 text-ai tnum truncate">{faNum(s.chats_answered)} چت پاسخ‌داده</span> : null}
                     {show("crawl") && (s.crawl_run || s.crawl_item) ? (
                       <span className="text-[11px] rounded-md px-1.5 py-0.5 bg-crawl/12 text-crawl tnum truncate">{faNum(s.crawl_item ?? 0)} دیتا{f.includes("no_data") ? " (خالی)" : ""}</span>
                     ) : null}
@@ -160,6 +166,8 @@ export default function CalendarPage() {
               })}
             </div>
             <div className="flex flex-wrap gap-3 text-[12px] text-muted mt-3 px-1">
+              <span className="flex items-center gap-1"><span className="size-2.5 rounded bg-success" />سفارش گرفته‌شده</span>
+              <span className="flex items-center gap-1"><span className="size-2.5 rounded bg-ai" />چت پاسخ‌داده‌شده</span>
               <span className="flex items-center gap-1"><span className="size-2.5 rounded bg-crawl" />دیتای کرال</span>
               <span className="hidden md:flex items-center gap-1"><span className="size-2.5 rounded bg-neutral/40" />محصول جدید</span>
               <span className="flex items-center gap-1"><span className="size-2.5 rounded bg-primary" />انتشار موفق</span>
@@ -232,9 +240,43 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2">
-        {[["اجرای کرال", s.crawl_run], ["دیتای ورودی", s.crawl_item], ["محصول جدید", s.product_created], ["انتشار موفق", s.publish_ok], ["انتشار ناموفق", s.publish_failed], ["کرال ناموفق", s.crawl_failed]]
+        {[["سفارش گرفته‌شده", s.orders], ["چت پاسخ‌داده‌شده", s.chats_answered], ["اجرای کرال", s.crawl_run], ["دیتای ورودی", s.crawl_item], ["محصول جدید", s.product_created], ["انتشار موفق", s.publish_ok], ["انتشار ناموفق", s.publish_failed], ["کرال ناموفق", s.crawl_failed]]
           .map(([l, v]) => <div key={l} className="rounded-xl bg-subtle p-3"><div className="text-[12px] text-muted">{l}</div><div className="text-[18px] font-black tnum">{faNum(v ?? 0)}</div></div>)}
       </div>
+      {s.orders_toman > 0 && <p className="text-[13px] text-muted -mt-2">جمع سفارش‌های این روز: <b className="text-fg tnum">{toman(s.orders_toman)}</b></p>}
+      {data.orders?.length > 0 && (
+        <div>
+          <div className="font-bold text-[14px] mb-2 flex items-center gap-1.5"><ShoppingBag className="size-4 text-success" />سفارش‌های گرفته‌شده در چت</div>
+          <ul className="space-y-1">
+            {data.orders.map((o: any) => (
+              <li key={o.id}>
+                <Link href={`/app/s/${sid}/chat?tab=orders&o=${o.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
+                  <span className="tnum text-muted w-11">{faDigits(jf(new Date(o.created_at.endsWith("Z") || o.created_at.includes("+") ? o.created_at : o.created_at + "Z"), "HH:mm"))}</span>
+                  <span className="flex-1 min-w-0 truncate">{o.customer_name || `سفارش #${faNum(o.id)}`}</span>
+                  <span className="tnum text-muted shrink-0">{toman(o.total_toman)}</span>
+                  <Chip tone={ORDER_STATUS[o.status]?.tone}>{ORDER_STATUS[o.status]?.label ?? o.status}</Chip>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {data.chats?.length > 0 && (
+        <div>
+          <div className="font-bold text-[14px] mb-2 flex items-center gap-1.5"><MessageCircle className="size-4 text-ai" />چت‌هایی که دستیار جواب داد</div>
+          <ul className="space-y-1">
+            {data.chats.map((c: any) => (
+              <li key={c.id}>
+                <Link href={`/app/s/${sid}/chat?tab=conversations&c=${c.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
+                  <span className="tnum text-muted w-11">{faDigits(jf(new Date(c.last_at.endsWith("Z") || c.last_at.includes("+") ? c.last_at : c.last_at + "Z"), "HH:mm"))}</span>
+                  <span className="flex-1 min-w-0 truncate">{c.customer_name || `گفتگو #${faNum(c.id)}`}</span>
+                  <span className="tnum text-muted shrink-0">{faNum(c.ai_replies)} پاسخ</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <Button variant="secondary" size="sm" className="w-full" onClick={onTimeline}>نمایش تایم‌لاین ساعتی این روز</Button>
       <div>
         <div className="font-bold text-[14px] mb-2">عملیات‌های این روز</div>

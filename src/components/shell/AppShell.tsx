@@ -121,10 +121,10 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: base, icon: LayoutDashboard, label: "داشبورد", short: "خانه", exact: true, tab: true },
     { href: `${base}/products`, icon: Package, label: "محصولات", short: "محصولات", tab: true },
     { href: `${base}/activity`, icon: Activity, label: "فعالیت‌ها و لاگ", short: "فعالیت", tab: true },
-    { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم", short: "تقویم", tab: true },
+    { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم" },
     { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
-    { href: `${base}/chat`, icon: MessageCircle, label: "دستیار چت" },
+    { href: `${base}/chat`, icon: MessageCircle, label: "دستیار چت", short: "چت", tab: true },
   ];
   const secondary = [
     { href: `${base}/settings`, icon: Settings, label: "تنظیمات فروشگاه" },
