@@ -1,10 +1,10 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Download, FileSpreadsheet, Grid2X2, ImageOff, List, Pencil, Plus, Search, Send, Sparkles } from "lucide-react";
+import { Archive, Download, FileSpreadsheet, Grid2X2, ImageOff, List, MoreHorizontal, Pencil, Plus, Radar, Search, Send, SlidersHorizontal, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { API_URL, api, getToken, mediaUrl } from "@/lib/api";
 import { ago, faDigits, faNum, toman } from "@/lib/format";
@@ -35,6 +35,9 @@ export default function Products() {
   const [editOpen, setEditOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = [source, stock, chan, status, category].filter(Boolean).length;
+  const clearFilters = () => { setQ(""); setSource(""); setStock(""); setChan(""); setStatus(""); setCategory(""); setPage(1); };
   const { data: channels = [] } = useChannels(sid);
   const { data: categories = [] } = useQuery(storeQueries.categories(sid));
 
@@ -87,49 +90,87 @@ export default function Products() {
     <>
       <PageHeader title="محصولات" subtitle={data ? `${faNum(data.total)} محصول` : <InlineSkeleton />}
         actions={<>
-          <Button variant="ghost" size="sm" icon={<Download className="size-4" />} onClick={exportCsv}>خروجی CSV</Button>
-          <Button variant="secondary" size="sm" icon={<FileSpreadsheet className="size-4" />} onClick={() => setImportOpen(true)}>ورود از اکسل</Button>
-          <Link href={`/app/s/${sid}/crawl`}><Button variant="secondary">کرال</Button></Link>
-          <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت با AI</Button></Link>
-          <Link href={`/app/s/${sid}/products/new?mode=manual`}><Button icon={<Plus className="size-4" />}>افزودن دستی</Button></Link>
+          <MoreMenu items={[
+            { label: "کرال از کانال", icon: <Radar className="size-4" />, href: `/app/s/${sid}/crawl` },
+            { label: "ورود از اکسل", icon: <FileSpreadsheet className="size-4" />, onClick: () => setImportOpen(true) },
+            { label: "خروجی CSV", icon: <Download className="size-4" />, onClick: exportCsv },
+          ]} />
+          <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" className="w-full" icon={<Sparkles className="size-4" />}>ساخت با AI</Button></Link>
+          <Link href={`/app/s/${sid}/products/new?mode=manual`} className="max-sm:order-first"><Button className="w-full" icon={<Plus className="size-4" />}>افزودن محصول</Button></Link>
         </>} />
 
-      <Card className="p-3 mb-4 flex flex-wrap gap-2 items-center">
-        <div className="relative flex-1 min-w-52">
-          <Search className="size-4 absolute top-3.5 start-3 text-muted" />
-          <Input placeholder="جستجو در عنوان، شناسه، توضیح…" className="ps-9" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
+      <Card className="p-3 mb-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-0">
+            <Search className="size-4 absolute top-1/2 -translate-y-1/2 start-3.5 text-muted pointer-events-none" />
+            <Input placeholder="جستجو در عنوان، کد، توضیح…" className="ps-10" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
+          </div>
+          {/* Phones fold the filters away behind one button; wider screens always show them. */}
+          <Button variant="secondary" className="md:hidden relative shrink-0 px-3.5" aria-expanded={filtersOpen} aria-label="فیلترها"
+            icon={<SlidersHorizontal className="size-4" />} onClick={() => setFiltersOpen(!filtersOpen)}>
+            {activeFilters > 0 && <span className="min-w-5 h-5 px-1 rounded-full bg-primary text-primary-fg text-[11px] grid place-items-center tnum">{faNum(activeFilters)}</span>}
+          </Button>
+          <div className="hidden md:block shrink-0">
+            <Tabs value={view} onChange={setView} items={[
+              { value: "table", label: <List className="size-4" aria-label="جدول" /> },
+              { value: "grid", label: <Grid2X2 className="size-4" aria-label="گرید" /> },
+            ]} />
+          </div>
         </div>
-        <Select className="w-auto" value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} aria-label="منبع">
-          <option value="">همهٔ منابع</option><option value="manual">دستی</option><option value="crawl">کرال</option><option value="ai">AI</option>
-        </Select>
-        <Select className="w-auto" value={chan} onChange={(e) => { setChan(e.target.value); setPage(1); }} aria-label="کانال">
-          <option value="">همهٔ کانال‌ها</option>
-          {channels.map((c: any) => <option key={`in${c.id}`} value={`in:${c.id}`}>منتشرشده در {c.display_name}</option>)}
-          {channels.map((c: any) => <option key={`n${c.id}`} value={`not:${c.id}`}>منتشرنشده در {c.display_name}</option>)}
-        </Select>
-        <Select className="w-auto" value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }} aria-label="دسته‌بندی">
-          <option value="">همهٔ دسته‌ها</option>
-          <option value="-">بدون دسته</option>
-          {categories.map((c) => <option key={c.name} value={c.name}>{c.name} ({faNum(c.count)})</option>)}
-        </Select>
-        <Select className="w-auto" value={stock} onChange={(e) => { setStock(e.target.value); setPage(1); }} aria-label="موجودی">
-          <option value="">همهٔ موجودی‌ها</option><option value="low">کم‌موجودی</option><option value="out">تمام‌شده</option>
-        </Select>
-        <Select className="w-auto" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} aria-label="وضعیت">
-          <option value="">فعال</option><option value="draft">پیش‌نویس</option><option value="archived">آرشیو</option>
-        </Select>
-        {view === "grid" && items.length > 0 && (
-          <label className="flex items-center gap-2 h-11 px-3 rounded-full bg-subtle text-[13px] font-semibold cursor-pointer">
+        <div className={cn("grid grid-cols-2 md:grid-cols-5 gap-2", !filtersOpen && "max-md:hidden")}>
+          <Select className={filterCls(status)} value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} aria-label="وضعیت">
+            <option value="">محصولات فعال</option><option value="draft">پیش‌نویس‌ها</option><option value="archived">آرشیو</option>
+          </Select>
+          <Select className={filterCls(category)} value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }} aria-label="دسته‌بندی">
+            <option value="">همهٔ دسته‌ها</option>
+            <option value="-">بدون دسته</option>
+            {categories.map((c) => <option key={c.name} value={c.name}>{c.name} ({faNum(c.count)})</option>)}
+          </Select>
+          <Select className={filterCls(stock)} value={stock} onChange={(e) => { setStock(e.target.value); setPage(1); }} aria-label="موجودی">
+            <option value="">همهٔ موجودی‌ها</option><option value="low">کم‌موجودی</option><option value="out">تمام‌شده</option>
+          </Select>
+          <Select className={filterCls(source)} value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} aria-label="منبع">
+            <option value="">همهٔ منابع</option><option value="manual">دستی</option><option value="crawl">کرال</option><option value="ai">AI</option>
+          </Select>
+          <Select className={filterCls(chan)} value={chan} onChange={(e) => { setChan(e.target.value); setPage(1); }} aria-label="کانال">
+            <option value="">همهٔ کانال‌ها</option>
+            {channels.map((c: any) => <option key={`in${c.id}`} value={`in:${c.id}`}>منتشرشده در {c.display_name}</option>)}
+            {channels.map((c: any) => <option key={`n${c.id}`} value={`not:${c.id}`}>منتشرنشده در {c.display_name}</option>)}
+          </Select>
+        </div>
+        {(activeFilters > 0 || q) && (
+          <div className="flex items-center justify-between gap-2 text-[13px] -mb-1">
+            <span className="text-muted">{data ? `${faNum(data.total)} نتیجه` : ""}</span>
+            <button type="button" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline cursor-pointer" onClick={clearFilters}>
+              <X className="size-3.5" />پاک کردن فیلترها
+            </button>
+          </div>
+        )}
+      </Card>
+
+      {view === "grid" && items.length > 0 && (
+        <div className="flex items-center justify-between gap-2 mb-3 px-1">
+          <label className="inline-flex items-center gap-2 text-[13px] font-semibold cursor-pointer">
             <input type="checkbox" className="size-4 accent-[var(--primary)]" checked={allSel}
               onChange={(e) => { setAllMatching(false); setSelected(e.target.checked ? items.map((p) => p.id) : []); }} />
             انتخاب همه
           </label>
-        )}
-        <Tabs value={view} onChange={setView} items={[
-          { value: "table", label: <List className="size-4" aria-label="جدول" /> },
-          { value: "grid", label: <Grid2X2 className="size-4" aria-label="گرید" /> },
-        ]} />
-      </Card>
+          <div className="md:hidden">
+            <Tabs value={view} onChange={setView} items={[
+              { value: "table", label: <List className="size-4" aria-label="جدول" /> },
+              { value: "grid", label: <Grid2X2 className="size-4" aria-label="گرید" /> },
+            ]} />
+          </div>
+        </div>
+      )}
+      {view === "table" && items.length > 0 && (
+        <div className="md:hidden flex justify-end mb-3">
+          <Tabs value={view} onChange={setView} items={[
+            { value: "table", label: <List className="size-4" aria-label="جدول" /> },
+            { value: "grid", label: <Grid2X2 className="size-4" aria-label="گرید" /> },
+          ]} />
+        </div>
+      )}
 
       {/* While a filter change is loading, the previous rows stay (dimmed) instead of collapsing to a skeleton. */}
       <div className={cn("transition-opacity", isPlaceholderData && "opacity-60 pointer-events-none")} aria-busy={isPlaceholderData}>
@@ -193,7 +234,7 @@ export default function Products() {
               </label>
               <Link href={`/app/s/${sid}/products/${p.id}`} className="block h-full">
                 <Card className={cn("overflow-hidden hover:-translate-y-0.5 transition h-full p-1.5", selected.includes(p.id) && "ring-2 ring-primary/50")}>
-                  <div className="aspect-square bg-subtle rounded-[10px] overflow-hidden">
+                  <div className="aspect-square bg-subtle rounded-card overflow-hidden">
                     {p.images[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" loading="lazy" />
                       : <div className="size-full grid place-items-center text-muted"><ImageOff className="size-6" /></div>}
                   </div>
@@ -221,7 +262,7 @@ export default function Products() {
 
       {selCount > 0 && (
         <div className="fixed bottom-24 lg:bottom-5 inset-x-0 z-40 flex justify-center px-3">
-          <Card strong className="flex flex-wrap items-center justify-center gap-2 p-2 ps-4 rounded-[12px]">
+          <Card strong className="flex flex-wrap items-center justify-center gap-2 p-2 ps-4">
             <span className="text-[14px] font-bold tnum">{faNum(selCount)} مورد</span>
             {data && !allMatching && allSel && data.total > items.length && (
               <Button size="sm" variant="ghost" onClick={() => setAllMatching(true)}>انتخاب همهٔ {faNum(data.total)} محصول</Button>
@@ -268,5 +309,40 @@ function PriceCell({ price, onSave }: { price: number; onSave: (price: number) =
         onBlur={commit} />
       <span className="text-[12px] text-muted">تومان</span>
     </span>
+  );
+}
+
+/** A filter that is narrowing the list gets a tinted border, so it's clear at a glance what is on. */
+const filterCls = (v: string) => cn("min-w-0", v && "!border-primary/50 !bg-primary/6 font-semibold");
+
+type MenuItem = { label: string; icon: React.ReactNode; href?: string; onClick?: () => void };
+
+/** The less-used header actions (crawl, Excel import, CSV export) behind one button. */
+function MoreMenu({ items }: { items: MenuItem[] }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", onDown, true);
+    window.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("pointerdown", onDown, true); window.removeEventListener("keydown", onKey); };
+  }, [open]);
+  const row = "flex w-full items-center gap-2.5 h-10 px-3 rounded-xl text-[14px] sm:text-[13px] font-semibold hover:bg-subtle cursor-pointer [&>svg]:text-muted";
+  return (
+    <div ref={ref} className="relative !flex-none order-last sm:order-none">
+      <Button variant="secondary" className="px-3" aria-label="کارهای بیشتر" aria-haspopup="menu" aria-expanded={open}
+        icon={<MoreHorizontal className="size-5" />} onClick={() => setOpen(!open)} />
+      {open && (
+        <div role="menu" className="glass-strong absolute z-50 top-full mt-1.5 end-0 w-52 rounded-2xl p-1.5 shadow-[var(--shadow)] fade-in">
+          {items.map((it) => it.href ? (
+            <Link key={it.label} role="menuitem" href={it.href} className={row} onClick={() => setOpen(false)}>{it.icon}{it.label}</Link>
+          ) : (
+            <button key={it.label} role="menuitem" type="button" className={row} onClick={() => { setOpen(false); it.onClick?.(); }}>{it.icon}{it.label}</button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
