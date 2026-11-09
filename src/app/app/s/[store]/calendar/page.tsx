@@ -16,6 +16,7 @@ import { OP_TYPES } from "@/lib/meta";
 import { StatusChip } from "@/components/ui/status";
 import { Button, Card, Chip, PageHeader, Select, Sheet, Skeleton, Tabs, cn } from "@/components/ui/primitives";
 import { CalendarMonthSkeleton, SkLine } from "@/components/ui/skeletons";
+import { OrdersCalendar } from "@/components/dashboard/Finance";
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const jfa = (d: Date, f: string) => faDigits(jf(d, f, { locale: faIR }));
@@ -73,7 +74,7 @@ function DayTimeline({ sid, day }: { sid: number; day: Date }) {
 
 export default function CalendarPage() {
   const sid = useStoreId();
-  const [view, setView] = useState<"month" | "year" | "day">("month");
+  const [view, setView] = useState<"month" | "year" | "day" | "orders">("month");
   const [cursor, setCursor] = useState(new Date());
   const [selected, setSelected] = useState<Date | null>(null);
   const [filter, setFilter] = useState("all");
@@ -85,7 +86,10 @@ export default function CalendarPage() {
   const { data } = useCalendar(sid, range[0], range[1]);
   const today = new Date();
 
-  const stats = (d: Date) => data?.days?.[iso(d)] ?? {};
+  const stats = (d: Date) => {
+    const s = data?.days?.[iso(d)];
+    return s ? { ...s, orders: (s.orders ?? 0) + (s.own_orders ?? 0) } : {};
+  };
   const flags = (d: Date): string[] => data?.flags?.[iso(d)] ?? [];
   const monthTotals = useMemo(() => {
     const t = { crawl_item: 0, product_created: 0, publish_ok: 0, publish_failed: 0, orders: 0, chats_answered: 0 };
@@ -94,13 +98,13 @@ export default function CalendarPage() {
   }, [data, cells]); // eslint-disable-line
 
   const shift = (n: number) => setCursor(view === "year" ? addMonths(cursor, 12 * n) : view === "day" ? addDays(cursor, n) : addMonths(cursor, n));
-  const title = view === "year" ? jfa(cursor, "yyyy") : view === "day" ? jfa(cursor, "EEEE d MMMM yyyy") : jfa(cursor, "MMMM yyyy");
+  const title = view === "orders" ? jfa(cursor, "MMMM yyyy") : view === "year" ? jfa(cursor, "yyyy") : view === "day" ? jfa(cursor, "EEEE d MMMM yyyy") : jfa(cursor, "MMMM yyyy");
 
   return (
     <>
       <PageHeader title="تقویم" subtitle="هر روز چقدر کرال شد، چه منتشر شد، دستیار چند چت را جواب داد و چند سفارش گرفت." />
       <Card className="p-3 mb-4 flex flex-wrap items-center gap-2">
-        <Tabs value={view} onChange={setView} items={[{ value: "month", label: "ماه" }, { value: "year", label: "سال" }, { value: "day", label: "روز" }]} />
+        <Tabs value={view} onChange={setView} items={[{ value: "month", label: "ماه" }, { value: "year", label: "سال" }, { value: "day", label: "روز" }, { value: "orders", label: "سفارش‌ها" }]} />
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => shift(-1)} aria-label="قبلی"><ChevronRight className="size-4" /></Button>
           <span className="font-bold text-[15px] min-w-36 text-center">{title}</span>
@@ -208,6 +212,7 @@ export default function CalendarPage() {
       )}
 
       {view === "day" && <DayTimeline sid={sid} day={cursor} />}
+      {view === "orders" && <OrdersCalendar sid={sid} month={cursor} />}
 
       {data?.upcoming?.length > 0 && view !== "year" && (
         <Card className="p-5 mt-4">
@@ -246,13 +251,13 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
       {s.orders_toman > 0 && <p className="text-[13px] text-muted -mt-2">جمع سفارش‌های این روز: <b className="text-fg tnum">{toman(s.orders_toman)}</b></p>}
       {data.orders?.length > 0 && (
         <div>
-          <div className="font-bold text-[14px] mb-2 flex items-center gap-1.5"><ShoppingBag className="size-4 text-success" />سفارش‌های گرفته‌شده در چت</div>
+          <div className="font-bold text-[14px] mb-2 flex items-center gap-1.5"><ShoppingBag className="size-4 text-success" />سفارش‌های گرفته‌شده</div>
           <ul className="space-y-1">
             {data.orders.map((o: any) => (
-              <li key={o.id}>
-                <Link href={`/app/s/${sid}/chat?tab=orders&o=${o.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
+              <li key={`${o.kind}-${o.id}`}>
+                <Link href={`/app/s/${sid}/orders?o=${o.kind === "ai" || !o.kind ? "ai" : "inv"}-${o.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
                   <span className="tnum text-muted w-11">{faDigits(jf(new Date(o.created_at.endsWith("Z") || o.created_at.includes("+") ? o.created_at : o.created_at + "Z"), "HH:mm"))}</span>
-                  <span className="flex-1 min-w-0 truncate">{o.customer_name || `سفارش #${faNum(o.id)}`}</span>
+                  <span className="flex-1 min-w-0 truncate">{o.customer_name || (o.number ? `${o.kind === "invoice" ? "فاکتور" : "سفارش چت"} ${faDigits(o.number)}` : `سفارش #${faNum(o.id)}`)}</span>
                   <span className="tnum text-muted shrink-0">{toman(o.total_toman)}</span>
                   <Chip tone={ORDER_STATUS[o.status]?.tone}>{ORDER_STATUS[o.status]?.label ?? o.status}</Chip>
                 </Link>

@@ -39,6 +39,7 @@ export const storeQueries = {
   crawlSources: (sid: number) => queryOptions({ queryKey: ["crawl-sources", sid], queryFn: () => api<any[]>(`/stores/${sid}/crawl-sources`) }),
   platforms: () => queryOptions({ queryKey: ["platforms"], queryFn: () => api<any[]>("/platforms"), staleTime: 5 * 60_000 }),
   store: (sid: number) => queryOptions({ queryKey: ["store", sid], queryFn: () => api(`/stores/${sid}`) }),
+  orders: (sid: number) => queryOptions({ queryKey: ["orders", sid, new URLSearchParams({ source: "", status: "", q: "", limit: "30", offset: "0" }).toString()], queryFn: () => api(`/stores/${sid}/orders?source=&status=&q=&limit=30&offset=0`) }),
   chatOverview: (sid: number) => queryOptions({ queryKey: ["chat-overview", sid], queryFn: () => api(`/stores/${sid}/chat/overview`) }),
 };
 
@@ -57,6 +58,7 @@ export function prefetchStorePage(qc: QueryClient, sid: number, href: string) {
     "/crawl": () => [storeQueries.crawlSources(sid), storeQueries.channels(sid)],
     "/settings": () => [storeQueries.store(sid)],
     "/chat": () => [storeQueries.chatOverview(sid)],
+    "/orders": () => [storeQueries.orders(sid)],
   };
   // prefetchQuery skips anything still fresh, so hovering back and forth costs nothing.
   for (const q of jobs[rest]?.() ?? []) qc.prefetchQuery(q as any);

@@ -1,13 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, MessageCircle, Package, Plug, Send, Sparkles, TrendingUp, Wallet } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, CheckCircle2, FilePlus2, MessageCircle, Package, Plug, Send, ShoppingBag, Sparkles, Wallet } from "lucide-react";
 import Link from "next/link";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { faDigits, faNum, jDate, toman } from "@/lib/format";
+import { faDigits, faNum, toman } from "@/lib/format";
 import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
-import { Button, Card, CardHeader, PageHeader, Skeleton, Tabs } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, PageHeader, Skeleton } from "@/components/ui/primitives";
+import { FinanceChart } from "@/components/dashboard/Finance";
 import { DashboardSkeleton, SkLine } from "@/components/ui/skeletons";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 import { Banner } from "@/components/ui/Banner";
@@ -29,7 +28,7 @@ function Stat({ icon: Icon, label, value, unit, hint }: any) {
 
 const ATTENTION_LINK: Record<string, string> = {
   channel: "channels", operations: "activity?status=failed", stock: "products?stock=out", inbox: "crawl",
-  ai_orders: "chat?tab=orders", chat: "chat?tab=conversations",
+  ai_orders: "orders?status=payment_submitted", orders: "orders?status=payment_submitted", chat: "chat?tab=conversations",
 };
 
 function SetupAlert({ href, icon, title, text }: { href: string; icon: any; title: string; text: string }) {
@@ -97,17 +96,8 @@ function ChatCard({ sid, today }: { sid: number; today: { chats: number; replies
 export default function Dashboard() {
   const sid = useStoreId();
   const { data } = useQuery(storeQueries.dashboard(sid));
-  const [view, setView] = useState<"sales" | "publish">("sales");
   if (!data) return <DashboardSkeleton />;
   const k = data.kpis;
-  const series = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(Date.now() - (29 - i) * 864e5).toISOString().slice(0, 10);
-    const v = data.series[d] ?? {};
-    return {
-      day: jDate(d, "d MMM"), انتشار: v.publish_ok ?? 0, کرال: v.crawl_item ?? 0, خطا: (v.publish_failed ?? 0) + (v.crawl_failed ?? 0),
-      "گفتگوی پاسخ‌داده": v.chats_answered ?? 0, سفارش: v.orders ?? 0, درآمد: v.sale_toman ?? 0,
-    };
-  });
   const lim = data.usage.limits;
   const pct = Math.min(100, Math.round((100 * data.usage.publishes_month) / (lim.monthly_publishes || 1)));
   return (
@@ -115,6 +105,7 @@ export default function Dashboard() {
       <PageHeader title="داشبورد" subtitle="خلاصهٔ کار Sello برای این فروشگاه"
         actions={<>
           <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت محصول با AI</Button></Link>
+          <Link href={`/app/s/${sid}/orders?tab=new`}><Button variant="ai" icon={<FilePlus2 className="size-4" />}>فاکتورساز</Button></Link>
           <Link href={`/app/s/${sid}/products/new?mode=manual`}><Button variant="secondary">افزودن دستی</Button></Link>
         </>} />
       <AiSetupBanner />
@@ -124,44 +115,12 @@ export default function Dashboard() {
         <Stat icon={Send} label="منتشرشده" value={faNum(k.published_any)} hint={`امروز ${faNum(k.published_today)} انتشار`} />
         <Stat icon={Wallet} label="درآمد امروز" value={faNum(k.income_today ?? 0)} unit="تومان"
           hint={`کل فروش: ${toman(k.sales_total)}`} />
-        <Stat icon={TrendingUp} label="موفقیت انتشار" value={k.success_rate == null ? "—" : `${faDigits(k.success_rate)}٪`} hint="۳۰ روز اخیر" />
+        <Stat icon={ShoppingBag} label="سفارش امروز" value={faNum(k.all_orders_today ?? k.orders_today ?? 0)} hint="از AI، چت و فاکتورساز" />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mt-4">
-        <Card className="lg:col-span-2 flex flex-col">
-          <CardHeader title="۳۰ روز اخیر"
-            subtitle={<span className="flex flex-wrap gap-x-3">{view === "sales" ? <>
-              <span><i className="inline-block size-2 rounded-full bg-primary me-1" />گفتگوی پاسخ‌داده</span>
-              <span><i className="inline-block size-2 rounded-full bg-ai me-1" />سفارش</span>
-            </> : <>
-              <span><i className="inline-block size-2 rounded-full bg-primary me-1" />انتشار</span>
-              <span><i className="inline-block size-2 rounded-full bg-neutral/40 me-1" />کرال</span>
-              <span><i className="inline-block size-2 rounded-full bg-danger me-1" />خطا</span>
-            </>}</span>}
-            action={<Tabs value={view} onChange={setView} items={[{ value: "sales", label: "چت و سفارش" }, { value: "publish", label: "انتشار و کرال" }]} />} />
-          <div className="h-56 sm:h-72 lg:h-auto lg:flex-1 lg:min-h-72 px-2 pb-4" dir="ltr">
-            <ResponsiveContainer>
-              <BarChart data={series} margin={{ left: 0, right: 8, top: 8 }} barGap={2}>
-                <CartesianGrid stroke="var(--glass-edge)" vertical={false} />
-                <XAxis dataKey="day" tick={{ fill: "var(--muted-fg)", fontSize: 11 }} tickLine={false} axisLine={false} interval={6} reversed />
-                <YAxis orientation="right" width={28} tick={{ fill: "var(--muted-fg)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={faNum} />
-                <Tooltip cursor={{ fill: "var(--subtle)" }} contentStyle={{ background: "var(--glass-strong)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-card)", direction: "rtl", fontFamily: "inherit" }}
-                  formatter={(v: any) => faNum(v)}
-                  labelFormatter={(label: any, p: any) => {
-                    const income = p?.[0]?.payload?.درآمد;
-                    return view === "sales" && income ? `${label} · درآمد ${toman(income)}` : label;
-                  }} />
-                {view === "sales" ? <>
-                  <Bar dataKey="گفتگوی پاسخ‌داده" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="سفارش" fill="var(--ai)" radius={[4, 4, 0, 0]} />
-                </> : <>
-                  <Bar dataKey="کرال" fill="var(--neutral)" fillOpacity={0.35} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="انتشار" stackId="p" fill="var(--primary)" />
-                  <Bar dataKey="خطا" stackId="p" fill="var(--danger)" radius={[4, 4, 0, 0]} />
-                </>}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          <FinanceChart sid={sid} />
+        </div>
         <div className="flex flex-col gap-4">
           <Card>
             <CardHeader title="نیازمند توجه" />

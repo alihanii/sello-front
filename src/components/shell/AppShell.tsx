@@ -4,11 +4,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, MessageCircle, Moon, Package,
   Plug, Radar, Settings, Shield, Store, Sun,
+  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api, setToken } from "@/lib/api";
+import { api, mediaUrl, setToken } from "@/lib/api";
 import { faDigits, faNum } from "@/lib/format";
 import { prefetchStorePage, useMe, useOperationsStream, useStores } from "@/lib/hooks";
 import { Button, Sheet, cn } from "@/components/ui/primitives";
@@ -68,7 +69,8 @@ function StoreSwitcher({ storeId }: { storeId: number }) {
   return (
     <div className="relative">
       <button onClick={() => setOpen(!open)} className="w-full bg-subtle hover:bg-[color-mix(in_oklab,var(--fg)_12%,transparent)] transition rounded-2xl p-2.5 flex items-center gap-2.5 cursor-pointer text-start" aria-expanded={open}>
-        <span className="size-9 rounded-xl bg-primary/15 text-primary grid place-items-center"><Store className="size-4" /></span>
+        {current?.logo_url ? <img src={mediaUrl(current.logo_url)} alt="" className="size-9 rounded-xl object-cover" />
+          : <span className="size-9 rounded-xl bg-primary/15 text-primary grid place-items-center"><Store className="size-4" /></span>}
         <span className="flex-1 min-w-0">
           <span className="block text-[11px] text-muted">فروشگاه</span>
           <span className="block font-bold text-[14px] truncate">{current?.name ?? "…"}</span>
@@ -124,7 +126,8 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: `${base}/products`, icon: Package, label: "محصولات", short: "محصولات", tab: true },
     { href: `${base}/activity`, icon: Activity, label: "فعالیت‌ها و لاگ", short: "فعالیت"},
     { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم" },
-    { href: `${base}/channels`, icon: Plug, label: "کانال‌ها", tab: true , short: "کانال‌ها"},
+    { href: `${base}/orders`, icon: ShoppingBag, label: "سفارشات", tab: true, short: "سفارشات" },
+    { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
     { href: `${base}/chat`, icon: MessageCircle, label: "AI چت", short: "AI چت", tab: true },
   ];
