@@ -76,14 +76,16 @@ function StoreSwitcher({ storeId }: { storeId: number }) {
         <ChevronDown className="size-4 text-muted" />
       </button>
       {open && (
-        <div className="pop-in glass-strong absolute z-30 mt-2 w-full min-w-60 rounded-2xl p-1.5">
+        // In the phone menu sheet the list opens in place under the button (the sheet scrolls); a floating list would be
+        // clipped by the sheet's edge. In the desktop sidebar it floats over the nav.
+        <div className="pop-in glass-strong mt-2 w-full rounded-card p-1.5 lg:absolute lg:z-30 lg:min-w-60">
           {stores?.map((s) => (
             <Link key={s.id} href={`/app/s/${s.id}`} onClick={() => setOpen(false)}
-              className={cn("block px-3 py-2 rounded-lg text-[14px] hover:bg-subtle", s.id === storeId && "font-bold text-primary")}>
+              className={cn("block px-3 py-3 lg:py-2 rounded-control text-[15px] lg:text-[14px] hover:bg-subtle", s.id === storeId && "font-bold text-primary")}>
               {s.name}
             </Link>
           ))}
-          <Link href="/app/stores" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg text-[13px] text-muted hover:bg-subtle border-t border-edge mt-1">
+          <Link href="/app/stores" onClick={() => setOpen(false)} className="block px-3 py-3 lg:py-2 rounded-control text-[13px] text-muted hover:bg-subtle border-t border-edge mt-1">
             مدیریت فروشگاه‌ها و ساخت فروشگاه جدید
           </Link>
         </div>

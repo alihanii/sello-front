@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { isValidElement, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { ActionSheet, useIsPhone } from "./ActionSheet";
 import { fieldCls, widthCls } from "./styles";
 
 export type DropdownOption = { value: string; label: React.ReactNode; disabled?: boolean };
@@ -12,6 +13,8 @@ export type DropdownOption = { value: string; label: React.ReactNode; disabled?:
 /** Options at or above this count get a search box. */
 export const SEARCH_FROM = 8;
 const ROW = 40;
+/** Phones get taller, thumb-sized rows. */
+const ROW_PHONE = 48;
 const MAX_LIST = 320;
 
 /** Plain text of a label, for search and the native fallback select. */
@@ -46,6 +49,8 @@ type Props = {
 /**
  * The site's dropdown: same field look as inputs, opens a glass list, searchable from 8 options,
  * and the list is virtualized so hundreds of options (e.g. all models of a key) stay smooth.
+ * On phones the list opens as a bottom sheet instead of hanging under the field, where it ran off the screen
+ * or under the bottom nav.
  */
 export function Dropdown({ value, onChange, options, placeholder = "انتخاب کنید", className, disabled, required, name, id,
   dir, searchable, "aria-label": ariaLabel }: Props) {
@@ -58,6 +63,8 @@ export function Dropdown({ value, onChange, options, placeholder = "انتخاب
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(-1);
   const [pos, setPos] = useState<{ top: number; left: number; width: number; up: boolean; maxH: number } | null>(null);
+  const phone = useIsPhone();
+  const rowH = phone ? ROW_PHONE : ROW;
 
   const withSearch = searchable ?? options.length >= SEARCH_FROM;
   const selected = options.find((o) => o.value === value);
@@ -86,7 +93,7 @@ export function Dropdown({ value, onChange, options, placeholder = "انتخاب
 
   const openList = () => {
     if (disabled) return;
-    place();
+    if (!phone) place();
     setActive(Math.max(0, options.findIndex((o) => o.value === value)));
     setOpen(true);
   };
@@ -98,7 +105,8 @@ export function Dropdown({ value, onChange, options, placeholder = "انتخاب
   };
 
   useLayoutEffect(() => {
-    if (!open) return;
+    // The phone sheet closes from its own backdrop; listening here too would let the tap fall through to the page.
+    if (!open || phone) return;
     const onDown = (e: PointerEvent) => {
       const t = e.target as Node;
       if (!popRef.current?.contains(t) && !triggerRef.current?.contains(t)) close(false);
@@ -112,16 +120,18 @@ export function Dropdown({ value, onChange, options, placeholder = "انتخاب
       window.removeEventListener("resize", onMove);
       window.removeEventListener("scroll", onMove, true);
     };
-  }, [open, place, close]);
+  }, [open, phone, place, close]);
 
   useEffect(() => {
-    if (open && withSearch) searchRef.current?.focus({ preventScroll: true });
+    // On a phone, focusing the search box would throw up the keyboard over the list before the user asked to type.
+    if (open && withSearch && !phone) searchRef.current?.focus({ preventScroll: true });
     else if (open) listRef.current?.focus({ preventScroll: true });
-  }, [open, withSearch]);
+  }, [open, withSearch, phone]);
 
   useEffect(() => { setActive(shown.length ? 0 : -1); }, [query]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const virt = useVirtualizer({ count: shown.length, getScrollElement: () => listRef.current, estimateSize: () => ROW, overscan: 8 });
+  const virt = useVirtualizer({ count: shown.length, getScrollElement: () => listRef.current, estimateSize: () => rowH, overscan: 8 });
+  useEffect(() => { virt.measure(); }, [rowH]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (open && active >= 0) virt.scrollToIndex(active, { align: "auto" });
@@ -151,7 +161,52 @@ export function Dropdown({ value, onChange, options, placeholder = "انتخاب
     else if (e.key === "Tab") close(false);
   };
 
-  const listH = Math.min(shown.length * ROW, MAX_LIST, Math.max(ROW, (pos?.maxH ?? MAX_LIST) - (withSearch ? 56 : 0)));
+  const listH = phone
+    ? Math.min(shown.length * rowH, Math.max(rowH * 3, Math.round(window.innerHeight * 0.6) - (withSearch ? 56 : 0)))
+    : Math.min(shown.length * ROW, MAX_LIST, Math.max(ROW, (pos?.maxH ?? MAX_LIST) - (withSearch ? 56 : 0)));
+
+  const body = (
+    <>
+      {withSearch && (
+        <div className="relative mb-1.5">
+          <Search className="size-4 absolute top-1/2 -translate-y-1/2 start-3 text-muted pointer-events-none" aria-hidden />
+          <input ref={searchRef} dir="auto" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="جستجو…"
+            aria-label="جستجو در گزینه‌ها" aria-controls={listId}
+            className="w-full h-11 sm:h-10 rounded-control bg-subtle border border-transparent ps-9 pe-3 text-[16px] sm:text-[14px] outline-none focus:border-primary" />
+        </div>
+      )}
+      <div ref={listRef} id={listId} role="listbox" tabIndex={-1} className={clsx("overflow-y-auto outline-none overscroll-contain", phone && "min-h-0 shrink")} style={{ height: shown.length ? listH : undefined }}>
+        {shown.length === 0 ? (
+          <div className="px-3 py-3 text-[13px] text-muted text-center">چیزی پیدا نشد</div>
+        ) : (
+          <div className="relative w-full" style={{ height: virt.getTotalSize() }}>
+            {virt.getVirtualItems().map((row) => {
+              const o = shown[row.index];
+              const isSel = o.value === value;
+              return (
+                <div
+                  key={o.value + row.index}
+                  role="option"
+                  aria-selected={isSel}
+                  aria-disabled={o.disabled}
+                  title={textOf(o.label)}
+                  onPointerEnter={() => !o.disabled && setActive(row.index)}
+                  onClick={() => pick(o)}
+                  className={clsx("absolute inset-x-0 flex items-center gap-2 rounded-control px-3 text-[15px] sm:text-[13px]",
+                    o.disabled ? "text-muted/60 cursor-not-allowed" : "cursor-pointer",
+                    row.index === active && !o.disabled && "bg-subtle", isSel && "font-semibold text-primary")}
+                  style={{ top: row.start, height: rowH }}
+                >
+                  <span className="flex-1 min-w-0 truncate">{o.label}</span>
+                  {isSel && <Check className="size-4 shrink-0" aria-hidden />}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
 
   return (
     <>
@@ -182,52 +237,19 @@ export function Dropdown({ value, onChange, options, placeholder = "انتخاب
           {options.map((o) => <option key={o.value} value={o.value}>{textOf(o.label)}</option>)}
         </select>
       )}
-      {open && pos && createPortal(
+      {phone ? (
+        <ActionSheet ref={popRef} open={open} onClose={() => close()} title={ariaLabel ?? placeholder} dir={dir} onKeyDown={onKey}>
+          {body}
+        </ActionSheet>
+      ) : open && pos && createPortal(
         <div
           ref={popRef}
           onKeyDown={onKey}
           dir={dir}
-          className="glass-strong fixed z-[70] rounded-2xl p-1.5 shadow-[var(--shadow)] fade-in"
+          className="glass-strong fixed z-[70] rounded-card p-1.5 shadow-[var(--shadow)] fade-in"
           style={{ left: pos.left, width: pos.width, ...(pos.up ? { bottom: window.innerHeight - pos.top } : { top: pos.top }) }}
         >
-          {withSearch && (
-            <div className="relative mb-1.5">
-              <Search className="size-4 absolute top-1/2 -translate-y-1/2 start-3 text-muted pointer-events-none" aria-hidden />
-              <input ref={searchRef} dir="auto" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="جستجو…"
-                aria-label="جستجو در گزینه‌ها" aria-controls={listId}
-                className="w-full h-10 rounded-xl bg-subtle border border-transparent ps-9 pe-3 text-[14px] outline-none focus:border-primary" />
-            </div>
-          )}
-          <div ref={listRef} id={listId} role="listbox" tabIndex={-1} className="overflow-y-auto outline-none overscroll-contain" style={{ height: shown.length ? listH : undefined }}>
-            {shown.length === 0 ? (
-              <div className="px-3 py-3 text-[13px] text-muted text-center">چیزی پیدا نشد</div>
-            ) : (
-              <div className="relative w-full" style={{ height: virt.getTotalSize() }}>
-                {virt.getVirtualItems().map((row) => {
-                  const o = shown[row.index];
-                  const isSel = o.value === value;
-                  return (
-                    <div
-                      key={o.value + row.index}
-                      role="option"
-                      aria-selected={isSel}
-                      aria-disabled={o.disabled}
-                      title={textOf(o.label)}
-                      onPointerEnter={() => !o.disabled && setActive(row.index)}
-                      onClick={() => pick(o)}
-                      className={clsx("absolute inset-x-0 flex items-center gap-2 rounded-xl px-3 text-[14px] sm:text-[13px]",
-                        o.disabled ? "text-muted/60 cursor-not-allowed" : "cursor-pointer",
-                        row.index === active && !o.disabled && "bg-subtle", isSel && "font-semibold text-primary")}
-                      style={{ top: row.start, height: ROW }}
-                    >
-                      <span className="flex-1 min-w-0 truncate">{o.label}</span>
-                      {isSel && <Check className="size-4 shrink-0" aria-hidden />}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {body}
         </div>,
         document.body,
       )}
