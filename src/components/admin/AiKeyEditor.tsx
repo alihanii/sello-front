@@ -1,5 +1,6 @@
 "use client";
 
+import { Banner } from "@/components/ui/Banner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { KeyRound, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -93,13 +94,9 @@ export function AiSetupBanner() {
   if (!data || data.available) return null;
   const isAdmin = me?.role === "admin";
   return (
-    <div className="fade-in mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-ai/25 bg-ai/8 px-4 py-3">
-      <Sparkles className="size-5 text-ai shrink-0" aria-hidden />
-      <p className="flex-1 min-w-48 text-[13px] leading-6">
-        <b>هوش مصنوعی هنوز فعال نیست.</b>{" "}
-        {isAdmin ? "یک کلید AI اضافه کن تا ساخت محصول با AI و کرال هوشمند کار کنند." : "ادمین باید کلید AI را در پنل ادمین اضافه کند."}
-      </p>
-      <AddAiKeyButton variant="primary" size="sm" />
-    </div>
+    <Banner icon={Sparkles} className="mb-5" action={<AddAiKeyButton variant="primary" size="sm" />}>
+      <b>هوش مصنوعی هنوز فعال نیست.</b>{" "}
+      {isAdmin ? "یک کلید AI اضافه کن تا ساخت محصول با AI و کرال هوشمند کار کنند." : "ادمین باید کلید AI را در پنل ادمین اضافه کند."}
+    </Banner>
   );
 }

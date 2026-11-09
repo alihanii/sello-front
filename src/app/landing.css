@@ -10,9 +10,9 @@
   --ld-ease: cubic-bezier(0.23, 1, 0.32, 1);
   --raised-solid: #ffffff;
 }
-:root[data-theme="dark"] .ld { --raised-solid: #17201c; }
+:root[data-theme="dark"] .ld { --raised-solid: #1f2824; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .ld { --raised-solid: #17201c; }
+  :root:not([data-theme="light"]) .ld { --raised-solid: #1f2824; }
 }
 
 .ld-header {

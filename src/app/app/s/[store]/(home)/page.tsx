@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, ChevronLeft, MessageCircle, Package, Plug, Send, Sparkles, TrendingUp, Wallet } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MessageCircle, Package, Plug, Send, Sparkles, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -10,6 +10,7 @@ import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { Button, Card, CardHeader, PageHeader, Skeleton, Tabs } from "@/components/ui/primitives";
 import { DashboardSkeleton, SkLine } from "@/components/ui/skeletons";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
+import { Banner } from "@/components/ui/Banner";
 
 function Stat({ icon: Icon, label, value, unit, hint }: any) {
   return (
@@ -31,14 +32,8 @@ const ATTENTION_LINK: Record<string, string> = {
   ai_orders: "chat?tab=orders", chat: "chat?tab=conversations",
 };
 
-function SetupAlert({ href, icon: Icon, title, text }: { href: string; icon: any; title: string; text: string }) {
-  return (
-    <Link href={href} className="fade-in flex items-center gap-3 rounded-2xl border border-primary/25 bg-primary/8 px-4 py-3 hover:bg-primary/12 transition">
-      <Icon className="size-5 text-primary shrink-0" aria-hidden />
-      <p className="flex-1 min-w-0 text-[13px] leading-6"><b>{title}</b> <span className="text-muted">{text}</span></p>
-      <ChevronLeft className="size-5 text-primary shrink-0" aria-hidden />
-    </Link>
-  );
+function SetupAlert({ href, icon, title, text }: { href: string; icon: any; title: string; text: string }) {
+  return <Banner href={href} icon={icon}><b>{title}</b> <span className="text-muted">{text}</span></Banner>;
 }
 
 // Shown at the top of the dashboard until the store has a connected channel and a running AI chat.
