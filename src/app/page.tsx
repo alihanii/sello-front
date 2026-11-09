@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Clock, History, Layers, MessageSquareText, ShieldCheck, TrendingUp, UserRound } from "lucide-react";
+import { ArrowLeft, Check, Clock, Crown, History, Layers, MessageSquareText, ReceiptText, RefreshCw, Send, ShieldCheck, Sparkles, TicketPercent, TrendingUp, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/shell/Brand";
 import { PlatformIcon } from "@/components/ui/PlatformIcon";
@@ -163,66 +163,78 @@ function ProductThumb({ size = "size-14" }: { size?: string }) {
   );
 }
 
-/* ---------------- What Sello does: the seven ---------------- */
+/* ---------------- What Sello does: the steps ---------------- */
 
-const SEVEN: { title: string; text: string; visual: React.ReactNode }[] = [
+/* Titles are the product owner's wording and order (the eighth, invoices, was added after the first seven); keep them as they are. */
+const STEPS_ALL: { title: string; text: string; visual: React.ReactNode }[] = [
   {
-    title: "کل فروشگاهت توی یه پنل",
-    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا کنار هم: محصول، موجودی، انتشار، گفتگو و سفارش. چند تا فروشگاه هم داشته باشی، همه از همین‌جا.",
+    title: "مدیریت فروش چند کاناله از یک‌جا",
+    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا کنار هم توی یه پنل: محصول، انتشار، گفتگو و سفارش. یه بار می‌سازی و با یه کلیک همه‌جا منتشر می‌شه، هر کدوم با شکل خودش.",
     visual: <VisHub />,
   },
   {
-    title: "یه ادمین کامل که با AI با مشتری‌هات حرف می‌زنه",
-    text: "لحن، سؤال‌های پرتکرار، قوانین و جدول سایز رو یادش می‌دی؛ بعد ۲۴ ساعته و با صد نفر هم‌زمان همون‌جوری جواب می‌ده که خودت می‌دادی.",
-    visual: <VisTrain />,
+    title: "ادمین AI برای چت با مشتری‌ها و سفارش‌گیر",
+    text: "لحن، قوانین و جدول سایزت رو یاد می‌گیره و ۲۴ ساعته با صد نفر هم‌زمان حرف می‌زنه. رنگ و سایز و آدرس رو می‌پرسه، فیش رو می‌گیره و سفارش رو می‌ذاره جلوت که فقط تأیید کنی.",
+    visual: <VisChat />,
   },
   {
-    title: "برات سفارش می‌گیره",
-    text: "رنگ و سایز و آدرس رو می‌پرسه، جمع رو از قیمت واقعی حساب می‌کنه، فیش رو می‌گیره و می‌ذاره جلوت که فقط تأیید کنی.",
-    visual: <VisOrder />,
-  },
-  {
-    title: "محصول‌هات خودشون میان",
-    text: "پیج اینستاگرام، کانال تلگرام و بله یا پنل دیجی‌کالات رو بده؛ سلو پست‌ها رو کرال می‌کنه و با AI ازشون محصول کامل با قیمت و ویژگی درمیاره.",
-    visual: <VisCrawl />,
-  },
-  {
-    title: "ساخت عکس و محصول با AI",
-    text: "یه عکس با گوشی و یه خط توضیح کافیه. عکس تمیز با زمینهٔ سفید، عنوان، توضیحات، دسته و ویژگی‌ها رو سلو می‌سازه.",
-    visual: <VisMake />,
-  },
-  {
-    title: "مدیریت موجودی و انبارداری رو برات انجام می‌ده",
-    text: "انبارت یه جاست و موجودی هر محصول بین همهٔ کانال‌ها یکیه. با هر سفارش خودکار کم می‌شه، کم‌موجودها رو قبل از تموم شدن نشونت می‌ده و با اکسل یا ویرایش گروهی، موجودی ده‌ها محصول رو یه‌جا آپدیت می‌کنی.",
+    title: "انبارداری و سینک موجودی لحظه‌ای به صورت متمرکز",
+    text: "یه انبار برای همهٔ کانال‌ها. هر سفارشی از هر جا بیاد، موجودی همه‌جا همون لحظه کم می‌شه؛ کم‌موجودها رو قبل از تموم شدن نشونت می‌ده و موجودی ده‌ها محصول رو با اکسل یه‌جا آپدیت می‌کنی.",
     visual: <VisStock />,
   },
   {
-    title: "یه بار بساز، همه‌جا منتشر کن",
-    text: "با یه کلیک توی همهٔ کانال‌هات می‌ره، هر کدوم با شکل خودش. هر اتفاقی بیفته رو مرحله‌به‌مرحله و توی تقویم می‌بینی.",
-    visual: <VisPublish />,
+    title: "باشگاه مشتریان و فعال کردن پروموشن‌های تبلیغاتی",
+    text: "هر خریدار توی باشگاه مشتریانت می‌مونه. کد تخفیف، جشنوارهٔ فصلی یا پیشنهاد ویژه برای مشتری‌های وفادار رو با یه کلیک روشن کن تا دوباره ازت بخرن.",
+    visual: <VisClub />,
+  },
+  {
+    title: "مدیریت محصولات",
+    text: "محصول‌های پیج و کانال‌هات خودشون میان توی پنل. قیمت، رنگ و سایز، دسته‌بندی و وضعیت همه رو توی یه جدول مرتب می‌بینی و با ویرایش گروهی، ده‌ها محصول رو یه‌جا عوض می‌کنی.",
+    visual: <VisProducts />,
+  },
+  {
+    title: "گزارش مالی دقیق",
+    text: "فروش، سود و سفارش‌ها به تفکیک روز و کانال. می‌بینی کدوم محصول و کدوم کانال بیشتر برات می‌فروشه و پولت دقیقاً از کجا میاد.",
+    visual: <VisFinance />,
+  },
+  {
+    title: "ساخت محصول با AI",
+    text: "یه عکس با گوشی و یه خط توضیح کافیه. عکس تمیز با زمینهٔ سفید، عنوان، توضیحات، دسته و ویژگی‌ها رو سلو برات می‌سازه.",
+    visual: <VisMake />,
+  },
+  {
+    title: "فاکتورساز",
+    text: "برای هر مشتری یه فاکتور با محصول، تعداد، تخفیف و هزینهٔ ارسال بساز و لینکش رو براش بفرست. مشتری از همون لینک سفارشش رو ثبت می‌کنه و سفارش مستقیم میاد توی پنلت.",
+    visual: <VisInvoice />,
   },
 ];
 
 function What() {
   return (
     <section id="what" className="py-16 sm:py-24 scroll-mt-20" aria-labelledby="what-title">
-      <div className="max-w-2xl">
+      <div className="max-w-2xl md:mx-auto md:text-center">
         <h2 id="what-title" className="text-[30px] sm:text-[42px] font-black tracking-tight leading-[1.3] text-balance">
           سلو قرار نیست برات فروشگاه بسازه.<br className="hidden sm:block" />
           <span className="text-primary"> قراره فروشگاهت رو بچرخونه.</span>
         </h2>
-        <p className="text-muted text-[17px] mt-4 leading-[1.9]">از روزی که وصلش کنی، این هفت کار با سلوئه:</p>
+        <p className="text-muted text-[17px] mt-4 leading-[1.9]">از روزی که وصلش کنی، این هشت کار با سلوئه:</p>
       </div>
 
-      <ol className="mt-10 sm:mt-14 border-t border-line">
-        {SEVEN.map((it, i) => (
-          <li key={it.title} className="ld-reveal grid grid-cols-[2.75rem_1fr] sm:grid-cols-[4rem_1fr] md:grid-cols-[4rem_1fr_minmax(0,17rem)] gap-x-4 sm:gap-x-6 gap-y-5 py-8 sm:py-10 border-b border-line items-center">
-            <span className="ld-numeral self-start text-[36px] sm:text-[52px] font-black" aria-hidden>{(i + 1).toLocaleString("fa-IR")}</span>
-            <div>
-              <h3 className="text-[20px] sm:text-[24px] font-black tracking-tight leading-[1.5]">{it.title}</h3>
-              <p className="text-[16px] sm:text-[17px] leading-[1.9] mt-1.5 text-muted max-w-[36rem]">{it.text}</p>
+      {/* A timeline: the rail fills as you scroll, each step's node lights up and its illustration plays as it arrives. */}
+      <ol className="ld-steps relative mt-12 sm:mt-16">
+        <span className="ld-rail" aria-hidden><span className="ld-rail-fill" /></span>
+        {STEPS_ALL.map((it, i) => (
+          <li key={it.title} className={`ld-step ${i % 2 ? "ld-step-alt" : ""}`}>
+            <span className="ld-node tnum" aria-hidden>{(i + 1).toLocaleString("fa-IR")}</span>
+            <div className="ld-step-text">
+              <span className="ld-kicker">قدم {(i + 1).toLocaleString("fa-IR")} از {STEPS_ALL.length.toLocaleString("fa-IR")}</span>
+              <h3 className="text-[21px] sm:text-[26px] font-black tracking-tight leading-[1.5] text-balance mt-1">{it.title}</h3>
+              <p className="text-[16px] sm:text-[17px] leading-[1.95] mt-2 text-muted max-w-[34rem]">{it.text}</p>
             </div>
-            <div className="col-start-2 md:col-start-3" aria-hidden>{it.visual}</div>
+            <div className="ld-step-vis" aria-hidden>
+              <span className="ld-ghost tnum">{(i + 1).toLocaleString("fa-IR")}</span>
+              {it.visual}
+            </div>
           </li>
         ))}
       </ol>
@@ -230,84 +242,164 @@ function What() {
   );
 }
 
-/* Small static illustrations: plain HTML, no images, revealed with their row. */
+/* Small illustrations: plain HTML, no images. Each part carries --i, its place in the step's entrance. */
 function VisBox({ children }: { children: React.ReactNode }) {
-  return <div className="ld-vis rounded-[12px] p-3.5 text-[12.5px]">{children}</div>;
+  return <div className="ld-vis relative rounded-[14px] p-4 text-[12.5px] w-full max-w-[22rem]">{children}</div>;
 }
+const I = (i: number) => ({ "--i": i }) as React.CSSProperties;
+
 function VisHub() {
   return (
     <VisBox>
-      <div className="flex items-center justify-between gap-2">
-        <div className="grid grid-cols-2 gap-1.5">
-          {["telegram", "bale", "instagram", "digikala"].map((p) => <PlatformIcon key={p} platform={p} size={26} />)}
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-2">
+          {["telegram", "bale", "instagram", "digikala"].map((p, i) => (
+            <div key={p} className="ld-in flex items-center gap-2" style={I(i)}>
+              <PlatformIcon platform={p} size={28} />
+              <span className="ld-wire" style={I(i)}><span className="ld-spark" /></span>
+            </div>
+          ))}
         </div>
-        <div className="flex-1 border-t border-dashed border-[var(--primary)] opacity-60" />
-        <Logo compact className="[&_svg]:size-10" />
+        <div className="ld-pop flex-1 grid place-items-center" style={I(4)}>
+          <span className="ld-hub"><Logo compact className="[&_svg]:size-12" /></span>
+          <span className="mt-2 font-bold">یه پنل</span>
+        </div>
       </div>
     </VisBox>
   );
 }
-function VisCrawl() {
+
+function VisChat() {
   return (
     <VisBox>
-      <div className="flex items-center gap-2">
-        <PlatformIcon platform="instagram" size={24} />
-        <span className="font-bold">۲۵ پست آخر پیج</span>
-        <ArrowLeft className="size-3.5 text-primary" />
-        <span className="rounded-[5px] bg-ai/8 text-ai px-1.5 py-px font-bold text-[11px]">AI</span>
-      </div>
-      <div className="mt-2.5 space-y-1">
-        <Row a="هودی قلب هندسی · H12" b="۸۵۰٬۰۰۰" />
-        <Row a="تیشرت مینیمال · T07" b="۴۲۰٬۰۰۰" />
-        <Row a="۱۰ محصول دیگه…" b="" muted />
+      <div className="flex flex-col gap-2 leading-[1.8]">
+        <div className="ld-pop ld-msg-in self-start rounded-[10px] rounded-se-[3px] bg-subtle px-3 py-1.5" style={I(0)}>هودی مشکی L دارین؟</div>
+        <div className="ld-pop ld-msg-out self-end rounded-[10px] rounded-ss-[3px] bg-primary-soft px-3 py-1.5 max-w-[85%]" style={I(1)}>
+          سلام! آره، ۴ تا مونده 🌱 <span className="tnum font-bold">۸۵۰٬۰۰۰</span> تومن
+        </div>
+        <div className="ld-pop ld-msg-in self-start rounded-[10px] rounded-se-[3px] bg-subtle px-3 py-1.5" style={I(2)}>یکی بفرست</div>
+        <div className="ld-pop ld-msg-out self-end flex items-center gap-1.5 rounded-[10px] rounded-ss-[3px] bg-primary-soft px-3 py-1.5" style={I(3)}>
+          <span className="ld-typing" aria-hidden><i /><i /><i /></span>
+        </div>
+        <div className="ld-pop flex items-center justify-between mt-1 pt-2.5 border-t border-line" style={I(4)}>
+          <span className="font-bold flex items-center gap-1.5"><Check className="size-3.5 text-primary" strokeWidth={3} />سفارش و فیش رسید</span>
+          <span className="rounded-[6px] bg-accent text-accent-fg px-2.5 py-0.5 font-extrabold">تأیید</span>
+        </div>
       </div>
     </VisBox>
   );
 }
+
 function VisStock() {
   return (
     <VisBox>
-      {[["هودی H12", "۴", ""], ["سویشرت S03", "۲", "low"], ["ماگ M21", "۳۰", ""]].map(([n, q, low]) => (
-        <div key={n} className="flex items-center justify-between py-0.5">
-          <span className="font-semibold">{n}</span>
-          <span className={`tnum font-extrabold ${low ? "text-warning" : ""}`}>{q} عدد{low ? " · کم‌موجود" : ""}</span>
+      <div className="flex items-center justify-between">
+        <span className="font-extrabold text-[13px]">هودی H12 · L</span>
+        <span className="ld-pop flex items-center gap-1 text-primary font-bold" style={I(3)}><RefreshCw className="ld-spin size-3.5" />سینک شد</span>
+      </div>
+      <div className="ld-in mt-2 rounded-[8px] bg-subtle px-2.5 py-1.5 flex items-center gap-2" style={I(0)}>
+        <PlatformIcon platform="bale" size={18} />
+        <span className="font-semibold">یه سفارش از بله اومد</span>
+      </div>
+      <div className="mt-2.5 grid grid-cols-3 gap-2">
+        {["telegram", "instagram", "digikala"].map((p, i) => (
+          <div key={p} className="ld-in rounded-[8px] border border-line py-2 grid justify-items-center gap-1" style={I(i + 1)}>
+            <PlatformIcon platform={p} size={20} />
+            <span className="ld-flip tnum font-black text-[15px]" style={I(i + 2)}><b>۵</b><b>۴</b></span>
+          </div>
+        ))}
+      </div>
+      <div className="ld-pop mt-2.5 flex items-center justify-between" style={I(5)}>
+        <span className="font-semibold">سویشرت S03</span>
+        <span className="tnum font-extrabold text-warning">۲ عدد، کم‌موجود</span>
+      </div>
+    </VisBox>
+  );
+}
+
+function VisClub() {
+  return (
+    <VisBox>
+      <div className="flex items-center justify-between">
+        <span className="font-extrabold text-[13px] flex items-center gap-1.5"><Crown className="size-4 text-accent" />باشگاه مشتریان</span>
+        <span className="tnum text-muted font-semibold">۱٬۲۴۸ عضو</span>
+      </div>
+      <div className="mt-2.5 space-y-1.5">
+        {[["مریم ر.", "طلایی", "۹ خرید"], ["علی ک.", "نقره‌ای", "۴ خرید"]].map(([n, t, c], i) => (
+          <div key={n} className="ld-in flex items-center gap-2" style={I(i)}>
+            <span className="size-7 rounded-full bg-primary-soft text-primary grid place-items-center font-black">{n[0]}</span>
+            <span className="flex-1 font-semibold">{n}</span>
+            <span className={`rounded-[5px] px-1.5 py-px font-bold text-[11px] ${t === "طلایی" ? "bg-accent-soft text-[var(--accent-hover)]" : "bg-subtle"}`}>{t}</span>
+            <span className="tnum text-muted">{c}</span>
+          </div>
+        ))}
+      </div>
+      <div className="ld-pop ld-ticket mt-3 rounded-[10px] px-3 py-2.5 flex items-center gap-3" style={I(2)}>
+        <TicketPercent className="size-5 shrink-0" />
+        <div className="flex-1 min-w-0 leading-[1.6]">
+          <div className="font-extrabold">جشنوارهٔ یلدا، ۲۰٪ تخفیف</div>
+          <div className="opacity-80 font-mono text-[11px]" dir="ltr">YALDA20</div>
+        </div>
+        <span className="ld-switch" style={I(3)}><i /></span>
+      </div>
+    </VisBox>
+  );
+}
+
+function VisProducts() {
+  return (
+    <VisBox>
+      <div className="flex items-center justify-between pb-2 border-b border-line">
+        <span className="font-extrabold text-[13px]">محصولات</span>
+        <span className="ld-pop rounded-[6px] bg-primary text-primary-fg px-2 py-0.5 font-bold text-[11px]" style={I(4)}>ویرایش گروهی ۳ محصول</span>
+      </div>
+      {[["هودی قلب هندسی", "۸۵۰٬۰۰۰", "#111827", "فعال"], ["تیشرت مینیمال", "۴۲۰٬۰۰۰", "#e7e5de", "فعال"], ["ماگ سرامیکی", "۱۹۰٬۰۰۰", "#c6a66b", "پیش‌نویس"]].map(([n, p, c, s], i) => (
+        <div key={n} className="ld-in flex items-center gap-2.5 py-1.5" style={I(i + 1)}>
+          <span className="ld-check" style={I(i + 4)}><Check className="size-2.5" strokeWidth={4} /></span>
+          <span className="size-8 rounded-[6px] shrink-0 border border-line" style={{ background: c }} />
+          <span className="flex-1 min-w-0 truncate font-semibold">{n}</span>
+          <span className="tnum font-bold">{p}</span>
+          <span className={`size-1.5 rounded-full ${s === "فعال" ? "bg-success" : "bg-neutral"}`} title={s} />
         </div>
       ))}
     </VisBox>
   );
 }
-function VisTrain() {
+
+const BARS = [38, 52, 44, 66, 58, 82, 100];
+function VisFinance() {
   return (
     <VisBox>
-      <div className="flex flex-wrap gap-1.5">
-        {["لحن: خودمونی", "جدول سایز", "ارسال رایگان بالای ۲ میلیون", "ساعت کاری ۱۰ تا ۲۲", "تخفیف نده"].map((c) => (
-          <span key={c} className="rounded-[6px] bg-subtle px-2 py-1 font-semibold">{c}</span>
+      <div className="flex items-start justify-between">
+        <div className="leading-[1.5]">
+          <div className="text-muted font-semibold">فروش این هفته</div>
+          <div className="tnum font-black text-[19px]">۴۸٬۶۰۰٬۰۰۰ <span className="text-[12px] font-bold text-muted">تومان</span></div>
+        </div>
+        <span className="ld-pop rounded-[6px] bg-primary-soft text-primary px-2 py-0.5 font-extrabold tnum flex items-center gap-1" style={I(7)}><TrendingUp className="size-3.5" />۱۸٪+</span>
+      </div>
+      <div className="mt-3 h-24 flex items-end gap-1.5">
+        {BARS.map((h, i) => (
+          <span key={i} className={`ld-bar flex-1 rounded-t-[4px] ${i === BARS.length - 1 ? "bg-accent" : "bg-[var(--heat-3)]"}`} style={{ ...I(i), height: `${h}%` }} />
+        ))}
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-1.5 text-[11px]">
+        {[["سود", "۱۴٫۲م"], ["سفارش", "۵۷"], ["میانگین", "۸۵۲ه"]].map(([k, v], i) => (
+          <div key={k} className="ld-in rounded-[6px] bg-subtle px-2 py-1 flex justify-between" style={I(i + 3)}><span className="text-muted">{k}</span><span className="tnum font-extrabold">{v}</span></div>
         ))}
       </div>
     </VisBox>
   );
 }
-function VisOrder() {
-  return (
-    <VisBox>
-      <Row a="هودی H12 · L" b="۸۵۰٬۰۰۰" />
-      <Row a="ارسال" b="۹۰٬۰۰۰" muted />
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-line">
-        <span className="font-bold">فیش دریافت شد</span>
-        <span className="rounded-[6px] bg-primary text-primary-fg px-2 py-0.5 font-bold">تأیید</span>
-      </div>
-    </VisBox>
-  );
-}
+
 function VisMake() {
   return (
     <VisBox>
       <div className="flex items-center gap-2.5">
-        <div className="size-12 shrink-0 rounded-[8px] bg-[repeating-linear-gradient(45deg,#d6d3d1_0_6px,#e7e5e4_6px_12px)] grid place-items-center">
-          <span className="size-6 rounded-[4px] bg-[#1f2937] rotate-12" />
+        <div className="ld-in size-14 shrink-0 rounded-[8px] bg-[repeating-linear-gradient(45deg,#d6d3d1_0_6px,#e7e5e4_6px_12px)] grid place-items-center" style={I(0)}>
+          <span className="size-7 rounded-[4px] bg-[#1f2937] rotate-12" />
         </div>
-        <ArrowLeft className="size-4 text-primary shrink-0" />
-        <div className="flex items-center gap-2 min-w-0">
+        <span className="ld-pop shrink-0 rounded-[6px] bg-accent-soft text-[var(--accent-hover)] px-1.5 py-0.5 font-black text-[11px] flex items-center gap-1" style={I(1)}><Sparkles className="size-3" />AI</span>
+        <div className="ld-pop ld-shine relative overflow-hidden flex items-center gap-2 min-w-0 flex-1 rounded-[8px] border border-line p-1.5" style={I(2)}>
           <ProductThumb size="size-12" />
           <div className="min-w-0 leading-[1.6]">
             <div className="font-bold truncate">هودی قلب هندسی</div>
@@ -315,19 +407,33 @@ function VisMake() {
           </div>
         </div>
       </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {["عنوان", "توضیحات", "دسته: پوشاک", "ویژگی‌ها", "زمینهٔ سفید"].map((c, i) => (
+          <span key={c} className="ld-pop rounded-[6px] bg-subtle px-2 py-1 font-semibold flex items-center gap-1" style={I(i + 3)}><Check className="size-3 text-primary" strokeWidth={3} />{c}</span>
+        ))}
+      </div>
     </VisBox>
   );
 }
-function VisPublish() {
+
+function VisInvoice() {
   return (
     <VisBox>
-      {[["telegram", "تلگرام"], ["bale", "بله"], ["digikala", "دیجی‌کالا"]].map(([p, l]) => (
-        <div key={p} className="flex items-center gap-2 py-0.5">
-          <PlatformIcon platform={p} size={20} />
-          <span className="flex-1 font-semibold">{l}</span>
-          <span className="text-primary font-bold flex items-center gap-1"><Check className="size-3.5" strokeWidth={3} />منتشر شد</span>
-        </div>
-      ))}
+      <div className="flex items-center justify-between pb-2 border-b border-dashed border-line">
+        <span className="font-extrabold text-[13px] flex items-center gap-1.5"><ReceiptText className="size-4 text-primary" />فاکتور برای مریم ر.</span>
+        <span className="tnum text-muted font-semibold">شمارهٔ ۱۰۴۲</span>
+      </div>
+      <div className="mt-2 space-y-1">
+        <div className="ld-in" style={I(0)}><Row a="۱ هودی H12، سایز L" b="۸۵۰٬۰۰۰" /></div>
+        <div className="ld-in" style={I(1)}><Row a="۲ تیشرت T07، سایز M" b="۸۴۰٬۰۰۰" /></div>
+        <div className="ld-in" style={I(2)}><Row a="تخفیف باشگاه" b="−۱۶۹٬۰۰۰" muted /></div>
+        <div className="ld-in" style={I(3)}><Row a="ارسال" b="۹۰٬۰۰۰" muted /></div>
+      </div>
+      <div className="ld-pop flex justify-between font-extrabold border-t border-line mt-2 pt-2 text-[13px]" style={I(4)}><span>جمع</span><span className="tnum">۱٬۶۱۱٬۰۰۰ تومان</span></div>
+      <div className="ld-pop mt-3 flex flex-wrap items-center gap-2 whitespace-nowrap" style={I(5)}>
+        <span className="flex-1 rounded-[6px] bg-accent text-accent-fg px-2.5 py-1.5 font-extrabold flex items-center justify-center gap-1.5"><Send className="size-3.5" />ارسال لینک فاکتور</span>
+        <span className="ld-pop rounded-[6px] bg-primary-soft text-primary px-2 py-1.5 font-bold flex items-center gap-1" style={I(7)}><Check className="size-3.5" strokeWidth={3} />سفارش ثبت شد</span>
+      </div>
     </VisBox>
   );
 }

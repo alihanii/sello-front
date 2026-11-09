@@ -21,7 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       {children}
-      <Toaster dir="rtl" position="top-center" richColors toastOptions={{ style: { fontFamily: "var(--font-vazir)" } }} />
+      <Toaster dir="rtl" position="top-center" richColors toastOptions={{ style: { fontFamily: "var(--font-sans)" } }} />
     </QueryClientProvider>
   );
 }
