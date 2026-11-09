@@ -35,7 +35,7 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
             if (v && i < 5) refs.current[i + 1]?.focus();
           }}
           onKeyDown={(e) => { if (e.key === "Backspace" && !d.trim() && i > 0) refs.current[i - 1]?.focus(); }}
-          className="size-12 text-center text-[20px] font-bold rounded-xl bg-control border border-control-border outline-none focus:bg-glass-strong focus:border-primary focus:ring-4 focus:ring-primary/15 tnum"
+          className="size-12 text-center text-[20px] font-bold rounded-xl bg-control border border-fg/20 hover:border-fg/30 outline-none transition focus:bg-glass-strong focus:border-primary focus:ring-4 focus:ring-primary/15 tnum"
         />
       ))}
     </div>
@@ -84,44 +84,56 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-dvh grid place-items-center p-4">
-      <div className="absolute top-4 start-4"><ThemeToggle /></div>
-      <main className="w-full max-w-[380px] py-8">
-        <Link href="/" className="inline-block mb-8"><Logo /></Link>
-        {step === "phone" ? (
-          <form onSubmit={(e) => { e.preventDefault(); send(); }} className="space-y-5">
-            <div>
-              <h1 className="text-[22px] font-extrabold">ورود یا ثبت‌نام</h1>
-              <p className="text-muted text-[14px]">شمارهٔ موبایلت را وارد کن تا کد تأیید بفرستیم.</p>
-            </div>
-            <Field label="شمارهٔ موبایل">
-              <Input dir="ltr" inputMode="tel" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum" />
-            </Field>
-            <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>دریافت کد تأیید</Button>
-          </form>
-        ) : (
-          <form onSubmit={(e) => { e.preventDefault(); verify(); }} className="space-y-5">
-            <button type="button" onClick={() => setStep("phone")} className="text-[13px] text-muted flex items-center gap-1 cursor-pointer hover:text-fg">
-              <ArrowRight className="size-4" /> تغییر شماره
-            </button>
-            <div>
-              <h1 className="text-[22px] font-extrabold">کد تأیید</h1>
-              <p className="text-muted text-[14px]">کد ۶ رقمی ارسال‌شده به <span className="tnum font-semibold">{faDigits(phone)}</span> را وارد کن.</p>
-            </div>
-            <OtpInput value={code} onChange={setCode} />
-            {devCode && (
-              <p className="text-[12px] text-center text-ai bg-ai/10 rounded-lg py-1.5">حالت توسعه: کد <b className="tnum">{faDigits(devCode)}</b></p>
-            )}
-            <Button type="submit" className="w-full" size="lg" loading={loading} disabled={code.length !== 6}>ورود</Button>
-            <div className="text-center text-[13px] text-muted">
-              {timer > 0 ? <span className="tnum">ارسال دوباره تا {faDigits(timer)} ثانیه</span> : (
-                <button type="button" className="text-primary font-semibold cursor-pointer" onClick={send}>ارسال دوبارهٔ کد</button>
-              )}
-            </div>
-          </form>
-        )}
-        <p className="mt-8 flex items-center gap-1.5 text-[12px] text-muted"><ShieldCheck className="size-4" /> اطلاعات حساب‌های متصل رمزنگاری‌شده نگهداری می‌شود.</p>
+    <div className="relative min-h-dvh flex flex-col overflow-hidden">
+      {/* Soft brand glow behind the form; decoration only. */}
+      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 size-[560px] rounded-full bg-primary/10 blur-3xl" />
+      <header className="relative flex items-center justify-between h-16 px-4 sm:px-6">
+        <Link href="/" aria-label="صفحهٔ اصلی Sello"><Logo /></Link>
+        <ThemeToggle />
+      </header>
+      <main className="relative flex-1 grid place-items-center px-4 py-10">
+        <div className="w-full max-w-[360px]">
+          {step === "phone" ? (
+            <form onSubmit={(e) => { e.preventDefault(); send(); }}>
+              <div className="text-center mb-8">
+                <h1 className="text-[26px] font-black tracking-tight">ورود یا ثبت‌نام</h1>
+                <p className="text-muted text-[15px] mt-2">شمارهٔ موبایلت را وارد کن تا کد تأیید بفرستیم.</p>
+              </div>
+              <div className="space-y-4">
+                <Field label="شمارهٔ موبایل">
+                  <Input dir="ltr" inputMode="tel" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
+                </Field>
+                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>دریافت کد تأیید</Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={(e) => { e.preventDefault(); verify(); }}>
+              <div className="text-center mb-8">
+                <h1 className="text-[26px] font-black tracking-tight">کد تأیید</h1>
+                <p className="text-muted text-[15px] mt-2">کد ۶ رقمی به <span className="tnum font-semibold text-fg" dir="ltr">{faDigits(phone)}</span> ارسال شد.</p>
+                <button type="button" onClick={() => { setStep("phone"); setCode(""); }} className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-primary cursor-pointer hover:underline">
+                  <ArrowRight className="size-4" /> تغییر شماره
+                </button>
+              </div>
+              <div className="space-y-4">
+                <OtpInput value={code} onChange={setCode} />
+                {devCode && (
+                  <p className="text-[12px] text-center text-ai bg-ai/10 rounded-lg py-1.5">حالت توسعه: کد <b className="tnum">{faDigits(devCode)}</b></p>
+                )}
+                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={code.length !== 6}>ورود</Button>
+              </div>
+              <div className="text-center text-[13px] text-muted mt-6">
+                {timer > 0 ? <span className="tnum">ارسال دوباره تا {faDigits(timer)} ثانیه</span> : (
+                  <button type="button" className="text-primary font-semibold cursor-pointer hover:underline" onClick={send}>ارسال دوبارهٔ کد</button>
+                )}
+              </div>
+            </form>
+          )}
+        </div>
       </main>
+      <footer className="relative px-4 pb-6 flex items-center justify-center gap-1.5 text-[12px] text-muted text-center">
+        <ShieldCheck className="size-4 shrink-0" aria-hidden /> اطلاعات حساب‌های متصل رمزنگاری‌شده نگهداری می‌شود.
+      </footer>
     </div>
   );
 }
