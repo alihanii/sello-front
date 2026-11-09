@@ -121,10 +121,10 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: base, icon: LayoutDashboard, label: "داشبورد", short: "خانه", exact: true, tab: true },
     { href: `${base}/products`, icon: Package, label: "محصولات", short: "محصولات", tab: true },
     { href: `${base}/activity`, icon: Activity, label: "فعالیت‌ها و لاگ", short: "فعالیت", tab: true },
-    { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم", short: "تقویم", tab: true },
+    { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم" },
     { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
-    { href: `${base}/chat`, icon: MessageCircle, label: "دستیار چت" },
+    { href: `${base}/chat`, icon: MessageCircle, label: "دستیار چت", short: "چت", tab: true },
   ];
   const secondary = [
     { href: `${base}/settings`, icon: Settings, label: "تنظیمات فروشگاه" },
@@ -167,7 +167,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
       <main key={path} className="page-in px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px]">{children}</main>
 
       {/* Mobile/tablet: bottom tab bar (4 primary destinations + more) */}
-      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-[14px] px-1.5 pt-1.5 pb-safe" aria-label="منوی اصلی">
+      <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-sheet px-1.5 pt-1.5 pb-safe" aria-label="منوی اصلی">
         <div className="grid grid-cols-5">
           {items.filter((i) => i.tab).map((it) => {
             const active = isActive(it.href, it.exact);
