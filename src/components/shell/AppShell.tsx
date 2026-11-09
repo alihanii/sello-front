@@ -149,7 +149,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
         </div>
       </aside>
 
-      <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4">
+      <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4 max-w-[1440px] mx-auto">
         <div className="glass rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
           <Link href={base} className="lg:hidden ps-1 flex items-center" aria-label="داشبورد"><Logo className="text-[18px]" /></Link>
           <div className="flex-1" />
@@ -164,7 +164,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
         </div>
       </header>
 
-      <main key={path} className="page-in px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px]">{children}</main>
+      <main key={path} className="page-in px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px] mx-auto">{children}</main>
 
       {/* Mobile/tablet: bottom tab bar (4 primary destinations + more) */}
       <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-sheet px-1.5 pt-1.5 pb-safe" aria-label="منوی اصلی">

@@ -20,7 +20,7 @@ export default function NewProduct() {
   return (
     <>
       <PageHeader title="افزودن محصول" />
-      <div className="mb-4 max-w-2xl">
+      <div className="mb-4">
         <Tabs value={mode} onChange={setMode} items={[
           { value: "ai", label: <span className="flex items-center gap-1.5"><Sparkles className="size-4" />ساخت با AI</span> },
           { value: "manual", label: <span className="flex items-center gap-1.5"><PenLine className="size-4" />دستی</span> },
@@ -78,11 +78,11 @@ function AiCreate({ storeId }: { storeId: number }) {
   }, [op, router, storeId]);
 
   if (status && !status.available) {
-    return <Card className="p-6 max-w-2xl text-[14px] text-muted">ساخت با AI فعلاً در دسترس نیست. از حالت «دستی» استفاده کن.</Card>;
+    return <Card className="p-6 text-[14px] text-muted">ساخت با AI فعلاً در دسترس نیست. از حالت «دستی» استفاده کن.</Card>;
   }
   if (opId) {
     return (
-      <Card className="p-10 max-w-2xl text-center">
+      <Card className="p-10 text-center">
         <Spinner className="size-8 mx-auto text-ai" />
         <div className="font-semibold mt-4">در حال ساخت محصول…</div>
         <div className="text-[13px] text-muted mt-1">چند ثانیه صبر کن؛ بعدش می‌توانی همه‌چیز را ویرایش کنی.</div>
@@ -90,7 +90,7 @@ function AiCreate({ storeId }: { storeId: number }) {
     );
   }
   return (
-    <div className="space-y-4 max-w-2xl">
+    <div className="space-y-4">
       <Card className="p-5 space-y-4">
         <Field label="عکس محصول" tip={`عکس خام کافی است؛ با گوشی هم بگیری خوب است. ${IMAGE_ORDER_HINT}`}>
           <ImageUploader storeId={storeId} value={images} onChange={setImages} max={5} hint={false} />

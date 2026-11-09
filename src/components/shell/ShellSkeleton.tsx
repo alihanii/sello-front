@@ -29,7 +29,7 @@ export function ShellSkeleton({ admin, children }: { admin?: boolean; children?:
         </div>
       </aside>
 
-      <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4">
+      <header className="sticky top-0 z-30 px-3 sm:px-4 lg:px-8 pt-3 lg:pt-4 max-w-[1440px] mx-auto">
         <div className="glass rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
           <span className="lg:hidden ps-1 flex items-center gap-2"><Skeleton className="size-9 rounded-control" /><Skeleton className="h-4 w-14 rounded-md" /></span>
           <div className="flex-1" />
@@ -38,7 +38,7 @@ export function ShellSkeleton({ admin, children }: { admin?: boolean; children?:
         </div>
       </header>
 
-      <main className="px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px]">{children}</main>
+      <main className="px-3 sm:px-4 lg:px-8 pt-5 sm:pt-7 pb-28 lg:pb-10 max-w-[1440px] mx-auto">{children}</main>
 
       <nav className="lg:hidden fixed inset-x-3 bottom-3 z-30 glass-strong rounded-card px-1.5 pt-1.5 pb-safe">
         <div className="grid grid-cols-5">

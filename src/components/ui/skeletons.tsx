@@ -438,7 +438,7 @@ export function TwoFormCardsSkeleton() {
 /** Matches <ProductDetails>: one card of fields (photos, name, code, price/stock, description) + the save button. */
 export function ProductFormSkeleton() {
   return (
-    <div className="space-y-4 max-w-2xl" aria-busy="true">
+    <div className="space-y-4" aria-busy="true">
       <Card className="p-5 space-y-4">
         <div className="space-y-2"><SkLine className="w-16" /><div className="flex gap-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="size-24 rounded-2xl" />)}</div></div>
         <FieldsSkeleton fields={1} />

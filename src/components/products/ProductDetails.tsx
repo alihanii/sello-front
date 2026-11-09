@@ -23,7 +23,7 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
   const submit = () => onSave({ ...d, tags, attributes: Object.fromEntries(rows.filter(([k]) => k.trim()).map(([k, v]) => [k.trim(), v.trim()])) });
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-4 max-w-2xl">
+    <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-4">
       <Card className="p-5 space-y-4">
         <Field label="عکس‌ها" tip={IMAGE_ORDER_HINT}>
           <ImageUploader storeId={storeId} value={d.images} onChange={(v) => set("images", v)} hint={false} />
