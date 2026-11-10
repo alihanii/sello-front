@@ -22,6 +22,7 @@ export const ORDER_PLATFORMS: { value: string; label: string }[] = [
   { value: "phone", label: "تلفنی" },
   { value: "in_person", label: "حضوری" },
   { value: "site", label: "سایت" },
+  { value: "link", label: "لینک چت" },
   { value: "other", label: "سایر" },
 ];
 export const platformLabel = (v?: string) => ORDER_PLATFORMS.find((p) => p.value === v)?.label ?? "";

@@ -4,6 +4,7 @@ export const PLATFORMS: Record<string, { label: string; color: string }> = {
   digikala: { label: "دیجی‌کالا", color: "#EF394E" },
   instagram: { label: "اینستاگرام", color: "#E1306C" },
   site: { label: "وبسایت", color: "#1d4ed8" },
+  link: { label: "لینک چت", color: "#0f766e" },
 };
 
 export const SOURCES: Record<string, { label: string; tone: string }> = {

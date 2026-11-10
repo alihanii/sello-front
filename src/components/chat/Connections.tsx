@@ -10,6 +10,7 @@ import { useStoreId } from "@/lib/hooks";
 import { BOT_STATUS, MODE_LABEL } from "@/lib/chat";
 import { PlatformIcon } from "@/components/ui/status";
 import { Button, Card, Chip, Dialog, EmptyState, Field, Input, cn } from "@/components/ui/primitives";
+import { ChatLinkCard } from "./ChatLinkCard";
 
 const botLink = (platform: string, username: string) => `https://${platform === "bale" ? "ble.ir" : "t.me"}/${username}`;
 
@@ -125,6 +126,7 @@ export function ChatConnections() {
 
   return (
     <>
+      <ChatLinkCard />
       <div className="flex items-center justify-between mb-4">
         <p className="text-[14px] text-muted">هر چند ربات که بخواهی وصل کن؛ همه از یک دستیار و یک تنظیمات استفاده می‌کنند.</p>
         <Button icon={<Plus className="size-4" />} onClick={() => setAdding(true)}>اتصال جدید</Button>

@@ -165,12 +165,13 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     <div className="min-h-dvh lg:ps-[292px]">
       {/* Desktop: floating glass sidebar */}
       <aside className="on-nav fixed inset-y-4 start-4 w-[268px] rounded-card p-4 hidden lg:flex flex-col gap-4 z-20">
-        <div className="px-1 pt-1"><Logo /></div>
-        <StoreSwitcher storeId={storeId} />
-        <nav className="flex flex-col gap-1 overflow-y-auto no-scrollbar" aria-label="منوی اصلی">
+        <div className="px-1 pt-1 shrink-0"><Logo /></div>
+        <div className="shrink-0"><StoreSwitcher storeId={storeId} /></div>
+        {/* The menu takes the space left and scrolls inside it when there are more items than fit (short screens, many features). */}
+        <nav className="flex-1 min-h-0 flex flex-col gap-1 overflow-y-auto overscroll-contain nav-scroll [&>*]:shrink-0" aria-label="منوی اصلی">
           {items.map((it) => <NavItem key={it.href} {...it} storeId={storeId} active={isActive(it.href, it.exact)} />)}
         </nav>
-        <div className="mt-auto flex flex-col gap-1 border-t border-edge pt-3">
+        <div className="shrink-0 flex flex-col gap-1 border-t border-edge pt-3">
           {secondary.map((it) => <NavItem key={it.href} {...it} storeId={storeId} active={isActive(it.href, it.exact)} />)}
         </div>
       </aside>
