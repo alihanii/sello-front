@@ -24,7 +24,7 @@ export default function Orders() {
   const waiting = data?.counts?.payment_submitted;
   return (
     <>
-      <PageHeader title="سفارشات" subtitle="همهٔ سفارش‌ها یک‌جا: دستیار AI، سفارش‌های چت و فاکتورهایی که مشتری پرداخت کرده."
+      <PageHeader title="سفارشات" subtitle="همهٔ سفارش‌ها یک‌جا: دستیار AI، سفارش‌های چت، فاکتورهای پرداخت‌شده و سفارش‌های سایت."
         actions={tab !== "new" && <Button icon={<FilePlus2 className="size-4" />} onClick={() => go("new")}>فاکتور جدید</Button>} />
       <div className="mb-5 -mx-1 px-1 overflow-x-auto no-scrollbar">
         <Tabs<Tab> value={tab === "chat-order" ? "orders" : tab} onChange={go} items={[

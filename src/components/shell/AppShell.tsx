@@ -5,6 +5,7 @@ import {
   Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, MessageCircle, Moon, Package,
   Plug, Radar, Settings, Shield, Store, Sun,
   ShoppingBag,
+  Globe,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -127,6 +128,8 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     { href: `${base}/activity`, icon: Activity, label: "فعالیت‌ها و لاگ", short: "فعالیت"},
     { href: `${base}/calendar`, icon: CalendarDays, label: "تقویم" },
     { href: `${base}/orders`, icon: ShoppingBag, label: "سفارشات", tab: true, short: "سفارشات" },
+    // Opened by the admin to a segment of sellers (admin › قابلیت‌ها).
+    ...(me?.features?.site_builder ? [{ href: `${base}/site`, icon: Globe, label: "وبسایت ساز" }] : []),
     { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
     { href: `${base}/crawl`, icon: Radar, label: "کرال" },
     { href: `${base}/chat`, icon: MessageCircle, label: "AI چت", short: "AI چت", tab: true },

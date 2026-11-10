@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import { Bot, Check, FileText, MapPin, MessagesSquare, Phone, Plus, Receipt, Search, ShoppingBag, X } from "lucide-react";
+import { Bot, Check, FileText, Globe, MapPin, MessagesSquare, Phone, Plus, Receipt, Search, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -17,7 +17,7 @@ import { ListRowsSkeleton } from "@/components/ui/skeletons";
 
 function SourceChip({ kind }: { kind: string }) {
   const s = ORDER_SOURCE[kind];
-  const Icon = kind === "ai" ? Bot : kind === "chat" ? MessagesSquare : FileText;
+  const Icon = kind === "ai" ? Bot : kind === "chat" ? MessagesSquare : kind === "site" ? Globe : FileText;
   return (
     <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-semibold whitespace-nowrap bg-subtle">
       <i className="inline-block size-2 rounded-full" style={{ background: s?.color }} aria-hidden />
@@ -38,13 +38,13 @@ function OrderCard({ o, highlight }: { o: any; highlight: boolean }) {
     onError: (e: any) => toast.error(e.message),
   });
   const st = ORDER_STATUS[o.status];
-  const title = isAi ? `سفارش #${faNum(o.id)}` : o.kind === "invoice" ? `فاکتور ${faDigits(o.number)}` : `سفارش چت ${faDigits(o.number)}`;
+  const title = isAi ? `سفارش #${faNum(o.id)}` : o.kind === "invoice" ? `فاکتور ${faDigits(o.number)}` : o.kind === "site" ? `سفارش سایت ${faDigits(o.number)}` : `سفارش چت ${faDigits(o.number)}`;
   return (
     <Card id={`order-${o.key}`} className={cn("p-5 flex flex-col", highlight && "ring-2 ring-primary")}>
       <div className="flex items-center gap-3">
         {o.platform && ["telegram", "bale", "instagram"].includes(o.platform)
           ? <PlatformIcon platform={o.platform} size={34} />
-          : <span className="size-[34px] rounded-xl bg-subtle grid place-items-center shrink-0">{o.kind === "invoice" ? <FileText className="size-4 text-muted" /> : <ShoppingBag className="size-4 text-muted" />}</span>}
+          : <span className="size-[34px] rounded-xl bg-subtle grid place-items-center shrink-0">{o.kind === "invoice" ? <FileText className="size-4 text-muted" /> : o.kind === "site" ? <Globe className="size-4 text-muted" /> : <ShoppingBag className="size-4 text-muted" />}</span>}
         <div className="flex-1 min-w-0">
           <div className="font-bold flex items-center gap-2 flex-wrap"><span className="tnum">{title}</span>
             {o.tracking_code && <span className="text-muted text-[12px] font-normal" dir="ltr">{o.tracking_code}</span>}</div>

@@ -41,6 +41,7 @@ export const storeQueries = {
   store: (sid: number) => queryOptions({ queryKey: ["store", sid], queryFn: () => api(`/stores/${sid}`) }),
   orders: (sid: number) => queryOptions({ queryKey: ["orders", sid, new URLSearchParams({ source: "", status: "", q: "", limit: "30", offset: "0" }).toString()], queryFn: () => api(`/stores/${sid}/orders?source=&status=&q=&limit=30&offset=0`) }),
   chatOverview: (sid: number) => queryOptions({ queryKey: ["chat-overview", sid], queryFn: () => api(`/stores/${sid}/chat/overview`) }),
+  site: (sid: number) => queryOptions({ queryKey: ["site", sid], queryFn: () => api(`/stores/${sid}/site`) }),
 };
 
 export function useChannels(storeId: number) {
@@ -59,6 +60,7 @@ export function prefetchStorePage(qc: QueryClient, sid: number, href: string) {
     "/settings": () => [storeQueries.store(sid)],
     "/chat": () => [storeQueries.chatOverview(sid)],
     "/orders": () => [storeQueries.orders(sid)],
+    "/site": () => [storeQueries.site(sid)],
   };
   // prefetchQuery skips anything still fresh, so hovering back and forth costs nothing.
   for (const q of jobs[rest]?.() ?? []) qc.prefetchQuery(q as any);
