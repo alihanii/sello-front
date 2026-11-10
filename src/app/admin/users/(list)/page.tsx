@@ -32,7 +32,7 @@ export default function Users() {
                   <td className="p-3">{u.plan ? <><Chip tone="primary">{u.plan}</Chip><span className="block text-[11px] text-muted">تا {jDate(u.plan_ends_at)}</span></> : <span className="text-muted">رایگان</span>}</td>
                   <td className="p-3 text-muted">{jDate(u.created_at)}</td>
                   <td className="p-3 text-muted">{ago(u.last_login_at)}</td>
-                  <td className="p-3">{u.is_active ? <Chip tone="success">فعال</Chip> : <Chip tone="danger">غیرفعال</Chip>}</td>
+                  <td className="p-3">{!u.is_active ? <Chip tone="danger">بلاک</Chip> : u.plan_status === "expired" ? <Chip tone="warning">پلن تمام شده</Chip> : <Chip tone="success">فعال</Chip>}</td>
                 </tr>
               )} />
           </table>

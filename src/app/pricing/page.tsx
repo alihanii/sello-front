@@ -18,7 +18,7 @@ export default function Pricing() {
         <div className="flex items-center gap-2"><ThemeToggle /><Link href="/login"><Button size="sm">ورود</Button></Link></div>
       </header>
       <div className="text-center mb-10">
-        <h1 className="text-[26px] sm:text-[36px] font-black tracking-tight">یک پلن، همهٔ امکانات</h1>
+        <h1 className="text-[26px] sm:text-[36px] font-black tracking-tight">{plans && new Set(plans.map((p) => p.tier)).size > 1 ? "پلن مناسب فروشگاهت را انتخاب کن" : "یک پلن، همهٔ امکانات"}</h1>
         <p className="text-muted mt-2">فقط مدت اشتراک را انتخاب کن؛ هرچه طولانی‌تر، ارزان‌تر.</p>
       </div>
       {plans ? <PlanCards plans={plans} onSelect={() => router.push(getToken() ? "/app/billing" : "/login")} /> : <Skeleton className="h-96" />}

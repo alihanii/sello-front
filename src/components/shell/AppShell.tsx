@@ -19,6 +19,25 @@ import { Logo } from "./Brand";
 
 export { Logo };
 
+/** Days left on the seller's plan, in the header; amber in the last week, red once it has ended. */
+function PlanDays() {
+  const { data } = useQuery({ queryKey: ["subscription"], queryFn: () => api<any>("/me/subscription"), staleTime: 5 * 60_000 });
+  if (!data || data.status === "admin") return null;
+  const ends = data.subscription?.ends_at ? new Date(data.subscription.ends_at).getTime() : 0;
+  const days = ends ? Math.max(0, Math.ceil((ends - Date.now()) / 86_400_000)) : 0;
+  const [label, short, tone] = data.status === "active"
+    ? [`${faNum(days)} روز از پلن مانده`, `${faNum(days)} روز`, days <= 7 ? "warn" : "ok"]
+    : data.status === "free" ? ["حساب آزمایشی · خرید پلن", "آزمایشی", "ok"]
+    : data.status === "blocked" ? ["حساب غیرفعال است", "غیرفعال", "bad"] : ["پلن تمام شده · تمدید", "تمدید", "bad"];
+  return (
+    <Link href="/app/billing" title={label}
+      className={cn("inline-flex items-center gap-1.5 h-9 rounded-full px-3 text-[12px] font-bold whitespace-nowrap border transition hover:opacity-90",
+        tone === "bad" ? "border-danger/40 bg-danger/12 text-danger" : tone === "warn" ? "border-warning/40 bg-warning/15 text-warning" : "border-edge bg-subtle/60")}>
+      <CreditCard className="size-3.5" /><span className="sm:hidden">{short}</span><span className="hidden sm:inline">{label}</span>
+    </Link>
+  );
+}
+
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);
   useEffect(() => {
@@ -161,6 +180,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
         <div className="on-nav shadow-[var(--shadow)] rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
           <Link href={base} className="lg:hidden ps-1 flex items-center" aria-label="داشبورد"><Logo className="text-[18px]" /></Link>
           <div className="flex-1" />
+          <PlanDays />
           <ActivityIndicator storeId={storeId} />
           <NotificationBell storeId={storeId} />
           <ThemeToggle />
