@@ -3,9 +3,19 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Clarity } from "@/components/Clarity";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_API_URL || "https://foroshify.ir";
+const DESCRIPTION = "دستیار ۲۴ ساعته فروشگاه‌های آنلاین: کرال، ساخت محصول با AI و انتشار خودکار در کانال‌ها";
+
+// Icons (favicon.ico, icon.svg, apple-icon.png), the Open Graph image and manifest.ts live in src/app as file
+// conventions; Next adds their <link>/<meta> tags itself. metadataBase makes the og:image URL absolute.
 export const metadata: Metadata = {
-  title: "Sello | ادمین هوشمند فروشگاه",
-  description: "دستیار ۲۴ ساعته فروشگاه‌های آنلاین: کرال، ساخت محصول با AI و انتشار خودکار در کانال‌ها",
+  metadataBase: new URL(SITE_URL),
+  title: "foroshify | ادمین هوشمند فروشگاه",
+  description: DESCRIPTION,
+  applicationName: "foroshify",
+  appleWebApp: { title: "foroshify" },
+  openGraph: { type: "website", siteName: "foroshify", locale: "fa_IR", title: "foroshify | ادمین هوشمند فروشگاه", description: DESCRIPTION },
+  twitter: { card: "summary_large_image", title: "foroshify | ادمین هوشمند فروشگاه", description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {
