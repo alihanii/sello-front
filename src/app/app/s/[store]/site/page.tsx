@@ -44,9 +44,20 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number]["value"];
 
-/** Ready palettes: primary (header, links, buttons) and accent (prices, highlights). All pass 4.5:1 for text on white. */
+/** Ready palettes for the 60/30/10 rule: ivory base (60%, fixed), primary for the frame (30%: header, footer, menu)
+ * and accent for the main action and highlights (10%). Each primary passes 4.5:1 with white text. */
+/** White or near-black text, whichever reads better on a colour (same rule as the storefront). */
+function onColor(hex: string) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+  if (!m) return "#fff";
+  const n = parseInt(m[1], 16);
+  const lin = (c: number) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const L = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  return 1.05 / (L + 0.05) >= (L + 0.05) / 0.0137 ? "#fff" : "#1c1f1b";
+}
+
 const PRESETS = [
-  { key: "emerald", label: "زمردی", primary: "#28594d", accent: "#c6a66b" },
+  { key: "emerald", label: "زمردی", primary: "#173d35", accent: "#c6a66b" },
   { key: "navy", label: "سرمه‌ای", primary: "#1e3a8a", accent: "#f59e0b" },
   { key: "plum", label: "آلبالویی", primary: "#7a1f3d", accent: "#d4a373" },
   { key: "charcoal", label: "ذغالی", primary: "#27272a", accent: "#e11d48" },
@@ -174,7 +185,7 @@ function AddressTab({ s, d, set, sid }: { s: any; d: Draft; set: (f: (d: Draft) 
       <Card className="p-5">
         <h3 className="font-extrabold text-[15px] mb-3">برای شروع فروش</h3>
         <Checklist s={s} d={d} sid={sid} />
-        <p className="text-[12px] text-muted mt-4 leading-6">سفارش‌های سایت با برچسب «سایت من» در <Link className="text-primary font-bold" href={`/app/s/${sid}/orders`}>سفارشات</Link> می‌آیند و مثل فاکتور، مشتری کارت‌به‌کارت می‌کند و فیش می‌فرستد.</p>
+        <p className="text-[12px] text-muted mt-4 leading-6">سفارش‌های سایت با برچسب «وبسایت» در <Link className="text-primary font-bold" href={`/app/s/${sid}/orders`}>سفارشات</Link> می‌آیند و مثل فاکتور، مشتری کارت‌به‌کارت می‌کند و فیش می‌فرستد.</p>
       </Card>
     </div>
   );
@@ -202,7 +213,10 @@ function LookTab({ d, set, store }: { d: Draft; set: (f: (d: Draft) => Draft) =>
           </Field>
         </Card>
         <Card className="p-5 space-y-4">
-          <h3 className="font-extrabold text-[15px]">پالت رنگ</h3>
+          <div>
+            <h3 className="font-extrabold text-[15px]">پالت رنگ</h3>
+            <p className="text-[12px] text-muted mt-1 leading-6">سایت با قاعدهٔ ۶۰/۳۰/۱۰ رنگ می‌گیرد: ۶۰٪ زمینهٔ عاجی و کارت‌های سفید، ۳۰٪ رنگ ساختاری و ۱۰٪ رنگ تأکیدی.</p>
+          </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {PRESETS.map((p) => (
               <button type="button" key={p.key} onClick={() => cfg((c) => ({ ...c, palette: { preset: p.key, primary: p.primary, accent: p.accent } }))}
@@ -215,7 +229,7 @@ function LookTab({ d, set, store }: { d: Draft; set: (f: (d: Draft) => Draft) =>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {(["primary", "accent"] as const).map((k) => (
-              <Field key={k} label={k === "primary" ? "رنگ اصلی (هدر، دکمه‌ها)" : "رنگ تأکید (قیمت، تخفیف)"}>
+              <Field key={k} label={k === "primary" ? "رنگ ساختاری ۳۰٪" : "رنگ تأکیدی ۱۰٪"} hint={k === "primary" ? "هدر، فوتر و منوی فعال" : "دکمهٔ افزودن به سبد و پرداخت، تخفیف‌ها"}>
                 <div className="flex items-center gap-2">
                   <input type="color" aria-label={k} value={c.palette[k]} onChange={(e) => cfg((c) => ({ ...c, palette: { ...c.palette, preset: "custom", [k]: e.target.value } }))}
                     className="h-11 w-12 rounded-control border border-control-border bg-control cursor-pointer p-1" />
@@ -225,12 +239,20 @@ function LookTab({ d, set, store }: { d: Draft; set: (f: (d: Draft) => Draft) =>
               </Field>
             ))}
           </div>
-          {/* A small preview of the header and a product price in the chosen colours. */}
-          <div className="rounded-card border border-edge overflow-hidden text-[13px]" aria-hidden>
-            <div className="px-4 py-3 text-white font-bold flex justify-between" style={{ background: c.palette.primary }}><span>{c.title || store.name}</span><span>سبد خرید</span></div>
-            <div className="p-4 bg-white text-[#252923] flex items-center justify-between">
-              <span>هودی نمونه</span>
-              <span className="flex items-center gap-2"><b style={{ color: c.palette.primary }}>۴۵۰٬۰۰۰ تومان</b><span className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white" style={{ background: c.palette.accent }}>٪۱۵</span></span>
+          {/* The share of each colour, then a small page in the chosen colours. */}
+          <div className="flex h-2.5 rounded-full overflow-hidden" aria-hidden>
+            <i className="basis-[60%] bg-[#f8f7f3] border border-edge rounded-s-full" /><i className="basis-[30%]" style={{ background: c.palette.primary }} /><i className="basis-[10%]" style={{ background: c.palette.accent }} />
+          </div>
+          <div className="rounded-card border border-edge overflow-hidden text-[13px] bg-[#f8f7f3]" aria-hidden>
+            <div className="px-4 py-3 text-white font-bold flex justify-between" style={{ background: c.palette.primary }}>
+              <span>{c.title || store.name}</span>
+              <span className="flex gap-1 text-[12px]"><i className="not-italic rounded-md px-2 py-0.5" style={{ background: `color-mix(in oklab, ${c.palette.primary}, white 13%)` }}>محصولات</i><i className="not-italic px-2 py-0.5 opacity-75">تماس</i></span>
+            </div>
+            <div className="p-4">
+              <div className="rounded-lg bg-white border border-[#e7e5de] p-3 text-[#252923] flex items-center justify-between gap-3">
+                <span className="flex flex-col"><span>هودی نمونه</span><b>۴۵۰٬۰۰۰ تومان</b></span>
+                <span className="rounded-lg px-3 py-2 text-[12px] font-bold" style={{ background: c.palette.accent, color: onColor(c.palette.accent) }}>افزودن به سبد</span>
+              </div>
             </div>
           </div>
         </Card>
@@ -425,7 +447,7 @@ export default function MySite() {
   const go = (t: Tab) => router.replace(`${path}?tab=${t}`, { scroll: false });
   return (
     <div className="pb-24 lg:pb-0">
-      <PageHeader title="سایت من"
+      <PageHeader title="وبسایت ساز"
         subtitle={s.url ? <span className="inline-flex items-center gap-2 flex-wrap"><Chip tone={s.enabled ? "success" : "neutral"}>{s.enabled ? "روشن" : "خاموش"}</Chip>
           <button type="button" dir="ltr" className="text-primary font-bold cursor-pointer" onClick={() => copyText(s.url, "آدرس کپی شد")}>{s.url.replace(/^https?:\/\//, "")}</button></span>
           : "سایت فروشگاهی خودت با سبد خرید، ثبت سفارش و چت؛ سفارش‌ها می‌آیند توی سفارشات."}

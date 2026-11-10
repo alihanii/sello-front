@@ -7,7 +7,7 @@ export const ORDER_SOURCE: Record<string, { label: string; short: string; color:
   ai: { label: "دستیار AI", short: "AI", color: "var(--ai)", tone: "ai" },
   chat: { label: "سفارش چت", short: "چت", color: "var(--primary)", tone: "primary" },
   invoice: { label: "فاکتورساز", short: "فاکتور", color: "var(--accent)", tone: "warning" },
-  site: { label: "سایت من", short: "سایت", color: "var(--crawl)", tone: "crawl" },
+  site: { label: "وبسایت", short: "سایت", color: "var(--crawl)", tone: "crawl" },
 };
 export const SOURCES = ["ai", "chat", "invoice", "site"] as const;
 

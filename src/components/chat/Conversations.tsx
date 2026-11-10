@@ -114,7 +114,7 @@ export function Conversations({ initial, go }: { initial?: number; go: (t: any, 
         <div className="p-3 space-y-2 border-b border-edge">
           <div className="relative"><Search className="size-4 absolute top-3.5 start-3 text-muted" /><Input className="ps-9" placeholder="جستجوی نام یا پیام" value={q} onChange={(e) => setQ(e.target.value)} /></div>
           <div className="grid grid-cols-2 gap-2">
-            <Select value={platform} onChange={(e) => setPlatform(e.target.value)}><option value="">همهٔ پیام‌رسان‌ها</option><option value="telegram">تلگرام</option><option value="bale">بله</option><option value="site">سایت من</option></Select>
+            <Select value={platform} onChange={(e) => setPlatform(e.target.value)}><option value="">همهٔ پیام‌رسان‌ها</option><option value="telegram">تلگرام</option><option value="bale">بله</option><option value="site">وبسایت</option></Select>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">همهٔ وضعیت‌ها</option>{Object.entries(CONV_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</Select>
           </div>
           <label className="flex items-center gap-2 text-[13px] cursor-pointer"><input type="checkbox" checked={hasOrder} onChange={(e) => setHasOrder(e.target.checked)} className="accent-[var(--primary)]" />فقط گفتگوهای دارای سفارش</label>
