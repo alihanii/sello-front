@@ -23,6 +23,9 @@ async function call<T>(path: string, init: RequestInit & { json?: unknown } = {}
   return data as T;
 }
 
+// Check for the seller's replies only for an hour after the chat was last active; coming back to the page checks once.
+const POLL_FOR_MS = 60 * 60 * 1000;
+
 const toLatin = (s: string) => s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 
 /**
@@ -45,6 +48,8 @@ function ChatPage() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [activeAt, setActiveAt] = useState(0);
   const [askPhone, setAskPhone] = useState(false);
   const [phone, setPhone] = useState("");
   const [preview, setPreview] = useState<{ file: File; url: string } | null>(null);
@@ -60,7 +65,11 @@ function ChatPage() {
     setDraftName(saved.name || fromUrl);
     if (saved.visitor && saved.name) {
       setVisitor(saved.visitor); setName(saved.name);
-      call<{ messages: Msg[] }>(`${slug}/messages?visitor=${encodeURIComponent(saved.visitor)}`).then((r) => setMsgs(r.messages)).catch(() => {});
+      call<{ messages: Msg[] }>(`${slug}/messages?visitor=${encodeURIComponent(saved.visitor)}`).then((r) => {
+        setMsgs(r.messages);
+        const at = r.messages.length ? Date.parse(r.messages[r.messages.length - 1].created_at ?? "") : 0;
+        setActiveAt(Number.isNaN(at) ? 0 : at);
+      }).catch(() => {});
     }
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,18 +80,22 @@ function ChatPage() {
   // The seller may answer from the panel: check for new messages every few seconds while the page is open.
   useEffect(() => {
     if (!visitor) return;
+    const check = () => call<{ messages: Msg[] }>(`${slug}/messages?visitor=${encodeURIComponent(visitor)}&after=${last}`)
+      .then((r) => r.messages.length && setMsgs((m) => [...m, ...r.messages.filter((x) => !m.some((y) => y.id === x.id))]))
+      .catch(() => {});
     const t = window.setInterval(() => {
-      if (document.hidden) return;
-      call<{ messages: Msg[] }>(`${slug}/messages?visitor=${encodeURIComponent(visitor)}&after=${last}`)
-        .then((r) => r.messages.length && setMsgs((m) => [...m, ...r.messages.filter((x) => !m.some((y) => y.id === x.id))]))
-        .catch(() => {});
+      if (document.hidden || Date.now() - activeAt > POLL_FOR_MS) return;
+      check();
     }, 5000);
-    return () => window.clearInterval(t);
-  }, [visitor, last, slug]);
+    const shown = () => { if (!document.hidden) check(); };
+    document.addEventListener("visibilitychange", shown);
+    return () => { window.clearInterval(t); document.removeEventListener("visibilitychange", shown); };
+  }, [visitor, last, slug, activeAt]);
 
   useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" }); }, [msgs.length, busy, askPhone]);
 
-  const apply = (r: { visitor: string; messages: Msg[] }, tempId: number) => {
+  const apply = (r: { visitor: string; messages: Msg[]; notice?: string }, tempId: number) => {
+    setActiveAt(Date.now()); setNotice(r.notice ?? "");
     if (r.visitor !== visitor) { setVisitor(r.visitor); remember(r.visitor, name); }
     setMsgs((m) => [...m.filter((x) => x.id !== tempId), ...r.messages.filter((x) => !m.some((y) => y.id === x.id))]);
   };
@@ -203,6 +216,7 @@ function ChatPage() {
             <button type="button" onClick={() => setPreview(null)} aria-label="حذف عکس" className="size-9 grid place-items-center text-muted cursor-pointer"><X className="size-4" /></button>
           </div>
         )}
+        {notice && <div className="px-3 py-1.5 text-[12px] text-muted bg-subtle">{notice}</div>}
         {sendError && <div className="px-3 py-1.5 text-[12px] text-danger bg-danger/5">{sendError}</div>}
         <form className="p-2.5 flex items-center gap-2 border-t border-edge bg-raised pb-[max(.625rem,env(safe-area-inset-bottom))]" onSubmit={(e) => { e.preventDefault(); if (preview) sendPhoto(); else send(text); }}>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
