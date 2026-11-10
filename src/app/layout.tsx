@@ -10,12 +10,12 @@ const DESCRIPTION = "دستیار ۲۴ ساعته فروشگاه‌های آنل
 // conventions; Next adds their <link>/<meta> tags itself. metadataBase makes the og:image URL absolute.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "foroshify | ادمین هوشمند فروشگاه",
+  title: "فروشیفای | ادمین هوشمند فروشگاه",
   description: DESCRIPTION,
-  applicationName: "foroshify",
-  appleWebApp: { title: "foroshify" },
-  openGraph: { type: "website", siteName: "foroshify", locale: "fa_IR", title: "foroshify | ادمین هوشمند فروشگاه", description: DESCRIPTION },
-  twitter: { card: "summary_large_image", title: "foroshify | ادمین هوشمند فروشگاه", description: DESCRIPTION },
+  applicationName: "فروشیفای",
+  appleWebApp: { title: "فروشیفای" },
+  openGraph: { type: "website", siteName: "فروشیفای", locale: "fa_IR", title: "فروشیفای | ادمین هوشمند فروشگاه", description: DESCRIPTION },
+  twitter: { card: "summary_large_image", title: "فروشیفای | ادمین هوشمند فروشگاه", description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {

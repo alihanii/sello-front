@@ -14,7 +14,7 @@ export default function Landing() {
     <div className="ld">
       <div className="sticky top-0 z-30 px-4 pt-3">
         <header className="ld-header max-w-6xl mx-auto rounded-2xl h-14 ps-3 pe-2 flex items-center justify-between">
-          <Link prefetch={false} href="/" aria-label="foroshify" className="flex items-center h-full"><Logo /></Link>
+          <Link prefetch={false} href="/" aria-label="فروشیفای" className="flex items-center h-full"><Logo /></Link>
           <nav className="flex items-center gap-1">
             <a href="#what" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">چی کار می‌کنه</a>
             <a href="#chat" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">دستیار چت</a>
@@ -36,7 +36,7 @@ export default function Landing() {
       <footer className="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-center justify-between gap-3 text-[13px] text-muted border-t border-line">
         <Logo compact />
         <span>ادمین ۲۴ ساعتهٔ فروشگاه‌های تلگرام، بله، اینستاگرام و دیجی‌کالا</span>
-        <span dir="ltr">© foroshify</span>
+        <span>© فروشیفای</span>
       </footer>
     </div>
   );
@@ -49,13 +49,12 @@ function Hero() {
     <section className="grid lg:grid-cols-[1.1fr_1fr] gap-14 lg:gap-10 items-center pt-12 sm:pt-20 pb-20 sm:pb-24">
       <div>
         <h1 className="text-[38px] leading-[1.3] sm:text-[54px] sm:leading-[1.22] font-black tracking-tight text-balance">
-          یه ادمین ۲۴ ساعته،
-          <span className="block text-primary">که خودت تربیتش می‌کنی.</span>
+          مدیریت فروش چندکاناله
+          <span className="block text-primary">با دستیار هوشمند</span>
         </h1>
         <p className="text-muted text-[17px] sm:text-[19px] leading-[1.9] mt-6 max-w-[33rem]">
-          محصول، موجودی، انتشار، گفتگو با مشتری و سفارش؛ سلو همهٔ کارهای فروشگاهت رو از یه پنل می‌چرخونه. تو فقط تصمیم می‌گیری.
+          از محصول و انبار تا انتشار چندکاناله، فاکتور، باشگاه مشتری و گزارش مالی؛ همه‌چی توی یه پنل. ادمین AI هم با مشتری‌هات چت می‌کنه و سفارش می‌گیره — بدون هزینهٔ ادمین پرخرج.
         </p>
-        <p> افزایش فروش با سلو</p>
         <div className="flex flex-wrap gap-3 mt-9">
           <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary">
             شروع رایگان <ArrowLeft className="ld-arrow size-4" aria-hidden />
@@ -86,7 +85,7 @@ function HeroArt() {
         sizes="(min-width: 1024px) 560px, 92vw"
         width={752}
         height={519}
-        alt="پنل سلو: محصول‌ها، موجودی، چت هوشمند با مشتری و انتشار در تلگرام، بله و اینستاگرام"
+        alt="پنل فروشیفای: محصول‌ها، موجودی، چت هوشمند با مشتری و انتشار در تلگرام، بله و اینستاگرام"
         fetchPriority="high"
         decoding="async"
         className="w-full h-auto select-none"
@@ -99,7 +98,7 @@ function HeroArt() {
 /** A chat that becomes an order; messages appear as they scroll into view (CSS scroll timeline). */
 function ChatDemo() {
   return (
-    <div className="relative mx-auto w-full max-w-[380px]" role="img" aria-label="نمونهٔ گفتگوی دستیار سلو با مشتری که به سفارش می‌رسد">
+    <div className="relative mx-auto w-full max-w-[380px]" role="img" aria-label="نمونهٔ گفتگوی دستیار فروشیفای با مشتری که به سفارش می‌رسد">
       <div className="ld-phone rounded-[18px] p-3 sm:p-4">
         <div className="flex items-center gap-3 px-1.5 pb-3 border-b border-line">
           <span className="size-10 rounded-full bg-[#111827] text-white grid place-items-center font-black text-[14px]" aria-hidden>م</span>
@@ -163,49 +162,49 @@ function ProductThumb({ size = "size-14" }: { size?: string }) {
   );
 }
 
-/* ---------------- What Sello does: the steps ---------------- */
+/* ---------------- What Froshify does: the steps ---------------- */
 
-/* Titles are the product owner's wording and order (the eighth, invoices, was added after the first seven); keep them as they are. */
+/* Seller journey: channels → AI chat → catalog → AI create → stock → invoice → retain → report. */
 const STEPS_ALL: { title: string; text: string; visual: React.ReactNode }[] = [
   {
     title: "مدیریت فروش چند کاناله از یک‌جا",
-    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا کنار هم توی یه پنل: محصول، انتشار، گفتگو و سفارش. یه بار می‌سازی و با یه کلیک همه‌جا منتشر می‌شه، هر کدوم با شکل خودش.",
+    text: "تلگرام، بله، اینستاگرام و دیجی‌کالا توی یه پنل. یه بار می‌سازی، با یه کلیک همه‌جا منتشر می‌شه.",
     visual: <VisHub />,
   },
   {
-    title: "ادمین AI برای چت با مشتری‌ها و سفارش‌گیر",
-    text: "مشتری هر جا پیام بده، تلگرام، بله یا پیوی خودت، همون لحظه جواب می‌گیره. ادمین AI سؤال‌هاش رو جواب می‌ده و سفارشش رو ثبت می‌کنه؛ تو فقط تأیید می‌کنی. شب و روز، حتی وقتی خوابی.",
+    title: "ادمین AI برای چت و سفارش‌گیری",
+    text: "مشتری هر جا پیام بده، ادمین AI جواب می‌ده و سفارش رو ثبت می‌کنه؛ تو فقط تأیید می‌کنی.",
     visual: <VisChat />,
   },
   {
-    title: "انبارداری و سینک موجودی لحظه‌ای به صورت متمرکز",
-    text: "یه انبار برای همهٔ کانال‌ها. هر سفارشی از هر جا بیاد، موجودی همه‌جا همون لحظه کم می‌شه؛ کم‌موجودها رو قبل از تموم شدن نشونت می‌ده و موجودی ده‌ها محصول رو با اکسل یه‌جا آپدیت می‌کنی.",
-    visual: <VisStock />,
-  },
-  {
-    title: "باشگاه مشتریان و فعال کردن پروموشن‌های تبلیغاتی",
-    text: "هر خریدار توی باشگاه مشتریانت می‌مونه. کد تخفیف، جشنوارهٔ فصلی یا پیشنهاد ویژه برای مشتری‌های وفادار رو با یه کلیک روشن کن تا دوباره ازت بخرن.",
-    visual: <VisClub />,
-  },
-  {
     title: "مدیریت محصولات",
-    text: "محصول‌های پیج و کانال‌هات خودشون میان توی پنل. قیمت، رنگ و سایز، دسته‌بندی و وضعیت همه رو توی یه جدول مرتب می‌بینی و با ویرایش گروهی، ده‌ها محصول رو یه‌جا عوض می‌کنی.",
+    text: "قیمت، تنوع، دسته و وضعیت همه رو توی یه جدول می‌بینی؛ با ویرایش گروهی ده‌ها محصول رو یه‌جا عوض می‌کنی.",
     visual: <VisProducts />,
   },
   {
-    title: "گزارش مالی دقیق",
-    text: "فروش، سود و سفارش‌ها به تفکیک روز و کانال. می‌بینی کدوم محصول و کدوم کانال بیشتر برات می‌فروشه و پولت دقیقاً از کجا میاد.",
-    visual: <VisFinance />,
-  },
-  {
     title: "ساخت محصول با AI",
-    text: "یه عکس با گوشی و یه خط توضیح کافیه. عکس تمیز با زمینهٔ سفید، عنوان، توضیحات، دسته و ویژگی‌ها رو سلو برات می‌سازه.",
+    text: "یه عکس و یه خط توضیح کافیه. فروشیفای عکس تمیز، عنوان، توضیحات و ویژگی‌ها رو برات می‌سازه.",
     visual: <VisMake />,
   },
   {
+    title: "انبارداری و سینک موجودی لحظه‌ای",
+    text: "یه انبار برای همهٔ کانال‌ها. هر سفارش، موجودی همه‌جا همون لحظه کم می‌شه؛ کم‌موجودها رو زود بهت خبر می‌ده.",
+    visual: <VisStock />,
+  },
+  {
     title: "فاکتورساز",
-    text: "برای هر مشتری یه فاکتور با محصول، تعداد، تخفیف و هزینهٔ ارسال بساز و لینکش رو براش بفرست. مشتری از همون لینک سفارشش رو ثبت می‌کنه و سفارش مستقیم میاد توی پنلت.",
+    text: "فاکتور بساز، لینک رو بفرست. مشتری از همون لینک سفارش می‌ده و مستقیم میاد توی پنلت.",
     visual: <VisInvoice />,
+  },
+  {
+    title: "باشگاه مشتریان و پروموشن",
+    text: "خریدارها توی باشگاهت می‌مونن. کد تخفیف، پیشنهاد ویژه و پیامک تبلیغاتی رو با یه کلیک روشن کن تا دوباره بخرن.",
+    visual: <VisClub />,
+  },
+  {
+    title: "گزارش مالی دقیق",
+    text: "فروش، سود و سفارش‌ها به تفکیک روز و کانال — ببین پولت از کجا میاد.",
+    visual: <VisFinance />,
   },
 ];
 
@@ -213,11 +212,19 @@ function What() {
   return (
     <section id="what" className="py-16 sm:py-24 scroll-mt-20" aria-labelledby="what-title">
       <div className="max-w-2xl md:mx-auto md:text-center">
-        <h2 id="what-title" className="text-[30px] sm:text-[42px] font-black tracking-tight leading-[1.3] text-balance">
-          سلو قرار نیست برات فروشگاه بسازه.<br className="hidden sm:block" />
-          <span className="text-primary"> قراره فروشگاهت رو بچرخونه.</span>
+        <h2 id="what-title" className="pt-5 text-[30px] sm:text-[42px] font-black tracking-tight leading-[1.3] text-balance">
+          فروشت با{" "}
+          <span className="relative inline-block align-baseline px-0.5">
+            <span className="absolute left-0 bottom-full -mb-1 inline-flex items-center gap-0.5 rounded-md bg-accent text-accent-fg px-1.5 py-0.5 text-[10px] sm:text-[11px] font-black tracking-wide leading-none -rotate-12 origin-bottom-left" dir="ltr" aria-hidden>
+              <Sparkles className="size-2.5" />
+              AI
+            </span>
+            فروشیفای
+          </span>{" "}
+          بیشتر می‌شه.<br className="hidden sm:block" />
+          <span className="text-primary">از یه پنل، همه‌جا.</span>
         </h2>
-        <p className="text-muted text-[17px] mt-4 leading-[1.9]">از روزی که وصلش کنی، این هشت کار با سلوئه:</p>
+        <p className="text-muted text-[17px] mt-4 leading-[1.9]">از روزی که وصلش کنی، این هشت کار با فروشیفایه:</p>
       </div>
 
       {/* A timeline: the rail fills as you scroll, each step's node lights up and its illustration plays as it arrives. */}
@@ -459,7 +466,7 @@ function ChatBot() {
         <div>
           <div className="flex items-center gap-2 text-[13px] font-bold text-muted mb-4">
             <PlatformIcon platform="telegram" size={24} /><PlatformIcon platform="bale" size={24} />
-            یکی از کارهای سلو
+            یکی از کارهای فروشیفای
           </div>
           <h2 id="chat-title" className="text-[26px] sm:text-[34px] font-black tracking-tight leading-[1.35] text-balance">
             و یه دستیار چت که مشتری نمی‌فهمه رباته.
@@ -482,10 +489,10 @@ function ChatBot() {
   );
 }
 
-/* ---------------- Why Sello ---------------- */
+/* ---------------- Why Froshify ---------------- */
 
 const WHY = [
-  { icon: TrendingUp, title: "توی چند پلتفرم بفروش", text: "هر پلتفرم یه دسته مشتری تازه‌ست. با سلو تلگرام، بله، اینستاگرام و دیجی‌کالا رو هم‌زمان داری، بدون این که کارت چند برابر بشه." },
+  { icon: TrendingUp, title: "توی چند پلتفرم بفروش", text: "هر پلتفرم یه دسته مشتری تازه‌ست. با فروشیفای تلگرام، بله، اینستاگرام و دیجی‌کالا رو هم‌زمان داری، بدون این که کارت چند برابر بشه." },
   { icon: Layers, title: "کارت یکدسته می‌شه", text: "یه پنل، یه انبار، یه لیست محصول و سفارش. هر چیزی رو یه بار وارد می‌کنی و همه‌جا درست و هماهنگ می‌مونه." },
   { icon: Clock, title: "کارهای تکراری خودکار", text: "انتشار، موجودی، جواب مشتری و سفارش خودکار انجام می‌شن؛ وقت تو می‌مونه برای این که فروشگاهت رو بزرگ‌تر کنی." },
 ];
@@ -495,10 +502,10 @@ function Why() {
     <section id="why" className="py-16 sm:py-20 scroll-mt-20" aria-labelledby="why-title">
       <div className="max-w-2xl">
         <h2 id="why-title" className="text-[30px] sm:text-[42px] font-black tracking-tight leading-[1.3] text-balance">
-          چرا سلو؟<br className="hidden sm:block" />
+          چرا فروشیفای؟<br className="hidden sm:block" />
           <span className="text-primary"> چون خودکاره، و خودکار یعنی فروش بیشتر.</span>
         </h2>
-        <p className="text-muted text-[17px] mt-4 leading-[1.9]">یکی از مطمئن‌ترین راه‌های افزایش فروش اینه که هم‌زمان توی چند پلتفرم بفروشی. بدون اتوماسیون این یعنی چند برابر کار؛ با سلو یعنی همون کار همیشگی.</p>
+        <p className="text-muted text-[17px] mt-4 leading-[1.9]">یکی از مطمئن‌ترین راه‌های افزایش فروش اینه که هم‌زمان توی چند پلتفرم بفروشی. بدون اتوماسیون این یعنی چند برابر کار؛ با فروشیفای یعنی همون کار همیشگی.</p>
       </div>
       <ul className="mt-10 grid sm:grid-cols-3 gap-4 sm:gap-5">
         {WHY.map((w) => (
@@ -516,9 +523,9 @@ function Why() {
 /* ---------------- Start ---------------- */
 
 const STEPS = [
-  { title: "کانالت رو وصل کن", text: "تلگرام، بله، اینستاگرام یا دیجی‌کالا. محصول‌هات خودشون میان توی سلو." },
+  { title: "کانالت رو وصل کن", text: "تلگرام، بله، اینستاگرام یا دیجی‌کالا. محصول‌هات خودشون میان توی فروشیفای." },
   { title: "تنظیمش کن", text: "انتشار، موجودی و دستیار چت رو هر جور خواستی روشن کن و به ادمینت یاد بده." },
-  { title: "بسپارش به سلو", text: "از اینجا به بعد سلو فروشگاهت رو می‌چرخونه؛ تو فقط تأیید می‌کنی." },
+  { title: "بسپارش به فروشیفای", text: "از اینجا به بعد فروشیفای فروشگاهت رو می‌چرخونه؛ تو فقط تأیید می‌کنی." },
 ];
 
 function Start() {

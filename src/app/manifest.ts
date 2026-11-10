@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 // Installable panel (Add to Home Screen): foroshify's gold tag on the emerald brand color.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "foroshify | ادمین هوشمند فروشگاه",
-    short_name: "foroshify",
+    name: "فروشیفای | ادمین هوشمند فروشگاه",
+    short_name: "فروشیفای",
     description: "دستیار ۲۴ ساعته فروشگاه‌های آنلاین: کرال، ساخت محصول با AI و انتشار خودکار در کانال‌ها",
     lang: "fa",
     dir: "rtl",
