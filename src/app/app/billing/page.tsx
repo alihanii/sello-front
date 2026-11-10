@@ -11,7 +11,7 @@ import { PlanCards } from "@/components/plans/PlanCards";
 import { Button, Card, Chip, PageHeader, Skeleton, cn } from "@/components/ui/primitives";
 import { PlanCardsSkeleton } from "@/components/ui/skeletons";
 
-const COUNTS: [string, string][] = [["max_stores", "فروشگاه"], ["max_channels", "کانال"], ["max_products", "محصول"], ["monthly_publishes", "انتشار در ماه"]];
+const COUNTS: [string, string][] = [["max_stores", "فروشگاه"], ["max_channels_per_platform", "کانال از هر پلتفرم"], ["max_products", "محصول"]];
 const UNLIMITED = 100000;
 
 /** This month's use of one AI allowance, as a bar that turns amber near the cap and red at it. */
@@ -106,7 +106,7 @@ export default function Billing() {
             <div className="space-y-4">
               <div className="text-[13px] font-bold text-muted">مصرف این ماه</div>
               <Meter label="جواب AI دستیار چت" used={sub.usage?.chat_messages ?? 0} limit={sub.limits.monthly_chat_messages ?? 0} />
-              <Meter label="اعتبار AI (ساخت محصول، کرال، عکس)" used={sub.usage?.ai_credits ?? 0} limit={sub.limits.monthly_ai_credits ?? 0} />
+              <Meter label="ساخت محصول با AI" used={sub.usage?.ai_credits ?? 0} limit={sub.limits.monthly_ai_credits ?? 0} />
             </div>
           </div>
         ) : <Skeleton className="h-24 w-full" />}

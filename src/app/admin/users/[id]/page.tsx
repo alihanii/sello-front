@@ -88,8 +88,8 @@ export default function UserDetail() {
           <Card>
             <CardHeader title="مصرف این ماه" />
             <div className="px-5 pb-5 space-y-3 text-[13px]">
-              {[["جواب AI چت", data.usage.chat_messages, data.limits.monthly_chat_messages], ["اعتبار AI", data.usage.ai_credits, data.limits.monthly_ai_credits],
-                ["محصول", data.usage.products, data.limits.max_products], ["کانال", data.usage.channels, data.limits.max_channels], ["فروشگاه", data.usage.stores, data.limits.max_stores]]
+              {[["جواب AI چت", data.usage.chat_messages, data.limits.monthly_chat_messages], ["ساخت محصول با AI", data.usage.ai_credits, data.limits.monthly_ai_credits],
+                ["محصول", data.usage.products, data.limits.max_products], ["فروشگاه", data.usage.stores, data.limits.max_stores]]
                 .map(([l, used, lim]: any) => {
                   const pct = lim >= 100000 ? 0 : lim ? Math.min(100, Math.round((100 * used) / lim)) : 100;
                   return (

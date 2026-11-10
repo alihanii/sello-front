@@ -8,9 +8,9 @@ import { api } from "@/lib/api";
 import { faDigits, faNum, toman } from "@/lib/format";
 import { AdminFormsSkeleton } from "@/components/ui/skeletons";
 import { PlanCards } from "@/components/plans/PlanCards";
-import { Button, Card, CardHeader, Chip, Field, Input, NumberInput, PageHeader, Select, Switch, Textarea, cn } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Field, Input, NumberInput, PageHeader, Switch, Textarea, cn } from "@/components/ui/primitives";
 
-const LIMITS: [string, string][] = [["max_stores", "حداکثر فروشگاه"], ["max_channels", "حداکثر کانال"], ["max_products", "حداکثر محصول"], ["monthly_publishes", "انتشار در ماه"], ["monthly_ai_credits", "اعتبار AI در ماه"], ["monthly_chat_messages", "جواب AI دستیار چت در ماه"]];
+const LIMITS: [string, string][] = [["max_stores", "حداکثر فروشگاه"], ["max_channels_per_platform", "کانال از هر پلتفرم (در هر فروشگاه)"], ["max_products", "حداکثر محصول"], ["monthly_ai_credits", "ساخت محصول با AI در ماه"], ["monthly_chat_messages", "جواب AI دستیار چت در ماه"]];
 const LABEL: Record<number, string> = { 1: "یک‌ماهه", 3: "سه‌ماهه", 12: "یک‌ساله" };
 const DISCOUNTS: Record<number, number> = { 1: 0, 3: 10, 12: 25 };
 // Rough AI cost on Gemini 2.5 Flash-Lite at 300,000 toman a dollar (see the cost report): per chat reply and per credit.
@@ -19,8 +19,8 @@ const COST_CREDIT = 400;
 
 const blank = (sort: number) => ({
   tier: `plan${Date.now().toString(36)}`, name: "", description: "", features: [], sort_order: sort, is_featured: false, is_active: true, subscribers: 0, isNew: true,
-  limits: { max_stores: 1, max_channels: 3, max_products: 300, monthly_publishes: 500, monthly_ai_credits: 50, monthly_chat_messages: 1000, crawl_frequency: "daily" },
-  prices: [1, 3, 12].map((m) => ({ duration_months: m, price_toman: 0, compare_at_toman: 0, is_active: true, plan_id: null })),
+  limits: { max_stores: 1, max_channels_per_platform: 2, max_products: 300, monthly_ai_credits: 50, monthly_chat_messages: 1000, ai_images: false },
+  prices: [1, 3, 12].map((m) => ({ duration_months: m, price_toman: 0, compare_at_toman: 0, is_active: true, plan_id: null, max_stores: null })),
 });
 
 export default function AdminPlans() {
@@ -118,11 +118,12 @@ function TierEditor({ draft: p, open, onOpen, onChange, onSaved, onDeleted }: {
               {p.prices.map((x: any) => {
                 const d = x.compare_at_toman > x.price_toman ? Math.round(100 - (100 * x.price_toman) / x.compare_at_toman) : 0;
                 return (
-                  <div key={x.duration_months} className="grid grid-cols-2 sm:grid-cols-[100px_1fr_1fr_auto] items-end gap-3 p-3 rounded-2xl bg-subtle">
-                    <div className="col-span-2 sm:col-span-1 font-bold text-[14px] sm:pb-2.5">{LABEL[x.duration_months]}{d > 0 && <span className="block text-[12px] text-primary font-semibold">{faDigits(d)}٪ تخفیف</span>}</div>
+                  <div key={x.duration_months} className="grid grid-cols-2 items-end gap-3 p-3 rounded-2xl bg-subtle">
+                    <div className="col-span-2 font-bold text-[14px]">{LABEL[x.duration_months]}{d > 0 && <span className="block text-[12px] text-primary font-semibold">{faDigits(d)}٪ تخفیف</span>}</div>
                     <Field label="قیمت (تومان)"><NumberInput value={x.price_toman} onChange={(v) => setPrice(x.duration_months, { price_toman: v })} /></Field>
                     <Field label="قیمت خط‌خورده"><NumberInput value={x.compare_at_toman} onChange={(v) => setPrice(x.duration_months, { compare_at_toman: v })} /></Field>
-                    <label className="col-span-2 sm:col-span-1 flex items-center gap-2 text-[13px] sm:pb-2.5"><Switch checked={x.is_active} onChange={(v) => setPrice(x.duration_months, { is_active: v })} label={`فروش ${LABEL[x.duration_months]}`} />فروش</label>
+                    <Field label="فروشگاه"><NumberInput value={x.max_stores ?? p.limits.max_stores ?? 1} onChange={(v) => setPrice(x.duration_months, { max_stores: v === (p.limits.max_stores ?? 1) ? null : v })} /></Field>
+                    <label className="flex items-center gap-2 text-[13px] pb-2.5"><Switch checked={x.is_active} onChange={(v) => setPrice(x.duration_months, { is_active: v })} label={`فروش ${LABEL[x.duration_months]}`} />فروش</label>
                   </div>
                 );
               })}
@@ -133,10 +134,11 @@ function TierEditor({ draft: p, open, onOpen, onChange, onSaved, onDeleted }: {
             <div className="text-[14px] font-bold mb-2">سقف‌ها</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {LIMITS.map(([k, l]) => <Field key={k} label={l}><NumberInput value={p.limits[k] ?? 0} onChange={(v) => setLimit(k, v)} /></Field>)}
-              <Field label="فرکانس کرال"><Select value={p.limits.crawl_frequency ?? "daily"} onChange={(e) => setLimit("crawl_frequency", e.target.value)}><option value="daily">روزانه</option><option value="hourly">ساعتی</option></Select></Field>
+              <label className="flex items-center gap-2 text-[13px] sm:pt-7"><Switch checked={!!p.limits.ai_images} onChange={(v) => setLimit("ai_images", v)} label="ساخت عکس با AI" />ساخت و تمیز کردن عکس با AI</label>
             </div>
+            <p className="text-[12px] text-muted mt-2">انتشار و کرال سقف ندارند. ستون «فروشگاه» در قیمت‌ها برای مدتی است که فروشگاه بیشتری می‌دهد (مثلاً یک‌ساله: ۲).</p>
             <p className={cn("text-[12px] mt-2", share > 50 ? "text-danger" : "text-muted")}>
-              بیشترین هزینهٔ AI در ماه اگر همهٔ سقف مصرف شود: حدود {toman(aiCost)}{monthly ? ` (${faDigits(share)}٪ قیمت ماهانه)` : ""}. هر جواب چت حدود {faNum(COST_CHAT)} و هر اعتبار حدود {faNum(COST_CREDIT)} تومان با Gemini 2.5 Flash-Lite؛ هر عکس ساخته‌شده ۲۰ اعتبار حساب می‌شود.
+              بیشترین هزینهٔ AI در ماه اگر همهٔ سقف مصرف شود (بدون کرال): حدود {toman(aiCost)}{monthly ? ` (${faDigits(share)}٪ قیمت ماهانه)` : ""}. هر جواب چت حدود {faNum(COST_CHAT)} و ساخت هر محصول حدود {faNum(COST_CREDIT)} تومان با Gemini 2.5 Flash-Lite؛ هر پست کرال‌شده با AI حدود ۶۰ تومان و هر عکس ساخته‌شده حدود ۲۰ هزار تومان.
             </p>
           </div>
 
