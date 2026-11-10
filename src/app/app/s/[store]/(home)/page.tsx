@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, FilePlus2, MessageCircle, Package, Plug, Send, Sparkles, Wallet } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FilePlus2, MessageCircle, Package, Plug, Radar, Send, Sparkles, Wallet } from "lucide-react";
 import Link from "next/link";
 import { faDigits, faNum, toman } from "@/lib/format";
 import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
@@ -104,7 +104,7 @@ export default function Dashboard() {
         actions={<>
           <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" icon={<Sparkles className="size-4" />}>ساخت محصول با AI</Button></Link>
           <Link href={`/app/s/${sid}/orders?tab=new`}><Button variant="ai" icon={<FilePlus2 className="size-4" />}>فاکتورساز</Button></Link>
-          <Link href={`/app/s/${sid}/products/new?mode=manual`}><Button variant="secondary">افزودن دستی</Button></Link>
+          <Link href={`/app/s/${sid}/crawl`}><Button variant="secondary" icon={<Radar className="size-4" />}>کرال</Button></Link>
         </>} />
       <AiSetupBanner />
       <SetupAlerts sid={sid} />

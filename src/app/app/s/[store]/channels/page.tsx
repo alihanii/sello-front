@@ -138,6 +138,12 @@ export default function Channels() {
   const [connect, setConnect] = useState<{ platform: string; channelId?: number; crawlOnly?: boolean } | null>(null);
   const [healthOp, setHealthOp] = useState<number | null>(null);
   const health = useMutation({ mutationFn: (id: number) => api(`/channels/${id}/health`, { method: "POST" }), onSuccess: (op) => setHealthOp(op.id) });
+  const crawl = useMutation({
+    mutationFn: (id: number) => api(`/crawl-sources/${id}/run`, { method: "POST" }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["crawl-sources", sid] }); qc.invalidateQueries({ queryKey: ["operations", sid] }); toast.success("کرال شروع شد؛ نتیجه را در صفحهٔ کرال می‌بینی."); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const crawlable = (platform: string) => !!platforms.find((p: any) => p.platform === platform)?.can_crawl;
   const disconnect = useMutation({
     mutationFn: (id: number) => api(`/channels/${id}`, { method: "DELETE" }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["channels", sid] }); toast.success("اتصال قطع شد"); },
@@ -160,7 +166,8 @@ export default function Channels() {
               </div>
               <div className="text-[12px] text-muted mt-3">آخرین کرال: {ago(s.last_run_at)}</div>
               <div className="flex flex-wrap gap-2 mt-4">
-                <Link href={`/app/s/${sid}/crawl`}><Button size="sm" variant="secondary" icon={<Radar className="size-4" />}>مدیریت کرال</Button></Link>
+                <Button size="sm" icon={<Radar className="size-4" />} loading={crawl.isPending && crawl.variables === s.id} onClick={() => crawl.mutate(s.id)}>کرال</Button>
+                <Link href={`/app/s/${sid}/crawl`}><Button size="sm" variant="secondary">مدیریت کرال</Button></Link>
               </div>
             </Card>
           ))}
@@ -178,6 +185,13 @@ export default function Channels() {
               {c.last_error && <p className="text-[13px] text-danger bg-danger/8 rounded-xl p-3 mt-3">{c.last_error}</p>}
               <div className="flex flex-wrap gap-2 mt-4">
                 {c.status !== "connected" && <Button size="sm" icon={<Plug className="size-4" />} onClick={() => setConnect({ platform: c.platform, channelId: c.id })}>اتصال مجدد</Button>}
+                {crawlable(c.platform) && (() => {
+                  // A channel that is already a crawl source runs it now; otherwise the crawl page opens with it preselected.
+                  const src = sources.find((s: any) => s.channel_id === c.id);
+                  return src
+                    ? <Button size="sm" icon={<Radar className="size-4" />} loading={crawl.isPending && crawl.variables === src.id} onClick={() => crawl.mutate(src.id)}>کرال</Button>
+                    : <Link href={`/app/s/${sid}/crawl?channel=${c.id}`}><Button size="sm" icon={<Radar className="size-4" />}>کرال</Button></Link>;
+                })()}
                 <Button size="sm" variant="secondary" icon={<HeartPulse className="size-4" />} loading={health.isPending && health.variables === c.id} onClick={() => health.mutate(c.id)}>بررسی سلامت</Button>
                 <Button size="sm" variant="ghost" icon={<Unplug className="size-4" />} onClick={() => confirm("اتصال این کانال قطع شود؟") && disconnect.mutate(c.id)}>قطع اتصال</Button>
               </div>
