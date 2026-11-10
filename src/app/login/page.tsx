@@ -88,7 +88,7 @@ export default function Login() {
       {/* Soft brand glow behind the form; decoration only. */}
       <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 size-[560px] rounded-full bg-primary/10 blur-3xl" />
       <header className="relative flex items-center justify-between h-16 px-4 sm:px-6">
-        <Link href="/" aria-label="صفحهٔ اصلی Sello"><Logo /></Link>
+        <Link href="/" aria-label="صفحهٔ اصلی foroshify"><Logo /></Link>
         <ThemeToggle />
       </header>
       <main className="relative flex-1 grid place-items-center px-4 py-10">
