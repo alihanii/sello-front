@@ -1,6 +1,6 @@
 /* Server-safe platform mark (no client deps), shared by the app and the static landing page. */
 
-import { Globe, ShoppingBag, Store } from "lucide-react";
+import { Globe, Link2, ShoppingBag, Store } from "lucide-react";
 import { PLATFORMS } from "@/lib/meta";
 
 // Brand glyphs: Telegram and Instagram from simple-icons (CC0); Bale is drawn from its brand logo below; Digikala has no public mark there.
@@ -12,7 +12,7 @@ const GLYPHS: Record<string, string> = {
 export function PlatformIcon({ platform, size = 28, className }: { platform: string; size?: number; className?: string }) {
   const p = PLATFORMS[platform];
   const glyph = GLYPHS[platform];
-  const Fallback = platform === "digikala" ? ShoppingBag : platform === "site" ? Globe : Store;
+  const Fallback = platform === "digikala" ? ShoppingBag : platform === "site" ? Globe : platform === "link" ? Link2 : Store;
   return (
     <span
       className={`inline-grid place-items-center text-white shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,.25)] ${className ?? ""}`}
