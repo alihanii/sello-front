@@ -57,20 +57,6 @@ export function FinanceChart({ sid }: { sid: number }) {
           </div>
         ))}
       </div>
-      <div className="px-4 sm:px-5 mt-3 grid grid-cols-3 gap-2">
-        {SOURCES.map((s) => {
-          const b = data.by_source[s];
-          const share = t.income ? Math.round((100 * b.toman) / t.income) : 0;
-          return (
-            <div key={s} className="rounded-2xl border border-edge p-2.5 sm:p-3">
-              <div className="flex items-center gap-1.5 text-[12px] font-bold"><i className="size-2.5 rounded-full shrink-0" style={{ background: ORDER_SOURCE[s].color }} /><span className="truncate">{ORDER_SOURCE[s].label}</span></div>
-              <div className="text-[14px] sm:text-[15px] font-black tnum mt-1.5">{b.toman ? shortToman(b.toman) : "—"}</div>
-              <div className="text-[11px] text-muted tnum">{b.orders ? `${faNum(b.orders)} فروش · ${faDigits(share)}٪` : "فروشی نبوده"}</div>
-              <div className="h-1.5 rounded-full bg-subtle mt-2 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${share}%`, background: ORDER_SOURCE[s].color }} /></div>
-            </div>
-          );
-        })}
-      </div>
       <div className="h-56 sm:h-64 px-2 pb-2 mt-3" dir="ltr">
         <ResponsiveContainer>
           <BarChart data={rows} margin={{ left: 0, right: 8, top: 8 }}>

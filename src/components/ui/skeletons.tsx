@@ -235,13 +235,12 @@ export function DashboardSkeleton() {
 export function DashboardBodySkeleton() {
   return (
     <>
-      <StatGridSkeleton />
+      <StatGridSkeleton count={3} className="grid-cols-2 sm:grid-cols-3 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1" />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mt-4">
         <ChartCardSkeleton className="lg:col-span-2" />
         <div className="flex flex-col gap-4">
           <Card><CardHeaderSkeleton /><div className="px-5 pb-5 space-y-3"><SkLine className="w-4/5" /><SkLine className="w-3/5" /></div></Card>
           <Card className="p-5 space-y-3"><SkLine className="w-24" /><div className="grid grid-cols-3 gap-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-10 rounded-xl" />)}</div></Card>
-          <Card className="p-5 space-y-3"><SkLine className="w-24" /><SkLine size={12} className="w-40" /><Skeleton className="h-2 rounded-full" /></Card>
         </div>
       </div>
     </>

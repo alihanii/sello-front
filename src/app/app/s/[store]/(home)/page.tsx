@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, FilePlus2, MessageCircle, Package, Plug, Send, ShoppingBag, Sparkles, Wallet } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FilePlus2, MessageCircle, Package, Plug, Send, Sparkles, Wallet } from "lucide-react";
 import Link from "next/link";
 import { faDigits, faNum, toman } from "@/lib/format";
 import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
@@ -98,8 +98,6 @@ export default function Dashboard() {
   const { data } = useQuery(storeQueries.dashboard(sid));
   if (!data) return <DashboardSkeleton />;
   const k = data.kpis;
-  const lim = data.usage.limits;
-  const pct = Math.min(100, Math.round((100 * data.usage.publishes_month) / (lim.monthly_publishes || 1)));
   return (
     <>
       <PageHeader title="داشبورد" subtitle="خلاصهٔ کار Sello برای این فروشگاه"
@@ -110,12 +108,11 @@ export default function Dashboard() {
         </>} />
       <AiSetupBanner />
       <SetupAlerts sid={sid} />
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
         <Stat icon={Package} label="کل محصولات" value={faNum(k.products)} hint={`${faNum(k.unpublished)} منتشرنشده`} />
         <Stat icon={Send} label="منتشرشده" value={faNum(k.published_any)} hint={`امروز ${faNum(k.published_today)} انتشار`} />
         <Stat icon={Wallet} label="درآمد امروز" value={faNum(k.income_today ?? 0)} unit="تومان"
           hint={`کل فروش: ${toman(k.sales_total)}`} />
-        <Stat icon={ShoppingBag} label="سفارش امروز" value={faNum(k.all_orders_today ?? k.orders_today ?? 0)} hint="از AI، چت و فاکتورساز" />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mt-4">
         <div className="lg:col-span-2 flex flex-col gap-4">
@@ -135,12 +132,6 @@ export default function Dashboard() {
             </div>
           </Card>
           <ChatCard sid={sid} today={{ chats: k.chats_answered_today ?? 0, replies: k.ai_replies_today ?? 0, orders: k.orders_today ?? 0 }} />
-          <Card className="p-5">
-            <div className="flex justify-between text-[13px]"><span className="font-bold">مصرف پلن</span><span className="text-muted">{data.usage.plan ?? "رایگان"}</span></div>
-            <div className="mt-3 text-[13px] text-muted tnum">{faNum(data.usage.publishes_month)} از {faNum(lim.monthly_publishes)} انتشار این ماه</div>
-            <div className="h-2 rounded-full bg-subtle mt-2 overflow-hidden"><div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} /></div>
-            <Link href="/app/billing" className="text-primary text-[13px] font-semibold mt-3 inline-block">ارتقای پلن</Link>
-          </Card>
         </div>
       </div>
     </>
