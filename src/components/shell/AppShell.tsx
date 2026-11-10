@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, MessageCircle, Moon, Package,
-  Plug, Radar, Settings, Shield, Store, Sun,
+  Plug, Settings, Shield, Store, Sun,
   ShoppingBag,
   Globe,
 } from "lucide-react";
@@ -131,7 +131,6 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     // Opened by the admin to a segment of sellers (admin › قابلیت‌ها).
     ...(me?.features?.site_builder ? [{ href: `${base}/site`, icon: Globe, label: "وبسایت ساز" }] : []),
     { href: `${base}/channels`, icon: Plug, label: "کانال‌ها" },
-    { href: `${base}/crawl`, icon: Radar, label: "کرال" },
     { href: `${base}/chat`, icon: MessageCircle, label: "AI چت", short: "AI چت", tab: true },
   ];
   const secondary = [

@@ -92,12 +92,12 @@ export default function Products() {
       <PageHeader title="محصولات" subtitle={data ? `${faNum(data.total)} محصول` : <InlineSkeleton />}
         actions={<>
           <MoreMenu items={[
-            { label: "کرال از کانال", icon: <Radar className="size-4" />, href: `/app/s/${sid}/crawl` },
+            { label: "افزودن دستی", icon: <Plus className="size-4" />, href: `/app/s/${sid}/products/new?mode=manual` },
             { label: "ورود از اکسل", icon: <FileSpreadsheet className="size-4" />, onClick: () => setImportOpen(true) },
             { label: "خروجی CSV", icon: <Download className="size-4" />, onClick: exportCsv },
           ]} />
           <Link href={`/app/s/${sid}/products/new?mode=ai`}><Button variant="ai" className="w-full" icon={<Sparkles className="size-4" />}>ساخت با AI</Button></Link>
-          <Link href={`/app/s/${sid}/products/new?mode=manual`} className="max-sm:order-first"><Button className="w-full" icon={<Plus className="size-4" />}>افزودن محصول</Button></Link>
+          <Link href={`/app/s/${sid}/crawl`} className="max-sm:order-first"><Button className="w-full" icon={<Radar className="size-4" />}>کرال</Button></Link>
         </>} />
 
       <Card className="p-3 mb-4 space-y-3">
@@ -318,7 +318,7 @@ const filterCls = (v: string) => cn("min-w-0", v && "!border-primary/50 !bg-prim
 
 type MenuItem = { label: string; icon: React.ReactNode; href?: string; onClick?: () => void };
 
-/** The less-used header actions (crawl, Excel import, CSV export) behind one button. */
+/** The less-used header actions (manual add, Excel import, CSV export) behind one button. */
 function MoreMenu({ items }: { items: MenuItem[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

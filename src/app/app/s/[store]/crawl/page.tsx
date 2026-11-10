@@ -3,7 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Inbox, Lock, Pencil, Play, Plus, Radar, Trash2, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
 import { ago, faNum, toman } from "@/lib/format";
@@ -34,6 +35,15 @@ export default function Crawl() {
     setForm({ ...src, channel_id: src.channel_id ? String(src.channel_id) : "", url: src.type === "instagram_profile" ? `@${src.url}` : src.url });
     setOpen(true);
   };
+  // Coming from a channel's «کرال» button: open the new-source form with that channel picked.
+  const sp = useSearchParams();
+  const preChannel = sp.get("channel");
+  useEffect(() => {
+    const ch = channels.find((c: any) => String(c.id) === preChannel);
+    if (!ch) return;
+    setForm({ type: ch.platform === "digikala" ? "marketplace_listing" : "channel_posts", channel_id: String(ch.id), schedule: "manual", extraction_mode: "llm" });
+    setOpen(true);
+  }, [preChannel, channels.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const editing = !!form.id;
   const refresh = () => { qc.invalidateQueries({ queryKey: ["crawl-sources", sid] }); qc.invalidateQueries({ queryKey: ["operations", sid] }); };
   const create = useMutation({
