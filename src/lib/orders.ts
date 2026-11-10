@@ -2,13 +2,14 @@ import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query
 import { toast } from "sonner";
 import { api } from "./api";
 
-/** Where an order came from: the AI assistant, a chat the seller handled, or an invoice link. */
+/** Where an order came from: the AI assistant, a chat the seller handled, an invoice link, or the store's website. */
 export const ORDER_SOURCE: Record<string, { label: string; short: string; color: string; tone: string }> = {
   ai: { label: "دستیار AI", short: "AI", color: "var(--ai)", tone: "ai" },
   chat: { label: "سفارش چت", short: "چت", color: "var(--primary)", tone: "primary" },
   invoice: { label: "فاکتورساز", short: "فاکتور", color: "var(--accent)", tone: "warning" },
+  site: { label: "سایت من", short: "سایت", color: "var(--crawl)", tone: "crawl" },
 };
-export const SOURCES = ["ai", "chat", "invoice"] as const;
+export const SOURCES = ["ai", "chat", "invoice", "site"] as const;
 
 export const ORDER_PLATFORMS: { value: string; label: string }[] = [
   { value: "instagram", label: "دایرکت اینستاگرام" },
