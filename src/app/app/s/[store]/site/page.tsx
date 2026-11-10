@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  AlertTriangle, ArrowDown, ArrowUp, BadgeCheck, CheckCircle2, ExternalLink, Globe, ImagePlus, MessageCircle, Plus,
+  ArrowDown, ArrowUp, BadgeCheck, CheckCircle2, ChevronLeft, Circle, ExternalLink, Globe, ImagePlus, Lock, MessageCircle, Plus,
   RefreshCw, Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -11,10 +11,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
 import { faDigits, faNum, jDateTime } from "@/lib/format";
-import { storeQueries, useStoreId } from "@/lib/hooks";
+import { storeQueries, useMe, useStoreId } from "@/lib/hooks";
 import { copyText } from "@/lib/orders";
 import {
-  Button, Card, CardHeader, Chip, Field, Input, NumberInput, PageHeader, Select, Spinner, Switch, Tabs, Textarea, cn,
+  Button, Card, CardHeader, Chip, EmptyState, Field, Input, NumberInput, PageHeader, Select, Spinner, Switch, Tabs, Textarea, cn,
 } from "@/components/ui/primitives";
 import { SettingsSkeleton } from "@/components/ui/skeletons";
 
@@ -119,27 +119,48 @@ function Row({ title, text, children }: { title: string; text?: React.ReactNode;
   );
 }
 
-/** What still blocks a working site, in the order the seller should fix it. */
-function Checklist({ s, d, sid }: { s: any; d: Draft; sid: number }) {
-  const items = [
-    { ok: !!(d.subdomain || d.custom_domain), text: "آدرس سایت انتخاب شده", fix: null },
-    { ok: s.products > 0, text: s.products > 0 ? `${faNum(s.products)} محصول آماده روی سایت` : "هنوز محصول آماده‌ای نداری", fix: <Link className="text-primary font-bold" href={`/app/s/${sid}/products/new`}>افزودن محصول</Link> },
-    { ok: s.payment_ready, text: s.payment_ready ? "روش پرداخت (کارت یا لینک) تنظیم شده" : "روش پرداخت تنظیم نشده؛ مشتری نمی‌تواند سفارش بدهد", fix: <Link className="text-primary font-bold" href={`/app/s/${sid}/orders?tab=settings`}>تنظیم پرداخت</Link> },
-    { ok: s.assistant_enabled || !d.config.chat.enabled, text: s.assistant_enabled ? "دستیار چت روشن است" : "برای چت سایت، دستیار AI چت را روشن کن", fix: <Link className="text-primary font-bold" href={`/app/s/${sid}/chat?tab=settings`}>AI چت</Link> },
+/** Setup steps, like the AI chat's: what the saved site still needs, in the order a seller should do it. Each open
+ * step takes you to the tab (or page) where it is done. */
+function Setup({ s, sid, go }: { s: any; sid: number; go: (t: Tab) => void }) {
+  const c = s.config;
+  const steps: { key: string; label: string; done: boolean; tab?: Tab; href?: string }[] = [
+    { key: "address", label: "آدرس سایت را انتخاب کن", done: !!(s.subdomain || s.custom_domain), tab: "address" },
+    { key: "products", label: s.products > 0 ? `${faNum(s.products)} محصول آماده روی سایت` : "حداقل یک محصول آماده داشته باش", done: s.products > 0, href: `/app/s/${sid}/products/new` },
+    { key: "payment", label: "روش پرداخت (کارت یا لینک) را تنظیم کن", done: !!s.payment_ready, href: `/app/s/${sid}/orders?tab=settings` },
+    { key: "look", label: "رنگ‌ها و بنر صفحهٔ اول را بگذار", done: (c.banners ?? []).length > 0, tab: "look" },
+    { key: "about", label: "متن «درباره ما» را بنویس", done: !!c.about?.text?.trim(), tab: "about" },
+    { key: "contact", label: "یک راه تماس (تلفن یا اینستاگرام) بگذار", done: ["phone", "instagram", "telegram", "whatsapp", "email"].some((k) => !!c.contact?.[k]), tab: "about" },
+    { key: "badges", label: "نماد اعتماد (اینماد) را به فوتر اضافه کن", done: (c.badges ?? []).length > 0, tab: "footer" },
+    { key: "chat", label: "چت سایت را روشن کن", done: !!(c.chat?.enabled && s.assistant_enabled), tab: "chat" },
+    { key: "enabled", label: "سایت را روشن کن", done: !!s.enabled, tab: "address" },
   ];
+  const done = steps.filter((x) => x.done).length;
+  const pct = Math.round((100 * done) / steps.length);
   return (
-    <ul className="space-y-2.5">
-      {items.map((it) => (
-        <li key={it.text} className="flex items-start gap-2 text-[13px]">
-          {it.ok ? <CheckCircle2 className="size-4 text-success mt-0.5 shrink-0" /> : <AlertTriangle className="size-4 text-warning mt-0.5 shrink-0" />}
-          <span className="flex-1">{it.text}</span>{!it.ok && it.fix}
-        </li>
-      ))}
-    </ul>
+    <Card className="lg:col-span-2">
+      <CardHeader title="راه‌اندازی سایت" subtitle={`${faNum(done)} از ${faNum(steps.length)} مرحله`}
+        action={done === steps.length ? <Chip tone="success">آماده</Chip> : undefined} />
+      <div className="px-5"><div className="h-2 rounded-full bg-subtle overflow-hidden"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} /></div></div>
+      <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-x-2">
+        {steps.map((x) => {
+          const body = (
+            <>
+              {x.done ? <CheckCircle2 className="size-5 text-success shrink-0" /> : <Circle className="size-5 text-muted shrink-0" />}
+              <span className={cn("flex-1", x.done && "text-muted")}>{x.label}</span>
+              {!x.done && <span className="text-primary text-[13px] font-bold inline-flex items-center">انجام بده<ChevronLeft className="size-4" /></span>}
+            </>
+          );
+          const cls = "w-full flex items-center gap-3 p-2.5 rounded-xl text-start text-[14px] hover:bg-subtle cursor-pointer";
+          return x.href && !x.done ? <Link key={x.key} href={x.href} className={cls}>{body}</Link>
+            : <button key={x.key} type="button" onClick={() => x.tab && go(x.tab)} className={cls}>{body}</button>;
+        })}
+      </div>
+      <p className="text-[12px] text-muted px-5 pb-5 leading-6">مرحله‌ها از تنظیمات ذخیره‌شده خوانده می‌شوند. سفارش‌های سایت با برچسب «وبسایت» در <Link className="text-primary font-bold" href={`/app/s/${sid}/orders`}>سفارشات</Link> می‌آیند.</p>
+    </Card>
   );
 }
 
-function AddressTab({ s, d, set, sid }: { s: any; d: Draft; set: (f: (d: Draft) => Draft) => void; sid: number }) {
+function AddressTab({ s, d, set, sid, go }: { s: any; d: Draft; set: (f: (d: Draft) => Draft) => void; sid: number; go: (t: Tab) => void }) {
   const qc = useQueryClient();
   const check = useMutation({
     mutationFn: () => api(`/stores/${sid}/site/check-domain`, { method: "POST" }),
@@ -149,7 +170,8 @@ function AddressTab({ s, d, set, sid }: { s: any; d: Draft; set: (f: (d: Draft) 
   const root = s.root_domain || "localhost";
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-      <Card className="p-5 space-y-5">
+      <Setup s={s} sid={sid} go={go} />
+      <Card className="p-5 space-y-5 lg:col-span-2">
         <Row title="سایت روشن باشد" text="خاموش که باشد، کسی سایت را نمی‌بیند."><Switch checked={d.enabled} onChange={(v) => set((x) => ({ ...x, enabled: v }))} /></Row>
         <Field label="آدرس روی دامنهٔ ما" hint="فقط حروف انگلیسی کوچک، عدد و خط تیره." >
           <div className="flex items-stretch gap-0" dir="ltr">
@@ -181,11 +203,6 @@ function AddressTab({ s, d, set, sid }: { s: any; d: Draft; set: (f: (d: Draft) 
             </div>
           )}
         </div>
-      </Card>
-      <Card className="p-5">
-        <h3 className="font-extrabold text-[15px] mb-3">برای شروع فروش</h3>
-        <Checklist s={s} d={d} sid={sid} />
-        <p className="text-[12px] text-muted mt-4 leading-6">سفارش‌های سایت با برچسب «وبسایت» در <Link className="text-primary font-bold" href={`/app/s/${sid}/orders`}>سفارشات</Link> می‌آیند و مثل فاکتور، مشتری کارت‌به‌کارت می‌کند و فیش می‌فرستد.</p>
       </Card>
     </div>
   );
@@ -426,7 +443,9 @@ export default function MySite() {
   const router = useRouter();
   const path = usePathname();
   const tab = (useSearchParams().get("tab") as Tab) || "address";
-  const { data: s } = useQuery(storeQueries.site(sid));
+  const { data: me } = useMe();
+  const locked = !!me && !me.features?.site_builder;
+  const { data: s, error } = useQuery({ ...storeQueries.site(sid), enabled: !!me && !locked, retry: false });
   const [d, setD] = useState<Draft | null>(null);
   const [base, setBase] = useState("");
   useEffect(() => {
@@ -442,6 +461,12 @@ export default function MySite() {
     onSuccess: (r: any) => { qc.setQueryData(["site", sid], r); toast.success("ذخیره شد؛ تا یک دقیقه روی سایت دیده می‌شود."); },
     onError: (e: any) => toast.error(e.message),
   });
+  if (locked || (error as any)?.status === 403) return (
+    <div><PageHeader title="وبسایت ساز" />
+      <Card><EmptyState icon={<Lock className="size-7" />} title="وبسایت ساز هنوز برای حساب تو فعال نشده"
+        text="این قابلیت کم‌کم برای فروشنده‌ها باز می‌شود. اگر می‌خواهی زودتر امتحانش کنی، به پشتیبانی Sello پیام بده." /></Card>
+    </div>
+  );
   if (!s || !d) return <SettingsSkeleton />;
   const set = (f: (d: Draft) => Draft) => setD((x) => (x ? f(x) : x));
   const go = (t: Tab) => router.replace(`${path}?tab=${t}`, { scroll: false });
@@ -456,7 +481,7 @@ export default function MySite() {
           <Button type="button" loading={save.isPending} disabled={!dirty} onClick={() => save.mutate(d)} icon={<Globe className="size-4" />}>ذخیره</Button>
         </>} />
       <div className="mb-5"><Tabs value={tab} onChange={go} items={TABS as any} /></div>
-      {tab === "address" && <AddressTab s={s} d={d} set={set} sid={sid} />}
+      {tab === "address" && <AddressTab s={s} d={d} set={set} sid={sid} go={go} />}
       {tab === "look" && <LookTab d={d} set={set} store={s.store} />}
       {tab === "about" && <AboutTab d={d} set={set} />}
       {tab === "footer" && <FooterTab d={d} set={set} />}

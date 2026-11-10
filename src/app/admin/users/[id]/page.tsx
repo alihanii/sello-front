@@ -10,7 +10,7 @@ import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate, toman } from "@/lib/format";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, CardHeader, Chip, Dialog, Field, Input, Select } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Dialog, Field, Input, Select, Switch } from "@/components/ui/primitives";
 import { AdminDetailSkeleton } from "@/components/ui/skeletons";
 
 const HEALTH: Record<string, string> = { connected: "bg-success", error: "bg-danger", expired: "bg-danger", disconnected: "bg-neutral" };
@@ -31,6 +31,10 @@ export default function UserDetail() {
   });
   const cancel = useMutation({ mutationFn: (sid: number) => api(`/admin/subscriptions/${sid}/cancel`, { method: "POST" }), onSuccess: refresh });
   const setActive = useMutation({ mutationFn: (v: boolean) => api(`/admin/users/${id}/active`, { method: "POST", json: { is_active: v } }), onSuccess: refresh, onError: (e: any) => toast.error(e.message) });
+  const feature = useMutation({
+    mutationFn: ({ key, enabled }: { key: string; enabled: boolean }) => api(`/admin/users/${id}/features/${key}`, { method: "POST", json: { enabled } }),
+    onSuccess: () => { refresh(); qc.invalidateQueries({ queryKey: ["admin-features"] }); }, onError: (e: any) => toast.error(e.message),
+  });
   if (!data) return <AdminDetailSkeleton />;
   const u = data.user;
   return (
@@ -63,6 +67,7 @@ export default function UserDetail() {
             </Card>
           ))}
         </div>
+        <div className="flex flex-col gap-4">
         <Card>
           <CardHeader title="اشتراک‌ها" />
           <ul className="px-5 pb-5 space-y-3">
@@ -77,6 +82,21 @@ export default function UserDetail() {
             ))}
           </ul>
         </Card>
+        <Card>
+          <CardHeader title="قابلیت‌ها" action={<Link href="/admin/features" className="text-primary text-[13px] font-bold">همهٔ کاربران</Link>} />
+          <ul className="px-5 pb-5 space-y-3">
+            {Object.entries(data.features ?? {}).map(([key, f]: any) => (
+              <li key={key} className="flex items-center justify-between gap-3 text-[14px]">
+                <span>{f.label}
+                  <span className="block text-[12px] text-muted">{u.role === "admin" ? "ادمین همیشه دارد" : f.mode === "all" ? "برای همه باز است" : f.mode === "none" ? "برای همه بسته است" : f.allowed ? "دسترسی دارد" : "دسترسی ندارد"}</span>
+                </span>
+                <Switch checked={f.selected || f.mode === "all" || u.role === "admin"} disabled={f.mode !== "selected" || u.role === "admin" || feature.isPending}
+                  onChange={(v) => feature.mutate({ key, enabled: v })} label={f.label} />
+              </li>
+            ))}
+          </ul>
+        </Card>
+        </div>
       </div>
       <Dialog open={open} onClose={() => setOpen(false)} title="فعال‌سازی پلن">
         <div className="space-y-4">
