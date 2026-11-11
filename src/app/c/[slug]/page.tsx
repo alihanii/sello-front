@@ -23,8 +23,19 @@ async function call<T>(path: string, init: RequestInit & { json?: unknown } = {}
   return data as T;
 }
 
-// Check for the seller's replies only for an hour after the chat was last active; coming back to the page checks once.
-const POLL_FOR_MS = 60 * 60 * 1000;
+/** New messages into the list: each id once, and a saved customer message replaces its "sending…" copy. */
+function merge(list: Msg[], incoming: Msg[]): Msg[] {
+  let out = list;
+  for (const m of incoming) {
+    if (out.some((x) => x.id === m.id)) continue;
+    if (m.role === "customer") {
+      const temp = out.find((x) => x.id < 0 && x.role === "customer" && x.text === m.text && !!x.image_url === !!m.image_url);
+      if (temp) out = out.filter((x) => x !== temp);
+    }
+    out = [...out, m];
+  }
+  return [...out.filter((x) => x.id > 0).sort((a, b) => a.id - b.id), ...out.filter((x) => x.id < 0)];
+}
 
 const toLatin = (s: string) => s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 
@@ -49,7 +60,10 @@ function ChatPage() {
   const [busy, setBusy] = useState(false);
   const [sendError, setSendError] = useState("");
   const [notice, setNotice] = useState("");
-  const [activeAt, setActiveAt] = useState(0);
+  // The server pushes new messages (Server-Sent Events) while the page is used; it lets go after an hour of nothing
+  // new and the page opens it again on the next message or when the customer comes back to the tab.
+  const [live, setLive] = useState(true);
+  const lastRef = useRef(0);
   const [askPhone, setAskPhone] = useState(false);
   const [phone, setPhone] = useState("");
   const [preview, setPreview] = useState<{ file: File; url: string } | null>(null);
@@ -66,9 +80,7 @@ function ChatPage() {
     if (saved.visitor && saved.name) {
       setVisitor(saved.visitor); setName(saved.name);
       call<{ messages: Msg[] }>(`${slug}/messages?visitor=${encodeURIComponent(saved.visitor)}`).then((r) => {
-        setMsgs(r.messages);
-        const at = r.messages.length ? Date.parse(r.messages[r.messages.length - 1].created_at ?? "") : 0;
-        setActiveAt(Number.isNaN(at) ? 0 : at);
+        setMsgs((m) => merge(m, r.messages));
       }).catch(() => {});
     }
     setReady(true);
@@ -78,26 +90,28 @@ function ChatPage() {
   const remember = (v: string, n: string) => { try { localStorage.setItem(key, JSON.stringify({ visitor: v, name: n })); } catch {} };
 
   // The seller may answer from the panel: check for new messages every few seconds while the page is open.
+  useEffect(() => { lastRef.current = last; }, [last]);
+
   useEffect(() => {
-    if (!visitor) return;
-    const check = () => call<{ messages: Msg[] }>(`${slug}/messages?visitor=${encodeURIComponent(visitor)}&after=${last}`)
-      .then((r) => r.messages.length && setMsgs((m) => [...m, ...r.messages.filter((x) => !m.some((y) => y.id === x.id))]))
-      .catch(() => {});
-    const t = window.setInterval(() => {
-      if (document.hidden || Date.now() - activeAt > POLL_FOR_MS) return;
-      check();
-    }, 5000);
-    const shown = () => { if (!document.hidden) check(); };
-    document.addEventListener("visibilitychange", shown);
-    return () => { window.clearInterval(t); document.removeEventListener("visibilitychange", shown); };
-  }, [visitor, last, slug, activeAt]);
+    if (!visitor || !live) return;
+    const es = new EventSource(`${API_URL}/api/v1/public/chat/${slug}/stream?visitor=${encodeURIComponent(visitor)}&after=${lastRef.current}`);
+    es.onmessage = (e) => { try { const rows = JSON.parse(e.data) as Msg[]; setMsgs((m) => merge(m, rows)); } catch {} };
+    es.addEventListener("bye", () => { es.close(); setLive(false); });
+    return () => es.close();
+  }, [visitor, slug, live]);
+
+  useEffect(() => {
+    const back = () => { if (!document.hidden) setLive(true); };
+    document.addEventListener("visibilitychange", back);
+    return () => document.removeEventListener("visibilitychange", back);
+  }, []);
 
   useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" }); }, [msgs.length, busy, askPhone]);
 
   const apply = (r: { visitor: string; messages: Msg[]; notice?: string }, tempId: number) => {
-    setActiveAt(Date.now()); setNotice(r.notice ?? "");
+    setLive(true); setNotice(r.notice ?? "");
     if (r.visitor !== visitor) { setVisitor(r.visitor); remember(r.visitor, name); }
-    setMsgs((m) => [...m.filter((x) => x.id !== tempId), ...r.messages.filter((x) => !m.some((y) => y.id === x.id))]);
+    setMsgs((m) => merge(m.filter((x) => x.id !== tempId), r.messages));
   };
 
   const send = async (t: string) => {
