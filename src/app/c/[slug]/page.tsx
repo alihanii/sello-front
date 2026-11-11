@@ -164,7 +164,7 @@ function ChatPage() {
   const head = (
     <div className="flex items-center gap-3 min-w-0">
       {page.logo_url
-        ? <img src={mediaUrl(page.logo_url)} alt="" className="size-10 rounded-full object-cover bg-subtle shrink-0" />
+        ? <img src={mediaUrl(page.logo_url, 40)} alt="" className="size-10 rounded-full object-cover bg-subtle shrink-0" />
         : <span className="size-10 rounded-full bg-primary-soft text-primary grid place-items-center shrink-0"><Store className="size-5" /></span>}
       <div className="min-w-0">
         <h1 className="font-black text-[16px] leading-tight truncate">{page.name}</h1>

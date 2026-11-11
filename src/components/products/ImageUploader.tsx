@@ -40,7 +40,7 @@ export function ImageUploader({ storeId, value, onChange, max = 10, hint = true 
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => { if (dragIdx == null || dragIdx === i) return; const n = [...value]; const [m] = n.splice(dragIdx, 1); n.splice(i, 0, m); onChange(n); setDragIdx(null); }}
             className={cn("relative aspect-square rounded-xl overflow-hidden bg-subtle group cursor-grab", i === 0 && "ring-2 ring-primary")}>
-            <img src={mediaUrl(url)} alt="" className="size-full object-cover" />
+            <img src={mediaUrl(url, 160)} alt="" className="size-full object-cover" />
             {i === 0 && <span className="absolute top-1 start-1 text-[10px] font-bold bg-accent text-accent-fg rounded-md px-1.5 py-0.5 flex items-center gap-0.5"><Star className="size-2.5" />اصلی</span>}
             <button type="button" onClick={() => onChange(value.filter((u) => u !== url))} aria-label="حذف عکس"
               className="absolute top-1 end-1 size-6 rounded-full bg-black/60 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition cursor-pointer">

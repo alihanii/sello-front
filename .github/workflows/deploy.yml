@@ -5,7 +5,8 @@
 # Repository secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, optional SSH_PORT (default 22).
 # Repository variables: NEXT_PUBLIC_API_URL (the site address, e.g. https://sello.example.com),
 #                       optional DEPLOY_PATH (default /opt/sello),
-#                       optional NEXT_PUBLIC_CLARITY_ID (Microsoft Clarity project ID; empty turns it off).
+#                       optional NEXT_PUBLIC_CLARITY_ID (Microsoft Clarity project ID; empty turns it off),
+#                       optional NEXT_PUBLIC_IMGPROXY_URL (imgproxy address, e.g. https://img.example.com; empty: no resizing).
 name: deploy
 
 on:
@@ -37,6 +38,7 @@ jobs:
           docker build \
             --build-arg NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
             --build-arg NEXT_PUBLIC_CLARITY_ID="${{ vars.NEXT_PUBLIC_CLARITY_ID }}" \
+            --build-arg NEXT_PUBLIC_IMGPROXY_URL="${{ vars.NEXT_PUBLIC_IMGPROXY_URL }}" \
             -t sello-front:latest .
 
       - name: Save image

@@ -82,7 +82,7 @@ export default function PublicInvoice() {
     <main className="min-h-dvh px-4 py-6 sm:py-10">
       <div className="mx-auto max-w-xl space-y-4">
         <header className="flex items-center gap-3">
-          {inv.seller.logo_url ? <img src={mediaUrl(inv.seller.logo_url)} alt="" className="size-12 rounded-2xl object-cover" />
+          {inv.seller.logo_url ? <img src={mediaUrl(inv.seller.logo_url, 48)} alt="" className="size-12 rounded-2xl object-cover" />
             : <span className="size-12 rounded-2xl bg-primary text-primary-fg grid place-items-center"><Store className="size-5" /></span>}
           <div className="flex-1 min-w-0">
             <h1 className="font-black text-[19px] truncate">{inv.seller.seller_name}</h1>
@@ -97,7 +97,7 @@ export default function PublicInvoice() {
           <ul className="divide-y divide-[var(--glass-edge)]">
             {inv.items.map((it: any, i: number) => (
               <li key={i} className="flex items-center gap-3 py-3">
-                {it.image_url && <img src={mediaUrl(it.image_url)} alt="" className="size-12 rounded-xl object-cover shrink-0" />}
+                {it.image_url && <img src={mediaUrl(it.image_url, 48)} alt="" className="size-12 rounded-xl object-cover shrink-0" />}
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-[14px]">{it.title}</div>
                   <div className="text-[12px] text-muted tnum">{it.variant ? `${it.variant} · ` : ""}{faNum(it.qty)} × {faNum(it.unit_price)}</div>

@@ -17,7 +17,7 @@ export function Bubble({ m, showCost = true }: { m: any; showCost?: boolean }) {
         m.role === "ai" && "bg-ai/12 rounded-se-sm",
         m.role === "seller" && "bg-primary/14 rounded-se-sm",
         m.role === "system" && "bg-subtle text-muted")}>
-        {m.image_url && <a href={mediaUrl(m.image_url)} target="_blank" rel="noreferrer"><img src={mediaUrl(m.image_url)} alt="" className="rounded-xl max-h-60 mb-2" /></a>}
+        {m.image_url && <a href={mediaUrl(m.image_url)} target="_blank" rel="noreferrer"><img src={mediaUrl(m.image_url, 320)} alt="" className="rounded-xl max-h-60 mb-2" /></a>}
         {m.text}
       </div>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted mt-1 px-1">

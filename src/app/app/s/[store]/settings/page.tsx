@@ -49,7 +49,7 @@ function LogoPicker({ value, onChange, name }: { value: string; onChange: (url: 
     <div className="flex items-center gap-4">
       <button type="button" onClick={() => input.current?.click()} aria-label="انتخاب لوگو"
         className="relative size-20 rounded-2xl bg-subtle border border-edge overflow-hidden grid place-items-center cursor-pointer hover:border-primary transition shrink-0">
-        {value ? <img src={mediaUrl(value)} alt={`لوگوی ${name}`} className="size-full object-cover" /> : <Store className="size-7 text-muted" />}
+        {value ? <img src={mediaUrl(value, 80)} alt={`لوگوی ${name}`} className="size-full object-cover" /> : <Store className="size-7 text-muted" />}
         {busy && <span className="absolute inset-0 bg-black/30 grid place-items-center"><Spinner className="text-white" /></span>}
       </button>
       <div className="space-y-2">

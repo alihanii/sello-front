@@ -53,13 +53,13 @@ function OrderCard({ o, highlight, go }: { o: any; highlight: boolean; go: (t: a
         {Object.entries(o.extras || {}).map(([k, v]: [string, any]) => (
           String(v).startsWith("/media/") || String(v).startsWith("http")
             ? <div key={k} className="flex items-center gap-2"><span className="text-muted">{k}:</span>
-                <a href={mediaUrl(String(v))} target="_blank" rel="noreferrer"><img src={mediaUrl(String(v))} alt={k} className="size-16 rounded-xl object-cover" /></a></div>
+                <a href={mediaUrl(String(v))} target="_blank" rel="noreferrer"><img src={mediaUrl(String(v), 64)} alt={k} className="size-16 rounded-xl object-cover" /></a></div>
             : <div key={k}><span className="text-muted">{k}:</span> {String(v)}</div>
         ))}
       </div>
       {(o.receipt_url || o.payment_ref || o.receipt_text) && (
         <div className="mt-3 rounded-2xl bg-subtle p-3 flex gap-3">
-          {o.receipt_url ? <button onClick={() => setZoom(true)} className="cursor-zoom-in shrink-0"><img src={mediaUrl(o.receipt_url)} alt="فیش پرداخت" className="size-20 rounded-xl object-cover" /></button>
+          {o.receipt_url ? <button onClick={() => setZoom(true)} className="cursor-zoom-in shrink-0"><img src={mediaUrl(o.receipt_url, 80)} alt="فیش پرداخت" className="size-20 rounded-xl object-cover" /></button>
             : <Receipt className="size-6 text-muted shrink-0" />}
           <div className="text-[13px] min-w-0">
             <div className="font-bold">اطلاعات پرداخت مشتری</div>

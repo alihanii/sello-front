@@ -201,7 +201,7 @@ export default function Products() {
                     onChange={(e) => toggle(p.id, e.target.checked)} /></td>
                   <td className="p-3">
                     <Link href={`/app/s/${sid}/products/${p.id}`} className="flex items-center gap-3 group">
-                      {p.images[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-11 rounded-xl object-cover bg-subtle" loading="lazy" />
+                      {p.images[0] ? <img src={mediaUrl(p.images[0].url, 44)} alt="" className="size-11 rounded-xl object-cover bg-subtle" loading="lazy" />
                         : <span className="size-11 rounded-xl bg-subtle grid place-items-center text-muted"><ImageOff className="size-4" /></span>}
                       <span>
                         <span className="block font-semibold group-hover:text-primary line-clamp-1">{p.title}</span>
@@ -236,7 +236,7 @@ export default function Products() {
               <Link href={`/app/s/${sid}/products/${p.id}`} className="block h-full">
                 <Card className={cn("overflow-hidden hover:-translate-y-0.5 transition h-full p-1.5", selected.includes(p.id) && "ring-2 ring-primary/50")}>
                   <div className="aspect-square bg-subtle rounded-card overflow-hidden">
-                    {p.images[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" loading="lazy" />
+                    {p.images[0] ? <img src={mediaUrl(p.images[0].url, 240)} alt="" className="size-full object-cover" loading="lazy" />
                       : <div className="size-full grid place-items-center text-muted"><ImageOff className="size-6" /></div>}
                   </div>
                   <div className="p-2 sm:p-2.5 space-y-2">

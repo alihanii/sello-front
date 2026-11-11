@@ -76,7 +76,7 @@ function OrderCard({ o, highlight }: { o: any; highlight: boolean }) {
       </div>
       {(o.receipt_url || o.payment_ref || o.receipt_text) && (
         <div className="mt-3 rounded-2xl bg-subtle p-3 flex gap-3">
-          {o.receipt_url ? <button onClick={() => setZoom(true)} className="cursor-zoom-in shrink-0"><img src={mediaUrl(o.receipt_url)} alt="فیش پرداخت" className="size-20 rounded-xl object-cover" /></button>
+          {o.receipt_url ? <button onClick={() => setZoom(true)} className="cursor-zoom-in shrink-0"><img src={mediaUrl(o.receipt_url, 80)} alt="فیش پرداخت" className="size-20 rounded-xl object-cover" /></button>
             : <Receipt className="size-6 text-muted shrink-0" />}
           <div className="text-[13px] min-w-0">
             <div className="font-bold">اطلاعات پرداخت مشتری</div>

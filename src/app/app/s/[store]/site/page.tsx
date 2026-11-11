@@ -97,7 +97,7 @@ function ImageSlot({ value, onChange, label, ratio = "aspect-[8/3]", hint }: { v
     <div>
       <button type="button" onClick={() => input.current?.click()} aria-label={label}
         className={cn("relative w-full rounded-card bg-subtle border border-dashed border-edge overflow-hidden grid place-items-center cursor-pointer hover:border-primary transition", ratio)}>
-        {value ? <img src={mediaUrl(value)} alt="" className="absolute inset-0 size-full object-cover" />
+        {value ? <img src={mediaUrl(value, 640)} alt="" className="absolute inset-0 size-full object-cover" />
           : <span className="flex flex-col items-center gap-1 text-muted text-[13px]"><ImagePlus className="size-6" />{label}</span>}
         {busy && <span className="absolute inset-0 bg-black/30 grid place-items-center"><Spinner className="text-white" /></span>}
       </button>

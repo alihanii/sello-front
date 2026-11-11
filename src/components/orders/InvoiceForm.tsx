@@ -35,7 +35,7 @@ function ProductPicker({ onPick }: { onPick: (p: any) => void }) {
           ) : data.items.map((p: any) => (
             <button key={p.id} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick(p); setQ(""); setOpen(false); }}
               className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-subtle text-start cursor-pointer">
-              {p.images?.[0] ? <img src={mediaUrl(p.images[0].url)} alt="" className="size-10 rounded-lg object-cover" /> : <span className="size-10 rounded-lg bg-subtle grid place-items-center"><Package className="size-4 text-muted" /></span>}
+              {p.images?.[0] ? <img src={mediaUrl(p.images[0].url, 40)} alt="" className="size-10 rounded-lg object-cover" /> : <span className="size-10 rounded-lg bg-subtle grid place-items-center"><Package className="size-4 text-muted" /></span>}
               <span className="flex-1 min-w-0">
                 <span className="block text-[14px] font-semibold truncate">{p.title}</span>
                 <span className={cn("block text-[12px] tnum", p.stock_qty > 0 ? "text-muted" : "text-danger")}>{p.stock_qty > 0 ? `موجودی ${faNum(p.stock_qty)}` : "ناموجود"}</span>
@@ -166,7 +166,7 @@ export function InvoiceForm({ chat = false, onDone }: { chat?: boolean; onDone: 
                     return (
                       <li key={l.id} className="rounded-2xl bg-subtle p-3 flex flex-col sm:flex-row sm:items-center gap-3">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {l.image_url ? <img src={mediaUrl(l.image_url)} alt="" className="size-12 rounded-xl object-cover shrink-0" /> : <span className="size-12 rounded-xl bg-glass grid place-items-center shrink-0"><Package className="size-4 text-muted" /></span>}
+                          {l.image_url ? <img src={mediaUrl(l.image_url, 48)} alt="" className="size-12 rounded-xl object-cover shrink-0" /> : <span className="size-12 rounded-xl bg-glass grid place-items-center shrink-0"><Package className="size-4 text-muted" /></span>}
                           <div className="flex-1 min-w-0 space-y-1.5">
                             {l.product_id ? <div className="font-semibold text-[14px] truncate">{l.title}</div> : <>
                               <Input className="!h-9" placeholder="نام کالا یا خدمت" {...register(`items.${i}.title`)} aria-label="نام ردیف" aria-invalid={!!e?.title} />

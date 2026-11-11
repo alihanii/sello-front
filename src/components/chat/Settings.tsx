@@ -193,7 +193,7 @@ function References() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {refs.map((r) => (
               <div key={r.id} className="flex gap-3 rounded-2xl bg-subtle p-3">
-                {r.image_url ? <img src={mediaUrl(r.image_url)} alt="" className="size-16 rounded-xl object-cover shrink-0" /> : <div className="size-16 rounded-xl bg-glass grid place-items-center shrink-0"><BookOpen className="size-5 text-muted" /></div>}
+                {r.image_url ? <img src={mediaUrl(r.image_url, 64)} alt="" className="size-16 rounded-xl object-cover shrink-0" /> : <div className="size-16 rounded-xl bg-glass grid place-items-center shrink-0"><BookOpen className="size-5 text-muted" /></div>}
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-[14px] truncate">{r.title}</div>
                   <div className="text-[12px] text-muted line-clamp-2">{r.keywords || r.text}</div>
@@ -237,7 +237,7 @@ function RefDialog({ value, onClose }: { value: any; onClose: () => void }) {
           <div className="text-[13px] font-semibold mb-1.5">عکس (اختیاری)</div>
           <input ref={file} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && upload.mutate(e.target.files[0])} />
           {r.image_url ? (
-            <div className="flex items-center gap-3"><img src={mediaUrl(r.image_url)} alt="" className="h-24 rounded-xl" /><Button type="button" size="sm" variant="ghost" onClick={() => setR({ ...r, image_url: "" })}>حذف عکس</Button></div>
+            <div className="flex items-center gap-3"><img src={mediaUrl(r.image_url, 160)} alt="" className="h-24 rounded-xl" /><Button type="button" size="sm" variant="ghost" onClick={() => setR({ ...r, image_url: "" })}>حذف عکس</Button></div>
           ) : <Button type="button" variant="secondary" icon={<ImagePlus className="size-4" />} loading={upload.isPending} onClick={() => file.current?.click()}>انتخاب عکس</Button>}
         </div>
         <FormActions><Button type="submit" className="w-full" loading={save.isPending}>ذخیره</Button></FormActions>
