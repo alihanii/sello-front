@@ -9,7 +9,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, CircleOff, Clock, MessageCirc
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import { faDigits, faNum, toman } from "@/lib/format";
+import { asDate, faDigits, faNum, jTime, toman } from "@/lib/format";
 import { ORDER_STATUS } from "@/lib/chat";
 import { useStoreId } from "@/lib/hooks";
 import { OP_TYPES } from "@/lib/meta";
@@ -43,7 +43,7 @@ function DayTimeline({ sid, day }: { sid: number; day: Date }) {
   const { data } = useQuery({ queryKey: ["calendar", sid, "day", iso(day)], queryFn: () => api(`/stores/${sid}/calendar/day/${iso(day)}`) });
   const ops = data?.operations ?? [];
   const loading = !data;
-  const pos = (d: string) => { const t = new Date(d.endsWith("Z") ? d : d + "Z"); return ((t.getHours() * 60 + t.getMinutes()) / 1440) * 100; };
+  const pos = (d: string) => { const t = asDate(d); if (Number.isNaN(t.getTime())) return 0; return ((t.getHours() * 60 + t.getMinutes()) / 1440) * 100; };
   return (
     <Card className="p-5 overflow-x-auto">
       <div className="min-w-[720px]">
@@ -58,7 +58,7 @@ function DayTimeline({ sid, day }: { sid: number; day: Date }) {
               <div className="relative flex-1 h-full" dir="ltr">
                 {loading && <Skeleton className="absolute top-2.5 h-7 rounded-md" style={{ left: `${10 + LANES.indexOf(lane) * 18}%`, width: "22%" }} />}
                 {items.map((o: any) => (
-                  <Link key={o.id} href={`/app/s/${sid}/activity/${o.id}`} title={`${o.title_fa} (${jfa(new Date(o.created_at + "Z"), "HH:mm")})`}
+                  <Link key={o.id} href={`/app/s/${sid}/activity/${o.id}`} title={`${o.title_fa} (${jTime(o.created_at)})`}
                     className="absolute top-2.5 h-7 min-w-2.5 rounded-md ring-2 ring-[var(--glass-strong)] hover:scale-110 transition"
                     style={{ left: `${pos(o.created_at)}%`, background: o.status === "failed" ? "var(--danger)" : o.status === "partial" ? "var(--warning)" : lane.color }} />
                 ))}
@@ -256,7 +256,7 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
             {data.orders.map((o: any) => (
               <li key={`${o.kind}-${o.id}`}>
                 <Link href={`/app/s/${sid}/orders?o=${o.kind === "ai" || !o.kind ? "ai" : "inv"}-${o.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
-                  <span className="tnum text-muted w-11">{faDigits(jf(new Date(o.created_at.endsWith("Z") || o.created_at.includes("+") ? o.created_at : o.created_at + "Z"), "HH:mm"))}</span>
+                  <span className="tnum text-muted w-11">{jTime(o.created_at)}</span>
                   <span className="flex-1 min-w-0 truncate">{o.customer_name || (o.number ? `${o.kind === "invoice" ? "فاکتور" : "سفارش چت"} ${faDigits(o.number)}` : `سفارش #${faNum(o.id)}`)}</span>
                   <span className="tnum text-muted shrink-0">{toman(o.total_toman)}</span>
                   <Chip tone={ORDER_STATUS[o.status]?.tone}>{ORDER_STATUS[o.status]?.label ?? o.status}</Chip>
@@ -273,7 +273,7 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
             {data.chats.map((c: any) => (
               <li key={c.id}>
                 <Link href={`/app/s/${sid}/chat?tab=conversations&c=${c.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
-                  <span className="tnum text-muted w-11">{faDigits(jf(new Date(c.last_at.endsWith("Z") || c.last_at.includes("+") ? c.last_at : c.last_at + "Z"), "HH:mm"))}</span>
+                  <span className="tnum text-muted w-11">{jTime(c.last_at)}</span>
                   <span className="flex-1 min-w-0 truncate">{c.customer_name || `گفتگو #${faNum(c.id)}`}</span>
                   <span className="tnum text-muted shrink-0">{faNum(c.ai_replies)} پاسخ</span>
                 </Link>
@@ -285,12 +285,12 @@ function DayDetail({ sid, day, onTimeline }: { sid: number; day: Date; onTimelin
       <Button variant="secondary" size="sm" className="w-full" onClick={onTimeline}>نمایش تایم‌لاین ساعتی این روز</Button>
       <div>
         <div className="font-bold text-[14px] mb-2">عملیات‌های این روز</div>
-        {data.operations.length === 0 ? <p className="text-muted text-[13px]">چیزی ثبت نشده.</p> : (
+        {!data.operations?.length ? <p className="text-muted text-[13px]">چیزی ثبت نشده.</p> : (
           <ul className="space-y-1">
             {data.operations.map((o: any) => (
               <li key={o.id}>
                 <Link href={`/app/s/${sid}/activity/${o.id}`} className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle text-[13px]">
-                  <span className="tnum text-muted w-11">{faDigits(jf(new Date(o.created_at + "Z"), "HH:mm"))}</span>
+                  <span className="tnum text-muted w-11">{jTime(o.created_at)}</span>
                   <span className="flex-1 truncate">{o.title_fa}</span>
                   <StatusChip status={o.status} kind="op" />
                 </Link>
