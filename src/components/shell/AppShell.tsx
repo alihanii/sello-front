@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, mediaUrl, setToken } from "@/lib/api";
 import { faDigits, faNum } from "@/lib/format";
 import { prefetchStorePage, useMe, useOperationsStream, useStores } from "@/lib/hooks";
@@ -19,26 +19,21 @@ import { Logo } from "./Brand";
 
 export { Logo };
 
-/** Days left on the seller's plan, in the header; amber in the last week, red once it has ended. */
-function PlanDays() {
+/** Days left on the seller's plan: amber in the last week, red once it has ended. */
+function usePlan() {
   const { data } = useQuery({ queryKey: ["subscription"], queryFn: () => api<any>("/me/subscription"), staleTime: 5 * 60_000 });
   if (!data || data.status === "admin") return null;
   const ends = data.subscription?.ends_at ? new Date(data.subscription.ends_at).getTime() : 0;
   const days = ends ? Math.max(0, Math.ceil((ends - Date.now()) / 86_400_000)) : 0;
-  const [label, short, tone] = data.status === "active"
-    ? [`${faNum(days)} روز از پلن مانده`, `${faNum(days)} روز`, days <= 7 ? "warn" : "ok"]
-    : data.status === "free" ? ["حساب آزمایشی · خرید پلن", "آزمایشی", "ok"]
-    : data.status === "blocked" ? ["حساب غیرفعال است", "غیرفعال", "bad"] : ["پلن تمام شده · تمدید", "تمدید", "bad"];
-  return (
-    <Link href="/app/billing" title={label}
-      className={cn("inline-flex items-center gap-1.5 h-9 rounded-full px-3 text-[12px] font-bold whitespace-nowrap border transition hover:opacity-90",
-        tone === "bad" ? "border-danger/40 bg-danger/12 text-danger" : tone === "warn" ? "border-warning/40 bg-warning/15 text-warning" : "border-edge bg-subtle/60")}>
-      <CreditCard className="size-3.5" /><span className="sm:hidden">{short}</span><span className="hidden sm:inline">{label}</span>
-    </Link>
-  );
+  const [title, note, action, tone] = data.status === "active"
+    ? [`${faNum(days)} روز از پلن مانده`, data.subscription?.plan?.name ? `پلن ${data.subscription.plan.name}` : "", "تمدید یا تغییر پلن", days <= 7 ? "warn" : "ok"]
+    : data.status === "free" ? ["حساب آزمایشی", "با خرید پلن همهٔ امکانات باز می‌شود.", "خرید پلن", "ok"]
+    : data.status === "blocked" ? ["حساب غیرفعال است", "برای فعال‌سازی با پشتیبانی تماس بگیر.", "پلن و اشتراک", "bad"]
+    : ["پلن تمام شده", "دستیار AI تا تمدید خاموش است.", "تمدید پلن", "bad"];
+  return { title, note, action, tone: tone as "ok" | "warn" | "bad" };
 }
 
-export function ThemeToggle() {
+function useTheme() {
   const [dark, setDark] = useState(false);
   useEffect(() => {
     const t = document.documentElement.dataset.theme;
@@ -50,10 +45,92 @@ export function ThemeToggle() {
     try { localStorage.setItem("sello-theme", next); } catch {}
     setDark(!dark);
   };
+  return { dark, toggle };
+}
+
+export function ThemeToggle() {
+  const { dark, toggle } = useTheme();
   return (
     <Button variant="ghost" size="sm" onClick={toggle} aria-label="تغییر تم">
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
+  );
+}
+
+const TONE = {
+  ok: "bg-subtle text-fg",
+  warn: "bg-warning/15 text-warning",
+  bad: "bg-danger/12 text-danger",
+};
+
+/** The seller's menu in the header: who is signed in, days left on the plan, dark mode and logout, in one dropdown. */
+function AccountMenu({ me, onLogout }: { me: any; onLogout: () => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const plan = usePlan();
+  const { dark, toggle } = useTheme();
+  const path = usePathname();
+  useEffect(() => setOpen(false), [path]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
+  }, [open]);
+  const name = me?.name || faDigits(me?.phone ?? "") || "کاربر";
+  const alert = plan && plan.tone !== "ok";
+
+  return (
+    // Same anchoring as the notifications panel: full header width on phones, hanging under the button from sm up.
+    <div className="sm:relative ps-1 sm:ps-2 sm:border-s border-edge" ref={box}>
+      <button onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="menu" aria-label="حساب کاربری"
+        className="flex items-center gap-2 h-10 ps-1 pe-1 sm:pe-2 rounded-full hover:bg-subtle transition cursor-pointer">
+        <span className="relative size-8 rounded-full bg-primary-soft text-primary grid place-items-center text-[13px] font-bold">
+          {name[0]}
+          {alert && <span className={cn("absolute -top-0.5 -end-0.5 size-3 rounded-full ring-2 ring-[var(--bg)]", plan.tone === "bad" ? "bg-danger" : "bg-warning")} aria-hidden />}
+        </span>
+        <span className="text-[13px] font-bold tnum hidden md:inline max-w-[140px] truncate">{name}</span>
+        <ChevronDown className={cn("size-4 text-muted hidden sm:block transition-transform", open && "rotate-180")} aria-hidden />
+      </button>
+      <div role="menu" aria-label="حساب کاربری"
+        className={cn("glass-strong [background:linear-gradient(var(--glass-strong),var(--glass-strong)),var(--bg)] absolute z-40 top-[calc(100%+8px)] inset-x-3 sm:inset-x-auto sm:top-12 sm:-end-2 sm:w-[300px] rounded-sheet p-2 origin-top sm:origin-top-left transition-all duration-200",
+          open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-1 pointer-events-none")}>
+        <div className="flex items-center gap-3 px-2 py-2">
+          <span className="size-10 rounded-full bg-primary-soft text-primary grid place-items-center font-bold shrink-0">{name[0]}</span>
+          <span className="flex-1 min-w-0">
+            <span className="block font-bold text-[14px] truncate">{me?.name || "کاربر"}</span>
+            {me?.phone && <span className="block text-[12px] text-muted tnum">{faDigits(me.phone)}</span>}
+          </span>
+        </div>
+        {plan && (
+          <Link href="/app/billing" role="menuitem" className={cn("flex items-center gap-3 p-3 mt-1 rounded-2xl transition hover:opacity-90", TONE[plan.tone])}>
+            <CreditCard className="size-5 shrink-0" aria-hidden />
+            <span className="flex-1 min-w-0">
+              <span className="block text-[14px] font-bold tnum">{plan.title}</span>
+              {plan.note && <span className="block text-[12px] opacity-80 mt-0.5">{plan.note}</span>}
+            </span>
+            <span className="text-[12px] font-bold whitespace-nowrap opacity-90">{plan.action} ←</span>
+          </Link>
+        )}
+        <div className="mt-1 flex flex-col">
+          <button role="menuitemcheckbox" aria-checked={dark} onClick={toggle}
+            className="flex items-center gap-3 h-11 px-3 rounded-2xl text-[14px] font-bold hover:bg-subtle transition cursor-pointer text-start">
+            {dark ? <Sun className="size-[18px] text-muted" aria-hidden /> : <Moon className="size-[18px] text-muted" aria-hidden />}
+            <span className="flex-1">حالت تاریک</span>
+            <span className={cn("w-9 h-5 rounded-full p-0.5 transition-colors", dark ? "bg-primary" : "bg-subtle border border-edge")} aria-hidden>
+              <span className={cn("block size-4 rounded-full bg-white shadow transition-transform", dark ? "-translate-x-4" : "translate-x-0")} />
+            </span>
+          </button>
+          <button role="menuitem" onClick={onLogout}
+            className="flex items-center gap-3 h-11 px-3 rounded-2xl text-[14px] font-bold text-danger hover:bg-danger/10 transition cursor-pointer text-start">
+            <LogOut className="size-[18px]" aria-hidden />
+            <span className="flex-1">خروج از حساب</span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -180,15 +257,9 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
         <div className="on-nav shadow-[var(--shadow)] rounded-2xl h-14 ps-2 pe-2 sm:ps-3 flex items-center gap-1.5 sm:gap-2">
           <Link href={base} className="lg:hidden ps-1 flex items-center" aria-label="داشبورد"><Logo className="text-[18px]" /></Link>
           <div className="flex-1" />
-          <PlanDays />
           <ActivityIndicator storeId={storeId} />
           <NotificationBell storeId={storeId} />
-          <ThemeToggle />
-          <div className="hidden sm:flex items-center gap-2 ps-2 border-s border-edge">
-            <span className="size-9 rounded-full bg-primary-soft text-primary grid place-items-center text-[13px] font-bold">{(me?.name || "ک")[0]}</span>
-            <span className="text-[13px] font-bold tnum hidden md:inline">{me?.name || faDigits(me?.phone ?? "")}</span>
-          </div>
-          <Button variant="ghost" size="sm" aria-label="خروج" onClick={logout} className="hidden sm:inline-flex"><LogOut className="size-4" /></Button>
+          <AccountMenu me={me} onLogout={logout} />
         </div>
       </header>
 
