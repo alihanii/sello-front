@@ -12,7 +12,7 @@ import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon, StatusChip } from "@/components/ui/status";
 import { VirtualList } from "@/components/ui/VirtualList";
-import { Button, Card, CardHeader, Chip, Dialog, EmptyState, Field, Input, PageHeader, Select, Skeleton, Switch } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Dialog, EmptyState, Field, Input, PageHeader, Select, Skeleton, Switch, FormActions } from "@/components/ui/primitives";
 import { AiSetupBanner } from "@/components/admin/AiKeyEditor";
 import { ListRowsSkeleton, SkLine } from "@/components/ui/skeletons";
 
@@ -200,7 +200,7 @@ export default function Crawl() {
               <Switch checked={form.is_active !== false} onChange={(v) => setForm({ ...form, is_active: v })} />
             </label>
           )}
-          <Button type="submit" className="w-full" loading={create.isPending}>{editing ? "ذخیرهٔ تغییرات" : "افزودن"}</Button>
+          <FormActions><Button type="submit" className="w-full" loading={create.isPending}>{editing ? "ذخیرهٔ تغییرات" : "افزودن"}</Button></FormActions>
         </form>
       </Dialog>
     </>

@@ -10,7 +10,7 @@ import { ago, faDigits, faNum, jDateTime, toman } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
 import { rules, useZodForm, z } from "@/lib/form";
 import { INVOICE_STATUS, copyText, orderQueries, usePatchInvoice, useInvalidateOrders } from "@/lib/orders";
-import { Button, Card, Chip, EmptyState, Field, Input, NumberInput, Switch, Tabs, Textarea } from "@/components/ui/primitives";
+import { Button, Card, Chip, EmptyState, Field, Input, NumberInput, Switch, Tabs, Textarea, FormActions } from "@/components/ui/primitives";
 import { FormCardSkeleton, ListRowsSkeleton } from "@/components/ui/skeletons";
 
 export function InvoiceList({ onNew }: { onNew: () => void }) {
@@ -93,7 +93,7 @@ export function InvoiceSettings() {
   const sid = useStoreId();
   const refresh = useInvalidateOrders(sid);
   const { data } = useQuery(orderQueries.settings(sid));
-  const { register, control, handleSubmit, reset, formState: { errors } } = useZodForm(settingsSchema);
+  const { register, control, handleSubmit, reset, formState: { errors, isDirty } } = useZodForm(settingsSchema);
   useEffect(() => { if (data) reset(pick(data)); }, [data, reset]);
   const save = useMutation({
     mutationFn: (v: SettingsForm) => api(`/stores/${sid}/invoice-settings`, { method: "PUT", json: v }),
@@ -120,7 +120,8 @@ export function InvoiceSettings() {
     )} />
   );
   return (
-    <form onSubmit={handleSubmit((v) => save.mutate(v as SettingsForm))} noValidate className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+    <form onSubmit={handleSubmit((v) => save.mutate(v as SettingsForm))} noValidate>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
       <Card className="p-5 space-y-3">
         <h3 className="font-extrabold text-[15px]">اطلاعات پرداخت</h3>
         <p className="text-[13px] text-muted -mt-2">مشتری روی فاکتور همین‌ها را می‌بیند و با یک ضربه کپی می‌کند.</p>
@@ -154,8 +155,9 @@ export function InvoiceSettings() {
           {toggle("ask_address", "آدرس تحویل را بپرس", "برای کالای فیزیکی روشن بماند.")}
           {text("thank_you", "پیام بعد از ارسال فیش", { placeholder: "ممنون از خریدت! بعد از تأیید، سفارش ارسال می‌شود." })}
         </Card>
-        <Button type="submit" size="lg" className="w-full" loading={save.isPending}>ذخیرهٔ تنظیمات</Button>
       </div>
+      </div>
+      <FormActions note={isDirty ? "تغییرات ذخیره نشده" : undefined}><Button type="submit" size="lg" loading={save.isPending}>ذخیرهٔ تنظیمات</Button></FormActions>
     </form>
   );
 }

@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { API_URL, api, getToken } from "@/lib/api";
 import { faNum, toman } from "@/lib/format";
-import { Button, Chip, Dialog, cn } from "@/components/ui/primitives";
+import { Button, Chip, Dialog, cn, FormActions } from "@/components/ui/primitives";
 import { VirtualList } from "@/components/ui/VirtualList";
 
 type Row = { row: number; data: Record<string, any>; errors: string[]; action: "create" | "update" };
@@ -116,12 +116,12 @@ export function ImportDialog({ storeId, open, onClose }: { storeId: number; open
               </div>
             )} />
           </div>
-          <div className="flex flex-wrap gap-2 justify-end">
+          <FormActions>
             <Button variant="ghost" onClick={reset}>فایل دیگر</Button>
             <Button disabled={!preview.valid} loading={save.isPending} onClick={() => save.mutate()}>
               {preview.valid ? `ثبت ${faNum(preview.valid)} محصول` : "ردیف سالمی برای ثبت نیست"}
             </Button>
-          </div>
+          </FormActions>
         </div>
       )}
     </Dialog>

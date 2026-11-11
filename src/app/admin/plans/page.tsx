@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { faDigits, faNum, toman } from "@/lib/format";
 import { AdminFormsSkeleton } from "@/components/ui/skeletons";
 import { PlanCards } from "@/components/plans/PlanCards";
-import { Button, Card, CardHeader, Chip, Field, Input, NumberInput, PageHeader, Switch, Textarea, cn } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Field, Input, NumberInput, PageHeader, Switch, Textarea, cn, FormActions } from "@/components/ui/primitives";
 
 const LIMITS: [string, string][] = [["max_stores", "حداکثر فروشگاه"], ["max_channels_per_platform", "کانال از هر پلتفرم (در هر فروشگاه)"], ["max_products", "حداکثر محصول"], ["monthly_ai_credits", "ساخت محصول با AI در ماه"], ["monthly_chat_messages", "جواب AI دستیار چت در ماه"]];
 const LABEL: Record<number, string> = { 1: "یک‌ماهه", 3: "سه‌ماهه", 12: "یک‌ساله" };
@@ -146,13 +146,13 @@ function TierEditor({ draft: p, open, onOpen, onChange, onSaved, onDeleted }: {
             <Textarea rows={6} value={p.features.join("\n")} onChange={(e) => onChange({ ...p, features: e.target.value.split("\n") })} />
           </Field>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <FormActions className="justify-between">
             {!p.isNew ? (
               <Button variant="danger" size="sm" icon={<Trash2 className="size-4" />} loading={remove.isPending}
                 onClick={() => confirm(`پلن «${p.name}» حذف شود؟ پلنی که خریدار داشته حذف نمی‌شود.`) && remove.mutate()}>حذف پلن</Button>
             ) : <span />}
             <Button loading={save.isPending} disabled={!p.name.trim()} onClick={() => save.mutate()}>{p.isNew ? "ساخت پلن" : "ذخیرهٔ تغییرات"}</Button>
-          </div>
+          </FormActions>
         </div>
       )}
     </Card>
@@ -176,7 +176,7 @@ function FreeLimits() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {LIMITS.map(([k, lab]) => <Field key={k} label={lab}><NumberInput value={l[k] ?? 0} onChange={(v) => setL({ ...l, [k]: v })} /></Field>)}
         </div>
-        <div className="flex justify-end"><Button variant="secondary" loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button></div>
+        <FormActions><Button variant="secondary" loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button></FormActions>
       </div>
     </Card>
   );

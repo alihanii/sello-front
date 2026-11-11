@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 import { useStoreId } from "@/lib/hooks";
 import { EMPTY_DETAILS, ProductDetails } from "@/components/products/ProductDetails";
 import { IMAGE_ORDER_HINT, ImageUploader } from "@/components/products/ImageUploader";
-import { Button, Card, Field, PageHeader, Spinner, Tabs, Textarea } from "@/components/ui/primitives";
+import { Button, Card, Field, PageHeader, Spinner, Tabs, Textarea, FormActions } from "@/components/ui/primitives";
 
 type Mode = "ai" | "manual";
 
@@ -107,8 +107,8 @@ function AiCreate({ storeId }: { storeId: number }) {
           <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="مثلاً: هودی مشکی دورس، سایز L و XL، چاپ رنگی جلو" />
         </Field>
       </Card>
-      <Button variant="ai" size="lg" className="w-full" icon={<Sparkles className="size-4" />} loading={go.isPending}
-        disabled={!images.length && !note.trim()} onClick={() => go.mutate()}>بساز</Button>
+      <FormActions><Button variant="ai" size="lg" icon={<Sparkles className="size-4" />} loading={go.isPending}
+        disabled={!images.length && !note.trim()} onClick={() => go.mutate()}>بساز</Button></FormActions>
     </div>
   );
 }

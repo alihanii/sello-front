@@ -346,6 +346,24 @@ body {
 
 .pb-safe { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
 
+/* FormActions: save buttons that never scroll away. Page: floats just above the phone tab bar
+   (bar = 12px offset + 62px + its safe-area padding), or 16px from the bottom on desktop. */
+.form-actions-page {
+  position: sticky; z-index: 20; margin-top: 20px; padding: 10px 12px;
+  bottom: calc(82px + max(12px, env(safe-area-inset-bottom)));
+  background: var(--glass-strong); border: 1px solid var(--glass-border); border-radius: var(--radius-card, 14px);
+  box-shadow: var(--shadow);
+}
+@media (min-width: 1024px) { .form-actions-page { bottom: 16px; } }
+.form-actions-page.form-actions-nonav { bottom: max(12px, env(safe-area-inset-bottom)); }
+@media (max-width: 639px) { .form-actions-page > button { flex: 1 1 auto; } }
+/* Dialog: pinned to the dialog's bottom edge, bleeding over its side padding. */
+.form-actions-dialog {
+  position: sticky; bottom: 0; z-index: 10; margin: 16px -20px 0; padding: 12px 20px;
+  background: var(--glass-strong); border-top: 1px solid var(--glass-border);
+}
+@media (min-width: 640px) { .form-actions-dialog { margin-inline: -24px; padding-inline: 24px; } }
+
 .tnum { font-variant-numeric: tabular-nums; }
 
 :focus-visible {

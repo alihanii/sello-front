@@ -11,7 +11,7 @@ import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { OperationWatcher } from "@/components/OperationWatcher";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, Chip, Dialog, Field, Input, PageHeader, Switch } from "@/components/ui/primitives";
+import { Button, Card, Chip, Dialog, Field, Input, PageHeader, Switch, FormActions } from "@/components/ui/primitives";
 import { ChannelsBodySkeleton } from "@/components/ui/skeletons";
 
 const HEALTH: Record<string, { label: string; tone: string }> = {
@@ -80,9 +80,9 @@ function ConnectDialog({ platform, channelId, oauth, onClose }: { platform: stri
             </Field>
           )}
           {(platform !== "instagram" || manual) && (
-            <Button type="submit" className="w-full" variant={platform === "instagram" && oauth ? "secondary" : "primary"} loading={connect.isPending || sendCode.isPending}>
+            <FormActions><Button type="submit" className="w-full" variant={platform === "instagram" && oauth ? "secondary" : "primary"} loading={connect.isPending || sendCode.isPending}>
               {platform === "digikala" && !codeSent ? "ارسال کد تأیید" : "اتصال"}
-            </Button>
+            </Button></FormActions>
           )}
         </form>
       )}
@@ -121,7 +121,7 @@ function InstagramCrawlDialog({ onClose }: { onClose: () => void }) {
             <Switch checked={reels} onChange={setReels} />
             <span>ریلزها هم کرال شوند؟<span className="block text-[12px] text-muted">فقط عکس کاور ریلز برداشته می‌شود. خاموش باشد، فقط پست‌های عکس‌دار کرال می‌شوند.</span></span>
           </label>
-          <Button type="submit" className="w-full" loading={add.isPending}>افزودن پیج</Button>
+          <FormActions><Button type="submit" className="w-full" loading={add.isPending}>افزودن پیج</Button></FormActions>
         </form>
       )}
     </Dialog>

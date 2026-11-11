@@ -2,7 +2,7 @@
 
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
-import { Button, Card, Field, Input, NumberInput, Textarea } from "@/components/ui/primitives";
+import { Button, Card, Field, Input, NumberInput, Textarea, FormActions } from "@/components/ui/primitives";
 import { CategoryInput } from "./CategoryInput";
 import { IMAGE_ORDER_HINT, ImageUploader } from "./ImageUploader";
 
@@ -61,7 +61,7 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
           </div>
         </Field>
       </Card>
-      <Button type="submit" size="lg" className="w-full" loading={saving} disabled={!d.title.trim()}>{saveLabel}</Button>
+      <FormActions><Button type="submit" size="lg" loading={saving} disabled={!d.title.trim()}>{saveLabel}</Button></FormActions>
     </form>
   );
 }

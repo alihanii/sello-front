@@ -14,8 +14,7 @@ import { faDigits, faNum, jDateTime } from "@/lib/format";
 import { storeQueries, useMe, useStoreId } from "@/lib/hooks";
 import { copyText } from "@/lib/orders";
 import {
-  Button, Card, CardHeader, Chip, EmptyState, Field, Input, NumberInput, PageHeader, Select, Spinner, Switch, Tabs, Textarea, cn,
-} from "@/components/ui/primitives";
+  Button, Card, CardHeader, Chip, EmptyState, Field, Input, NumberInput, PageHeader, Select, Spinner, Switch, Tabs, Textarea, cn, FormActions } from "@/components/ui/primitives";
 import { SettingsSkeleton } from "@/components/ui/skeletons";
 
 type Banner = { image_url: string; mobile_image_url: string; title: string; subtitle: string; link: string; button: string };
@@ -471,14 +470,13 @@ export default function MySite() {
   const set = (f: (d: Draft) => Draft) => setD((x) => (x ? f(x) : x));
   const go = (t: Tab) => router.replace(`${path}?tab=${t}`, { scroll: false });
   return (
-    <div className="pb-24 lg:pb-0">
+    <div>
       <PageHeader title="وبسایت ساز"
         subtitle={s.url ? <span className="inline-flex items-center gap-2 flex-wrap"><Chip tone={s.enabled ? "success" : "neutral"}>{s.enabled ? "روشن" : "خاموش"}</Chip>
           <button type="button" dir="ltr" className="text-primary font-bold cursor-pointer" onClick={() => copyText(s.url, "آدرس کپی شد")}>{s.url.replace(/^https?:\/\//, "")}</button></span>
           : "سایت فروشگاهی خودت با سبد خرید، ثبت سفارش و چت؛ سفارش‌ها می‌آیند توی سفارشات."}
         actions={<>
           {s.url && s.enabled && <a href={s.url} target="_blank" rel="noopener"><Button type="button" variant="secondary" icon={<ExternalLink className="size-4" />}>دیدن سایت</Button></a>}
-          <Button type="button" loading={save.isPending} disabled={!dirty} onClick={() => save.mutate(d)} icon={<Globe className="size-4" />}>ذخیره</Button>
         </>} />
       <div className="mb-5"><Tabs value={tab} onChange={go} items={TABS as any} /></div>
       {tab === "address" && <AddressTab s={s} d={d} set={set} sid={sid} go={go} />}
@@ -487,13 +485,9 @@ export default function MySite() {
       {tab === "footer" && <FooterTab d={d} set={set} />}
       {tab === "chat" && <ChatTab s={s} d={d} set={set} sid={sid} />}
       {tab === "seo" && <SeoTab d={d} set={set} url={s.url} store={s.store} />}
-      {/* On phones the save button sits above the tab bar, so it's never scrolled away from the change. */}
-      {dirty && (
-        <div className="lg:hidden fixed inset-x-3 bottom-24 z-30 glass-strong rounded-card p-3 flex items-center justify-between gap-3 fade-in">
-          <span className="text-[13px] font-bold">تغییرات ذخیره نشده</span>
-          <Button type="button" size="sm" loading={save.isPending} onClick={() => save.mutate(d)}>ذخیره</Button>
-        </div>
-      )}
+      <FormActions note={dirty ? "تغییرات ذخیره نشده" : undefined}>
+        <Button type="button" size="lg" loading={save.isPending} disabled={!dirty} onClick={() => save.mutate(d)} icon={<Globe className="size-4" />}>{dirty ? "ذخیره" : "ذخیره شده"}</Button>
+      </FormActions>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { CircleHelp, Loader2, X } from "lucide-react";
-import { Children, Fragment, forwardRef, isValidElement, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Children, Fragment, createContext, forwardRef, isValidElement, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dropdown, type DropdownOption } from "./Dropdown";
 import { fieldCls, widthCls } from "./styles";
 
@@ -220,6 +220,23 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   );
 }
 
+const InDialog = createContext(false);
+
+/**
+ * A form's save/submit buttons, kept on screen while the form scrolls. On a page it floats at the bottom of the
+ * viewport (above the phone tab bar); inside a Dialog it is pinned to the dialog's bottom edge. Where the form is
+ * short it simply sits at the end. `note` shows a short status beside the buttons, e.g. «تغییرات ذخیره نشده».
+ */
+export function FormActions({ children, note, className, noNav }: { children: React.ReactNode; note?: React.ReactNode; className?: string; /** Page has no bottom tab bar (public pages). */ noNav?: boolean }) {
+  const inDialog = useContext(InDialog);
+  return (
+    <div className={cn(inDialog ? "form-actions-dialog" : "form-actions-page", noNav && !inDialog && "form-actions-nonav", "flex flex-wrap items-center justify-end gap-2", className)}>
+      {note && <span className="text-[13px] font-bold text-muted me-auto">{note}</span>}
+      {children}
+    </div>
+  );
+}
+
 export function Dialog({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean }) {
   useEffect(() => {
     if (!open) return;
@@ -237,7 +254,7 @@ export function Dialog({ open, onClose, title, children, wide }: { open: boolean
           <h2 className="text-[18px] font-bold">{title}</h2>
           <Button variant="ghost" size="sm" onClick={onClose} aria-label="بستن"><X className="size-4" /></Button>
         </div>
-        {children}
+        <InDialog.Provider value={true}>{children}</InDialog.Provider>
       </Card>
     </div>
   );
@@ -253,7 +270,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
           <h2 className="text-[17px] font-bold">{title}</h2>
           <Button variant="ghost" size="sm" onClick={onClose} aria-label="بستن"><X className="size-4" /></Button>
         </div>
-        {children}
+        <InDialog.Provider value={true}>{children}</InDialog.Provider>
       </div>
     </div>
   );
