@@ -480,7 +480,7 @@ export function OrderSettings() {
             <Row key={k} title={l}><Switch checked={req[k] !== false} onChange={(v) => set({ required_fields: { ...req, [k]: v } })} label={l} /></Row>
           ))}
           <Field label="پیام آمادهٔ گرفتن اطلاعات (اختیاری)" hint="وقتی مشتری محصولش را انتخاب کرد، دستیار به‌جای پرسیدن تک‌تک اطلاعات، همین پیام را یک بار می‌فرستد.">
-            <Textarea className="!min-h-24" maxLength={500} placeholder={ORDER_FORM_SAMPLE} value={pay.order_form ?? ""} onChange={(e) => setPay({ order_form: e.target.value })} />
+            <Textarea className="!min-h-24" maxLength={500} placeholder="خالی است؛ دستیار اطلاعات را تک‌تک می‌پرسد. برای پیام آماده، «استفاده از نمونه» را بزنید یا متن خودتان را بنویسید." value={pay.order_form ?? ""} onChange={(e) => setPay({ order_form: e.target.value })} />
           </Field>
           {!pay.order_form && <button type="button" className="text-[13px] text-primary font-bold" onClick={() => setPay({ order_form: ORDER_FORM_SAMPLE })}>استفاده از نمونه</button>}
         </Card>
