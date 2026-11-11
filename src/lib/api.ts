@@ -62,6 +62,18 @@ export async function api<T = any>(path: string, init: RequestInit & { json?: un
   return (type.includes("json") ? res.json() : res.text()) as Promise<T>;
 }
 
-export function mediaUrl(url: string) {
-  return url?.startsWith("/media/") ? `${API_URL}${url}` : url;
+/** imgproxy in front of /media (e.g. https://img.example.com); empty: pictures load as uploaded. */
+export const IMG_URL = (process.env.NEXT_PUBLIC_IMGPROXY_URL ?? "").replace(/\/$/, "");
+// The imgproxy presets on the server (w64 ... w1600); the same widths as the storefront's.
+const IMG_WIDTHS = [64, 96, 128, 200, 256, 320, 360, 480, 640, 828, 1080, 1280, 1600];
+
+/** Address of a picture. Our own /media files: with `width` (the box's size in CSS px) a WebP resized to fit it,
+ * twice as wide for sharp screens; without it, the original (zoom, download, links). Other URLs stay as they are. */
+export function mediaUrl(url: string, width?: number) {
+  if (!url?.startsWith("/media/")) return url;
+  if (width && IMG_URL) {
+    const w = IMG_WIDTHS.find((x) => x >= width * 2) ?? IMG_WIDTHS[IMG_WIDTHS.length - 1];
+    return `${IMG_URL}/insecure/w${w}/plain/${url.slice("/media/".length).split("?")[0]}@webp`;
+  }
+  return `${API_URL}${url}`;
 }

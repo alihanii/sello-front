@@ -141,7 +141,7 @@ export default function Crawl() {
           ) : inbox.length === 0 ? <p className="px-5 pb-5 text-muted text-[14px]">چیزی منتظر بررسی نیست.</p> : (
             <VirtualList className="px-3 pb-3" items={inbox} getKey={(p: any) => p.id} estimate={56} maxHeight={600} render={(p: any) => (
                 <div className="flex items-center gap-2 p-2 rounded-xl hover:bg-subtle">
-                  <div className="size-10 rounded-lg bg-subtle overflow-hidden shrink-0">{p.images[0] && <img src={mediaUrl(p.images[0].url)} alt="" className="size-full object-cover" />}</div>
+                  <div className="size-10 rounded-lg bg-subtle overflow-hidden shrink-0">{p.images[0] && <img src={mediaUrl(p.images[0].url, 40)} alt="" className="size-full object-cover" />}</div>
                   <Link href={`/app/s/${sid}/products/${p.id}`} className="flex-1 min-w-0">
                     <div className="text-[13px] font-semibold truncate">{p.title}</div>
                     <div className="text-[12px] text-muted tnum">{toman(p.price)}</div>

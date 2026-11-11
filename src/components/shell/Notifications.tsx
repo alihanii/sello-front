@@ -57,7 +57,7 @@ export function NotificationBell({ storeId }: { storeId: number }) {
             return (
               <Link key={n.id} href={n.link || "#"} onClick={() => { setOpen(false); if (!n.is_read) api("/notifications/read?ids=" + n.id, { method: "POST" }).then(() => qc.invalidateQueries({ queryKey: ["notifications", storeId] })); }}
                 className={cn("flex gap-3 p-2.5 rounded-2xl transition-colors hover:bg-subtle", !n.is_read && "bg-primary/6")}>
-                {n.image_url ? <img src={mediaUrl(n.image_url)} alt="" className="size-11 rounded-xl object-cover shrink-0" />
+                {n.image_url ? <img src={mediaUrl(n.image_url, 44)} alt="" className="size-11 rounded-xl object-cover shrink-0" />
                   : <span className={cn("size-11 rounded-xl grid place-items-center shrink-0", TONE[n.kind] ?? "bg-subtle text-muted")}><Icon className="size-5" /></span>}
                 <span className="flex-1 min-w-0">
                   <span className="flex items-center gap-1.5 text-[13px] font-bold">{!n.is_read && <span className="size-2 rounded-full bg-primary shrink-0" />}<span className="truncate">{n.title_fa}</span></span>

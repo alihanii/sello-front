@@ -89,7 +89,7 @@ function StoreSwitcher({ storeId }: { storeId: number }) {
   return (
     <div className="relative">
       <button onClick={() => setOpen(!open)} className="w-full bg-subtle hover:bg-[color-mix(in_oklab,var(--fg)_12%,transparent)] transition rounded-2xl p-2.5 flex items-center gap-2.5 cursor-pointer text-start" aria-expanded={open}>
-        {current?.logo_url ? <img src={mediaUrl(current.logo_url)} alt="" className="size-9 rounded-xl object-cover" />
+        {current?.logo_url ? <img src={mediaUrl(current.logo_url, 36)} alt="" className="size-9 rounded-xl object-cover" />
           : <span className="size-9 rounded-xl bg-primary/15 text-primary grid place-items-center"><Store className="size-4" /></span>}
         <span className="flex-1 min-w-0">
           <span className="block text-[11px] text-muted">فروشگاه</span>
