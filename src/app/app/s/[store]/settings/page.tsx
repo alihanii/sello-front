@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { api, mediaUrl } from "@/lib/api";
 import { rules, useZodForm, z } from "@/lib/form";
 import { storeQueries, useStoreId } from "@/lib/hooks";
-import { Button, Card, Field, Input, PageHeader, Spinner, Switch, Textarea } from "@/components/ui/primitives";
+import { Button, Card, Field, Input, PageHeader, Spinner, Switch, Textarea, FormActions } from "@/components/ui/primitives";
 import { SettingsSkeleton } from "@/components/ui/skeletons";
 
 const schema = z.object({
@@ -95,7 +95,7 @@ export default function Settings() {
   const submit = handleSubmit((v) => save.mutate(v as Form));
   return (
     <form onSubmit={submit} noValidate>
-      <PageHeader title="تنظیمات فروشگاه" actions={<Button type="submit" loading={save.isPending} disabled={!isDirty}>ذخیره</Button>} />
+      <PageHeader title="تنظیمات فروشگاه" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <Card className="p-5 space-y-4">
           <Field label="لوگوی فروشگاه">
@@ -117,6 +117,7 @@ export default function Settings() {
           )} />
         </Card>
       </div>
+      <FormActions note={isDirty ? "تغییرات ذخیره نشده" : undefined}><Button type="submit" size="lg" loading={save.isPending} disabled={!isDirty}>ذخیره</Button></FormActions>
     </form>
   );
 }

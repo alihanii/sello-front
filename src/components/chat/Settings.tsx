@@ -8,7 +8,7 @@ import { api, mediaUrl } from "@/lib/api";
 import { useStoreId } from "@/lib/hooks";
 import { faDigits } from "@/lib/format";
 import { TONES, WEEK, useAgent, useSaveAgent } from "@/lib/chat";
-import { Button, Card, CardHeader, Dialog, EmptyState, Field, Input, Select, Skeleton, Switch, Textarea, cn } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Dialog, EmptyState, Field, Input, Select, Skeleton, Switch, Textarea, cn, FormActions } from "@/components/ui/primitives";
 import { ListCardSkeleton, SettingsColumnsSkeleton } from "@/components/ui/skeletons";
 
 /** Local copy of the agent settings; saved with one button so half-typed text is never sent. */
@@ -23,12 +23,11 @@ function useDraft() {
   return { draft, set, save, dirty, data };
 }
 
-function SaveBar({ dirty, loading, onSave }: { dirty: boolean; loading: boolean; onSave: () => void }) {
+function SaveBar({ dirty, loading, onSave, className }: { dirty: boolean; loading: boolean; onSave: () => void; className?: string }) {
   return (
-    <div className="sticky bottom-24 lg:bottom-4 z-10 flex justify-end mt-5">
-      <Button size="lg" icon={<Save className="size-4" />} disabled={!dirty} loading={loading} onClick={onSave}
-        className={cn(dirty && "shadow-[0_10px_30px_-10px_var(--primary)]")}>{dirty ? "ذخیرهٔ تغییرات" : "ذخیره شده"}</Button>
-    </div>
+    <FormActions className={className} note={dirty ? "تغییرات ذخیره نشده" : undefined}>
+      <Button size="lg" icon={<Save className="size-4" />} disabled={!dirty} loading={loading} onClick={onSave}>{dirty ? "ذخیرهٔ تغییرات" : "ذخیره شده"}</Button>
+    </FormActions>
   );
 }
 
@@ -172,7 +171,7 @@ export function AssistantSettings() {
         </div>
         <p className="text-[12px] text-muted mt-3">لحن «{TONES.find((t) => t.value === draft.tone)?.label}» در پاسخ‌های AI اعمال می‌شود. برای دیدن پاسخ واقعی از تب «تست چت» استفاده کن.</p>
       </Card>
-      <div className="lg:col-span-3"><SaveBar dirty={dirty} loading={save.isPending} onSave={() => save.mutate(draft)} /></div>
+      <SaveBar className="lg:col-span-3" dirty={dirty} loading={save.isPending} onSave={() => save.mutate(draft)} />
     </div>
   );
 }
@@ -241,7 +240,7 @@ function RefDialog({ value, onClose }: { value: any; onClose: () => void }) {
             <div className="flex items-center gap-3"><img src={mediaUrl(r.image_url)} alt="" className="h-24 rounded-xl" /><Button type="button" size="sm" variant="ghost" onClick={() => setR({ ...r, image_url: "" })}>حذف عکس</Button></div>
           ) : <Button type="button" variant="secondary" icon={<ImagePlus className="size-4" />} loading={upload.isPending} onClick={() => file.current?.click()}>انتخاب عکس</Button>}
         </div>
-        <Button type="submit" className="w-full" loading={save.isPending}>ذخیره</Button>
+        <FormActions><Button type="submit" className="w-full" loading={save.isPending}>ذخیره</Button></FormActions>
       </form>
     </Dialog>
   );
@@ -348,13 +347,13 @@ function FaqImport({ existing, onClose, onAdd }: { existing: number; onClose: ()
               </label>
             ))}
           </div>
-          <div className="flex justify-between gap-2 pt-1">
+          <FormActions className="justify-between">
             <Button variant="ghost" onClick={() => setItems(null)}>برگشت</Button>
             <Button icon={<Plus className="size-4" />} disabled={!picked.length || picked.length > room}
               onClick={() => onAdd(picked.map(({ q, a }) => ({ q: q.trim(), a: a.trim() })))}>
               {picked.length > room ? `حداکثر ${faDigits(room)} تا را انتخاب کن` : `افزودن و ذخیرهٔ ${faDigits(picked.length)} سؤال`}
             </Button>
-          </div>
+          </FormActions>
         </div>
       )}
     </Dialog>
@@ -497,7 +496,7 @@ export function OrderSettings() {
         </div>
         <p className="text-[12px] text-muted mt-3 flex gap-1.5"><Clock className="size-4 shrink-0" />مبلغ را خود Sello از قیمت محصولات حساب می‌کند، نه AI.</p>
       </Card>
-      <div className="lg:col-span-3"><SaveBar dirty={dirty} loading={save.isPending} onSave={() => save.mutate(draft)} /></div>
+      <SaveBar className="lg:col-span-3" dirty={dirty} loading={save.isPending} onSave={() => save.mutate(draft)} />
     </div>
   );
 }

@@ -10,7 +10,7 @@ import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate, toman } from "@/lib/format";
 import { PLATFORMS } from "@/lib/meta";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, CardHeader, Chip, Dialog, Field, Input, Select, Switch } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Dialog, Field, Input, Select, Switch, FormActions } from "@/components/ui/primitives";
 import { AdminDetailSkeleton } from "@/components/ui/skeletons";
 
 const STATUS: Record<string, [string, string]> = {
@@ -149,7 +149,7 @@ export default function UserDetail() {
             </div>
           )}
           <Field label="یادداشت (مثلاً شمارهٔ پرداخت)"><Input value={note} onChange={(e) => setNote(e.target.value)} /></Field>
-          <Button className="w-full" disabled={!planId} loading={activate.isPending} onClick={() => activate.mutate()}>{hasActive && mode === "now" ? "عوض کردن پلن" : "فعال‌سازی"}</Button>
+          <FormActions><Button className="w-full" disabled={!planId} loading={activate.isPending} onClick={() => activate.mutate()}>{hasActive && mode === "now" ? "عوض کردن پلن" : "فعال‌سازی"}</Button></FormActions>
         </div>
       </Dialog>
     </>

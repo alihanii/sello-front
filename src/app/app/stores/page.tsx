@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 import { jDate } from "@/lib/format";
 import { useStores } from "@/lib/hooks";
 import { Logo } from "@/components/shell/AppShell";
-import { Button, Card, Dialog, Field, Input, PageHeader } from "@/components/ui/primitives";
+import { Button, Card, Dialog, Field, Input, PageHeader, FormActions } from "@/components/ui/primitives";
 import { StoreCardsSkeleton } from "@/components/ui/skeletons";
 
 export default function Stores() {
@@ -45,7 +45,7 @@ export default function Stores() {
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
           <Field label="نام فروشگاه"><Input value={name} onChange={(e) => setName(e.target.value)} autoFocus /></Field>
           <Field label="دسته (اختیاری)"><Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="مثلاً پوشاک زنانه" /></Field>
-          <Button type="submit" className="w-full" loading={create.isPending} disabled={!name.trim()}>ساخت</Button>
+          <FormActions><Button type="submit" className="w-full" loading={create.isPending} disabled={!name.trim()}>ساخت</Button></FormActions>
         </form>
       </Dialog>
     </div>

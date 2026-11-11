@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { API_URL } from "@/lib/api";
 import { rules, useZodForm, z } from "@/lib/form";
-import { Button, Field, Input, Textarea } from "@/components/ui/primitives";
+import { Button, Field, FormActions, Input, Textarea } from "@/components/ui/primitives";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -79,7 +79,7 @@ export function ReceiptForm({ inv, code, onSent }: { inv: any; code: string; onS
       {inv.ask_address && <Field label="آدرس کامل و کد پستی" error={msg("address")}><Textarea rows={2} className="!min-h-20" autoComplete="street-address" {...register("address")} aria-invalid={!!msg("address")} /></Field>}
       <Field label="توضیح برای فروشنده (اختیاری)" error={msg("note")}><Input {...register("note")} /></Field>
       {errors.root?.message && <p className="text-[13px] text-danger font-semibold" role="alert">{errors.root.message}</p>}
-      <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>ارسال فیش و ثبت سفارش</Button>
+      <FormActions noNav><Button type="submit" size="lg" className="w-full" loading={isSubmitting}>ارسال فیش و ثبت سفارش</Button></FormActions>
     </form>
   );
 }

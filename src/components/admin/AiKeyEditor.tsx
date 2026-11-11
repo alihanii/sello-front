@@ -7,7 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useMe } from "@/lib/hooks";
-import { Button, Dialog, Field, Input, Select, Switch } from "@/components/ui/primitives";
+import { Button, Dialog, Field, Input, Select, Switch, FormActions } from "@/components/ui/primitives";
 
 export const KIND_LABEL: Record<string, string> = { gemini: "Google Gemini", metis: "Gemini از طریق متیس", avalai: "اول‌ای‌آی (AvalAI)", openai: "OpenAI سازگار", openrouter: "OpenRouter", anthropic: "Claude" };
 export const EMPTY_KEY = { name: "", kind: "gemini", base_url: "", proxy: "", default_model: "gemini-3.6-flash", input_price_per_m: 0, output_price_per_m: 0, monthly_budget_toman: 0, is_active: true };
@@ -66,7 +66,7 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
         </div>
         <p className="text-[12px] text-muted">قیمت‌ها به تومان و فقط برای تخمین هزینه در مانیتورینگ استفاده می‌شوند.</p>
         <label className="flex items-center gap-2 text-[14px]"><Switch checked={k.is_active} onChange={(v) => setK({ ...k, is_active: v })} />فعال</label>
-        <Button className="w-full" loading={save.isPending} disabled={!k.name || (!value.id && !k.api_key)} onClick={() => save.mutate()}>ذخیره</Button>
+        <FormActions><Button className="w-full" loading={save.isPending} disabled={!k.name || (!value.id && !k.api_key)} onClick={() => save.mutate()}>ذخیره</Button></FormActions>
       </div>
     </Dialog>
   );

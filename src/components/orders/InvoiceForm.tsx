@@ -11,7 +11,7 @@ import { useStoreId } from "@/lib/hooks";
 import { rules, useZodForm, z } from "@/lib/form";
 import { ORDER_PLATFORMS, copyText, orderQueries, useInvalidateOrders } from "@/lib/orders";
 import { Banner } from "@/components/ui/Banner";
-import { Button, Card, CardHeader, Dialog, Field, Input, NumberInput, Select, Switch, Textarea, cn } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Dialog, Field, Input, NumberInput, Select, Switch, Textarea, cn, FormActions } from "@/components/ui/primitives";
 
 
 function ProductPicker({ onPick }: { onPick: (p: any) => void }) {
@@ -225,10 +225,14 @@ export function InvoiceForm({ chat = false, onDone }: { chat?: boolean; onDone: 
               <label className="flex items-center justify-between gap-3 rounded-2xl bg-subtle p-3 cursor-pointer"><span><b>پرداختش را گرفته‌ام</b><span className="block text-[12px] text-muted">سفارش تأییدشده ثبت می‌شود و موجودی کم می‌شود.</span></span><Switch checked={field.value} onChange={field.onChange} label="پرداخت‌شده" /></label>
             )} />}
             <div className="flex justify-between items-baseline border-t border-edge pt-3"><span className="font-bold">مبلغ قابل پرداخت</span><span className="tnum font-black text-[20px]">{faNum(total)} <span className="text-[12px] font-semibold text-muted">تومان</span></span></div>
-            <Button type="submit" className="w-full" size="lg" loading={save.isPending}>{chat ? "ثبت سفارش" : "ساخت فاکتور و لینک پرداخت"}</Button>
+            <Button type="submit" className="w-full max-lg:hidden" size="lg" loading={save.isPending}>{chat ? "ثبت سفارش" : "ساخت فاکتور و لینک پرداخت"}</Button>
           </div>
         </Card>
       </div>
+      {/* Phones: the total card is at the very end, so the submit button floats above the tab bar instead. */}
+      <FormActions className="lg:hidden" note={<span className="tnum text-fg">{faNum(total)} <span className="text-muted text-[12px]">تومان</span></span>}>
+        <Button type="submit" size="lg" loading={save.isPending}>{chat ? "ثبت سفارش" : "ساخت فاکتور"}</Button>
+      </FormActions>
     </form>
     {created && <Created inv={created} onClose={() => { again(); onDone(); }} onAnother={again} />}
     </>

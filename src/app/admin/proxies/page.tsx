@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago, faNum } from "@/lib/format";
-import { Button, Card, CardHeader, Chip, Dialog, Field, Input, PageHeader, Switch, Tabs, Textarea, cn } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Dialog, Field, Input, PageHeader, Switch, Tabs, Textarea, cn, FormActions } from "@/components/ui/primitives";
 import { ListRowsSkeleton } from "@/components/ui/skeletons";
 
 type Health = { ok: boolean | null; latency_ms: number | null; error?: string; checked_at?: string };
@@ -67,10 +67,10 @@ function ImportDialog({ open, onClose, purposes, onDone }: { open: boolean; onCl
             {purposes.map((p) => <label key={p.id} className="flex items-center gap-2 text-[14px]"><Switch checked={use.includes(p.id)} onChange={() => toggle(p.id)} />{p.label}</label>)}
           </div>
         </Field>
-        <div className="flex gap-2 justify-end">
+        <FormActions>
           <Button variant="ghost" onClick={onClose}>انصراف</Button>
           <Button loading={run.isPending} disabled={!use.length || (!text.trim() && !sub.trim())} onClick={() => run.mutate()}>افزودن و تست</Button>
-        </div>
+        </FormActions>
       </div>
     </Dialog>
   );

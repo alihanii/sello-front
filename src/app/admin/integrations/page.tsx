@@ -5,7 +5,7 @@ import { Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Select, Switch } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Select, Switch, FormActions } from "@/components/ui/primitives";
 import { FormSectionSkeleton } from "@/components/ui/skeletons";
 
 const STEPS = [
@@ -50,7 +50,7 @@ function PaymentCard() {
         <Field label="آدرس بازگشت از بانک" hint="باید از اینترنت در دسترس باشد؛ در بعضی درگاه‌ها باید در پنل درگاه هم ثبت شود.">
           <Input dir="ltr" readOnly className="text-left font-mono text-[13px]" value={data.callback_url} />
         </Field>
-        <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ درگاه</Button>
+        <FormActions><Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ درگاه</Button></FormActions>
       </div>
     </Card>
   );
@@ -96,10 +96,10 @@ function InstagramCrawlerCard() {
         <Field label="پروکسی تکی (اختیاری، قدیمی)" hint="بهتر است از صفحهٔ «پروکسی‌ها» استفاده کنی؛ این فقط وقتی استفاده می‌شود که هیچ پروکسی سالمی آنجا نباشد. مثل socks5://host:port">
           <Input dir="ltr" className="text-left font-mono text-[13px]" value={f.proxy} onChange={(e) => setF({ ...f, proxy: e.target.value })} />
         </Field>
-        <div className="flex flex-wrap gap-2">
-          <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button>
+        <FormActions>
           <Button variant="secondary" loading={test.isPending} disabled={!f.has_token} onClick={() => test.mutate()}>تست کلید</Button>
-        </div>
+          <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button>
+        </FormActions>
       </div>
     </Card>
   );
@@ -121,8 +121,7 @@ export default function Integrations() {
 
   return (
     <>
-      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="درگاه پرداخت، کرال اینستاگرام و اتصال اپ Meta برای اینستاگرام."
-        actions={<Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ اینستاگرام</Button>} />
+      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="درگاه پرداخت، کرال اینستاگرام و اتصال اپ Meta برای اینستاگرام." />
       <div className="mb-4 max-w-3xl space-y-4"><PaymentCard /><InstagramCrawlerCard /></div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
@@ -142,6 +141,7 @@ export default function Integrations() {
                 <Button variant="secondary" icon={<Copy className="size-4" />} onClick={copy} aria-label="کپی" /></div>
             </Field>
             <div className="text-[12px] text-muted" dir="ltr">scopes: {f.scopes}</div>
+            <FormActions><Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ اینستاگرام</Button></FormActions>
           </div>
         </Card>
         <Card className="p-5">

@@ -9,7 +9,7 @@ import { ago } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
 import { BOT_STATUS, MODE_LABEL } from "@/lib/chat";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, Chip, Dialog, EmptyState, Field, Input, cn } from "@/components/ui/primitives";
+import { Button, Card, Chip, Dialog, EmptyState, Field, Input, cn, FormActions } from "@/components/ui/primitives";
 import { ChatLinkCard } from "./ChatLinkCard";
 
 const botLink = (platform: string, username: string) => `https://${platform === "bale" ? "ble.ir" : "t.me"}/${username}`;
@@ -81,7 +81,7 @@ function ConnectDialog({ onClose }: { onClose: () => void }) {
           <Field label="توکن ربات" hint="توکن رمزگذاری‌شده ذخیره می‌شود و در هیچ لاگی نمایش داده نمی‌شود.">
             <Input dir="ltr" className="text-left font-mono text-[13px]" placeholder="123456:ABC…" value={token} onChange={(e) => setToken(e.target.value)} required autoFocus />
           </Field>
-          <Button type="submit" className="w-full" loading={connect.isPending}>اتصال</Button>
+          <FormActions><Button type="submit" className="w-full" loading={connect.isPending}>اتصال</Button></FormActions>
         </form>
       )}
     </Dialog>
