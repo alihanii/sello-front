@@ -100,6 +100,10 @@ function ConnectDialog({ platform, channelId, oauth, login, onClose }: { platfor
           {igLoginMode && <>
             <Field label="نام کاربری اینستاگرام"><Input dir="ltr" className="text-left" placeholder="myshop" autoComplete="username" onChange={set("username")} required /></Field>
             <Field label="رمز عبور"><Input dir="ltr" type="password" className="text-left" autoComplete="current-password" onChange={set("password")} required /></Field>
+            <Field label="کانفیگ پروکسی با IP ثابت خودت (اختیاری)"
+              hint="لینک v2ray (vless، vmess، trojan، ss) یا socks5/http. با این کار حساب همیشه از IP خودت وصل می‌شود و خطر محدود شدن کمتر است. خالی بماند، از پروکسی‌های فروشگاه استفاده می‌شود.">
+              <Input dir="ltr" className="text-left font-mono text-[13px]" placeholder="vless://… یا socks5://user:pass@host:port" onChange={set("proxy")} />
+            </Field>
           </>}
           {platform === "instagram" && !igLoginMode && oauth && (
             <Button type="button" className="w-full" loading={igLogin.isPending} onClick={() => igLogin.mutate()}>ورود با اینستاگرام</Button>
@@ -166,6 +170,11 @@ function InstagramInbox({ channel }: { channel: any }) {
   const sid = useStoreId();
   const qc = useQueryClient();
   const cfg = channel.config ?? {};
+  const dropProxy = useMutation({
+    mutationFn: () => api(`/channels/${channel.id}/instagram/proxy`, { method: "DELETE" }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["channels", sid] }); toast.success("از پروکسی‌های فروشگاه استفاده می‌شود"); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const [text, setText] = useState<string>(cfg.comment_text ?? "");
   const save = useMutation({
     mutationFn: (body: { dm: boolean; comments: boolean; comment_text: string }) =>
@@ -176,6 +185,11 @@ function InstagramInbox({ channel }: { channel: any }) {
   const body = (o: Partial<{ dm: boolean; comments: boolean }>) => ({ dm: !!cfg.dm_reply, comments: !!cfg.comment_reply, comment_text: text, ...o });
   return (
     <div className="mt-3 rounded-xl bg-subtle p-3 space-y-3 text-[14px]">
+      <div className="flex items-center justify-between gap-3 text-[13px]">
+        <span>{cfg.own_proxy ? <>IP ثابت خودت <span dir="ltr" className="text-muted">({cfg.proxy_address})</span></> : <span className="text-muted">از پروکسی‌های فروشگاه</span>}</span>
+        {cfg.own_proxy && <Button size="sm" variant="ghost" loading={dropProxy.isPending}
+          onClick={() => confirm("پروکسی اختصاصی برداشته شود و از پروکسی‌های فروشگاه استفاده شود؟") && dropProxy.mutate()}>برداشتن</Button>}
+      </div>
       <label className="flex items-center justify-between gap-3 cursor-pointer">
         <span>جواب خودکار دایرکت<span className="block text-[12px] text-muted">دستیار چت به پیام‌ها و درخواست‌های پیام جواب می‌دهد.</span></span>
         <Switch checked={!!cfg.dm_reply} disabled={save.isPending} onChange={(v) => save.mutate(body({ dm: v }))} label="جواب خودکار دایرکت" />
