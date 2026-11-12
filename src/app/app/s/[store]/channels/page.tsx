@@ -6,12 +6,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { ago } from "@/lib/format";
+import { ago, faNum } from "@/lib/format";
 import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { OperationWatcher } from "@/components/OperationWatcher";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, Chip, Dialog, Field, Input, PageHeader, Switch, FormActions } from "@/components/ui/primitives";
+import { Button, Card, Chip, Dialog, Field, Input, PageHeader, Switch, FormActions, cn } from "@/components/ui/primitives";
 import { ChannelsBodySkeleton } from "@/components/ui/skeletons";
 
 const HEALTH: Record<string, { label: string; tone: string }> = {
@@ -175,6 +175,20 @@ function InstagramInbox({ channel }: { channel: any }) {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["channels", sid] }); toast.success("از پروکسی‌های فروشگاه استفاده می‌شود"); },
     onError: (e: any) => toast.error(e.message),
   });
+  const [editProxy, setEditProxy] = useState(false);
+  const [link, setLink] = useState("");
+  const [checked, setChecked] = useState<any>(null);
+  const health = checked ?? cfg.proxy_health;
+  const testProxy = useMutation({
+    mutationFn: () => api<any>(`/channels/${channel.id}/instagram/proxy/test`, { method: "POST" }),
+    onSuccess: (r) => { setChecked(r); if (r.ok) toast.success("پروکسی به اینستاگرام وصل می‌شود"); else toast.error(r.error || "پروکسی وصل نشد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const setProxy = useMutation({
+    mutationFn: () => api(`/channels/${channel.id}/instagram/proxy`, { method: "PUT", json: { link: link.trim() } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["channels", sid] }); setEditProxy(false); setLink(""); setChecked(null); toast.success("پروکسی اختصاصی ذخیره و تست شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const [text, setText] = useState<string>(cfg.comment_text ?? "");
   const save = useMutation({
     mutationFn: (body: { dm: boolean; comments: boolean; comment_text: string }) =>
@@ -185,10 +199,32 @@ function InstagramInbox({ channel }: { channel: any }) {
   const body = (o: Partial<{ dm: boolean; comments: boolean }>) => ({ dm: !!cfg.dm_reply, comments: !!cfg.comment_reply, comment_text: text, ...o });
   return (
     <div className="mt-3 rounded-xl bg-subtle p-3 space-y-3 text-[14px]">
-      <div className="flex items-center justify-between gap-3 text-[13px]">
-        <span>{cfg.own_proxy ? <>IP ثابت خودت <span dir="ltr" className="text-muted">({cfg.proxy_address})</span></> : <span className="text-muted">از پروکسی‌های فروشگاه</span>}</span>
-        {cfg.own_proxy && <Button size="sm" variant="ghost" loading={dropProxy.isPending}
-          onClick={() => confirm("پروکسی اختصاصی برداشته شود و از پروکسی‌های فروشگاه استفاده شود؟") && dropProxy.mutate()}>برداشتن</Button>}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+          <span>
+            {cfg.own_proxy ? <>IP ثابت خودت <span dir="ltr" className="text-muted">({cfg.proxy_address})</span></> : <span className="text-muted">از پروکسی‌های فروشگاه</span>}
+            {health && <span className={cn("block text-[12px]", health.ok ? "text-success" : "text-danger")}>
+              {health.ok ? `وصل${health.latency_ms ? `، ${faNum(health.latency_ms)} میلی‌ثانیه` : ""}` : `وصل نشد${health.error ? `: ${health.error}` : ""}`}
+            </span>}
+          </span>
+          <span className="flex gap-1">
+            <Button size="sm" variant="ghost" icon={<HeartPulse className="size-4" />} loading={testProxy.isPending} onClick={() => testProxy.mutate()}>تست</Button>
+            <Button size="sm" variant="ghost" onClick={() => setEditProxy((v) => !v)}>{cfg.own_proxy ? "تغییر" : "IP ثابت خودم"}</Button>
+            {cfg.own_proxy && <Button size="sm" variant="ghost" loading={dropProxy.isPending}
+              onClick={() => confirm("پروکسی اختصاصی برداشته شود و از پروکسی‌های فروشگاه استفاده شود؟") && dropProxy.mutate()}>برداشتن</Button>}
+          </span>
+        </div>
+        {editProxy && (
+          <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); setProxy.mutate(); }}>
+            <Input dir="ltr" className="text-left font-mono text-[12px]" placeholder="vless://…  |  socks5://user:pass@ip:port" value={link}
+              onChange={(e) => setLink(e.target.value)} required autoFocus aria-label="کانفیگ پروکسی" />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[12px] text-muted">اول تست می‌شود؛ اگر وصل نشد تنظیم قبلی می‌ماند.</span>
+              <Button size="sm" type="submit" loading={setProxy.isPending}>ذخیره و تست</Button>
+            </div>
+          </form>
+        )}
+        {cfg.own_proxy && <p className="text-[12px] text-muted">این حساب فقط از همین IP وصل می‌شود؛ اگر قطع شود، از پروکسی‌های ما استفاده نمی‌شود و انتشار و جواب‌دهی تا درست شدنش متوقف می‌شود.</p>}
       </div>
       <label className="flex items-center justify-between gap-3 cursor-pointer">
         <span>جواب خودکار دایرکت<span className="block text-[12px] text-muted">دستیار چت به پیام‌ها و درخواست‌های پیام جواب می‌دهد.</span></span>

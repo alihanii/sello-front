@@ -1,15 +1,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { Bot, Copy, ExternalLink, HeartPulse, Plus, ShieldCheck, Unplug, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago } from "@/lib/format";
 import { useStoreId } from "@/lib/hooks";
 import { BOT_STATUS, MODE_LABEL } from "@/lib/chat";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, Chip, Dialog, EmptyState, Field, Input, cn, FormActions } from "@/components/ui/primitives";
+import { Button, Card, Chip, Dialog, EmptyState, Field, Input, Switch, cn, FormActions } from "@/components/ui/primitives";
 import { ChatLinkCard } from "./ChatLinkCard";
 
 const botLink = (platform: string, username: string) => `https://${platform === "bale" ? "ble.ir" : "t.me"}/${username}`;
@@ -109,6 +110,90 @@ function AdminLinkDialog({ bot, onClose }: { bot: any; onClose: () => void }) {
   );
 }
 
+const SOCIAL_LABEL: Record<string, string> = { instagram: "اینستاگرام", linkedin: "لینکدین" };
+
+/** One connected social channel (Instagram, LinkedIn...): is the assistant answering there, with a switch per feature. */
+function SocialChannelCard({ row }: { row: any }) {
+  const sid = useStoreId();
+  const qc = useQueryClient();
+  const [text, setText] = useState<string>(row.comment_text ?? "");
+  useEffect(() => setText(row.comment_text ?? ""), [row.comment_text]);
+  const save = useMutation({
+    mutationFn: (body: { dm: boolean; comments: boolean; comment_text: string }) => api(`/chat/channels/${row.channel_id}`, { method: "PUT", json: body }),
+    onSuccess: (r: any) => {
+      qc.invalidateQueries({ queryKey: ["chat-channels", sid] });
+      qc.invalidateQueries({ queryKey: ["channels", sid] });
+      qc.invalidateQueries({ queryKey: ["chat-overview", sid] });
+      toast.success(r.active ? "دستیار در این حساب روشن است" : "دستیار در این حساب خاموش شد");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const keys = row.features.map((f: any) => f.key);
+  const body = (o: Partial<{ dm: boolean; comments: boolean }>) => ({ dm: !!row.dm, comments: !!row.comments, comment_text: text, ...o });
+  const allOn = keys.every((k: string) => row[k]);
+  return (
+    <Card className="p-5 flex flex-col">
+      <div className="flex items-center gap-3">
+        <PlatformIcon platform={row.platform} size={40} />
+        <div className="flex-1 min-w-0">
+          <div className="font-bold truncate" dir={row.username ? "ltr" : undefined}>{row.username ? `@${row.username}` : row.display_name}</div>
+          <div className="text-[12px] text-muted">{SOCIAL_LABEL[row.platform] ?? row.platform}</div>
+        </div>
+        {row.available
+          ? <Chip tone={row.active ? "success" : "neutral"}>{row.active ? "فعال" : "خاموش"}</Chip>
+          : <Chip tone="warning">در دسترس نیست</Chip>}
+      </div>
+      {row.available ? (
+        <div className="mt-4 space-y-3 text-[14px]">
+          <label className="flex items-center justify-between gap-3 cursor-pointer rounded-xl bg-subtle p-3">
+            <span className="font-bold">چت‌بات در این حساب</span>
+            <Switch checked={row.active} disabled={save.isPending} label="روشن/خاموش کردن چت‌بات در این حساب"
+              onChange={(v) => save.mutate(body(Object.fromEntries(keys.map((k: string) => [k, v]))))} />
+          </label>
+          {row.features.map((f: any) => (
+            <label key={f.key} className="flex items-center justify-between gap-3 cursor-pointer">
+              <span>{f.label}{f.hint && <span className="block text-[12px] text-muted">{f.hint}</span>}</span>
+              <Switch checked={!!row[f.key]} disabled={save.isPending} label={f.label} onChange={(v) => save.mutate(body({ [f.key]: v }))} />
+            </label>
+          ))}
+          {row.comments && keys.includes("comments") && (
+            <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); save.mutate(body({})); }}>
+              <Input className="flex-1" maxLength={200} placeholder={row.default_comment_text} value={text} onChange={(e) => setText(e.target.value)} aria-label="متن جواب زیر کامنت" />
+              <Button size="sm" variant="secondary" type="submit" loading={save.isPending}>ذخیره</Button>
+            </form>
+          )}
+          {!allOn && row.active && <p className="text-[12px] text-muted">فقط بخش‌هایی که روشن است جواب داده می‌شود.</p>}
+        </div>
+      ) : (
+        <p className="text-[13px] bg-warning/10 rounded-xl p-3 mt-4 leading-6">{row.unavailable_reason}</p>
+      )}
+      {row.last_error && <p className="text-[13px] text-danger bg-danger/8 rounded-xl p-3 mt-3">{row.last_error}</p>}
+      {row.active && <div className="text-[12px] text-muted mt-3">آخرین پیام: {ago(row.last_update_at)}</div>}
+    </Card>
+  );
+}
+
+function SocialChannels() {
+  const sid = useStoreId();
+  const { data: rows, isLoading } = useQuery({ queryKey: ["chat-channels", sid], queryFn: () => api<any[]>(`/stores/${sid}/chat/channels`), refetchInterval: 30_000 });
+  return (
+    <section className="mt-8">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 className="font-bold text-[16px]">شبکه‌های اجتماعی</h2>
+          <p className="text-[13px] text-muted">دستیار در دایرکت و کامنت حساب‌هایی که در «کانال‌ها» وصل کرده‌ای جواب می‌دهد.</p>
+        </div>
+        <Link href={`/app/s/${sid}/channels`}><Button size="sm" variant="secondary" icon={<Plus className="size-4" />}>اتصال حساب</Button></Link>
+      </div>
+      {isLoading ? <div className="h-32 rounded-3xl bg-subtle shimmer" /> : !rows?.length ? (
+        <Card className="p-5 text-[14px] text-muted">هنوز حساب اینستاگرامی وصل نشده. از صفحهٔ <Link href={`/app/s/${sid}/channels`} className="text-primary hover:underline">کانال‌ها</Link> با نام کاربری و رمز وصلش کن تا اینجا روشن/خاموشش کنی.</Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">{rows.map((r) => <SocialChannelCard key={r.channel_id} row={r} />)}</div>
+      )}
+    </section>
+  );
+}
+
 export function ChatConnections() {
   const sid = useStoreId();
   const qc = useQueryClient();
@@ -164,6 +249,7 @@ export function ChatConnections() {
           ))}
         </div>
       )}
+      <SocialChannels />
       <Card className="p-5 mt-6 text-[13px] text-muted leading-7">
         <b className="text-fg">چرا ربات جدا؟</b> رباتی که برای انتشار در کانال وصل کرده‌ای و ربات چت هر دو پیام‌هایشان را از یک صف می‌خوانند؛ اگر یکی باشند پیام‌های همدیگر را می‌گیرند. برای چت یک ربات جدید بساز.
         <br /><b className="text-fg">بله و پیوی:</b> API رسمی ربات‌های بله هنوز امکان وصل شدن به پیوی حساب شخصی را ندارد؛ برای بله از «بات مستقل» استفاده کن.
