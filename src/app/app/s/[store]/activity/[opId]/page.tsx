@@ -52,6 +52,9 @@ export default function OperationDetail() {
               <span>{jDateTime(op.created_at)}</span>
               <span className="tnum">مدت: {ms(total)}</span>
             </div>
+            {["queued", "running"].includes(op.status) && (op.current_step || op.run_after) && (
+              <div className="text-[13px] text-primary mt-1.5">{op.current_step || `نوبت انتشار: ${jDateTime(op.run_after)}`}</div>
+            )}
           </div>
           <div className="flex gap-2">
             {op.product_id && <Link href={`/app/s/${sid}/products/${op.product_id}`}><Button variant="secondary" size="sm">مشاهدهٔ محصول</Button></Link>}

@@ -58,7 +58,7 @@ export default function ActivityPage() {
                         <span className="font-semibold text-[14px]">{o.title_fa}</span>
                         <StatusChip status={o.status} kind="op" />
                       </div>
-                      {o.status === "running" && o.current_step && <div className="text-[13px] text-primary mt-0.5">{o.current_step}…</div>}
+                      {["running", "queued"].includes(o.status) && o.current_step && <div className="text-[13px] text-primary mt-0.5">{o.current_step}{o.status === "running" ? "…" : ""}</div>}
                       {o.error_message_fa && <div className="text-[13px] text-danger mt-0.5">{o.error_message_fa}</div>}
                       <div className="text-[12px] text-muted mt-1">
                         {OP_TYPES[o.type]} · {o.actor === "ai" ? "توسط AI/خودکار" : "توسط کاربر"}{o.trigger === "retry" && ` · تلاش ${faNum(o.attempt)}`} · <span title={jDateTime(o.created_at)}>{ago(o.created_at)}</span>
