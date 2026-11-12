@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { API_URL, api, getToken, mediaUrl } from "@/lib/api";
-import { ago, faDigits, faNum, toman } from "@/lib/format";
+import { ago, faDigits, faNum, jDateTime, toman } from "@/lib/format";
 import { productListParams, storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { ChannelStatusStrip, SourceBadge } from "@/components/ui/status";
 import { PublishDialog } from "@/components/products/PublishDialog";
@@ -57,6 +57,12 @@ export default function Products() {
     onSuccess: (r, v: any) => {
       toast.success(v.action === "publish" ? `${faNum(r.queued)} انتشار در صف قرار گرفت؛ وضعیت را در «فعالیت‌ها» ببینید.`
         : v.action === "edit" ? `${faNum(r.changed)} محصول تغییر کرد.` : "انجام شد");
+      // Accounts that publish on a pace (Instagram login, LinkedIn): say when, and why, right away.
+      for (const pc of r.paced ?? []) {
+        toast.info(`${pc.name}: ${faNum(pc.count)} انتشار نوبتی است و آخرینش حدود ${jDateTime(pc.last_at)} منتشر می‌شود.`, {
+          description: "برای جلوگیری از بن شدن حساب، بین انتشارهای هر حساب فاصله گذاشته می‌شود.", duration: 10_000,
+        });
+      }
       setSelected([]); setAllMatching(false); setPublishOpen(false); setEditOpen(false);
       qc.invalidateQueries({ queryKey: ["products", sid] });
       qc.invalidateQueries({ queryKey: ["product-categories", sid] });
