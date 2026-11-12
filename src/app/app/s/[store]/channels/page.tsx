@@ -161,6 +161,42 @@ function InstagramCrawlDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
+/** Username + password Instagram accounts: the chat assistant can answer their DMs and comments. */
+function InstagramInbox({ channel }: { channel: any }) {
+  const sid = useStoreId();
+  const qc = useQueryClient();
+  const cfg = channel.config ?? {};
+  const [text, setText] = useState<string>(cfg.comment_text ?? "");
+  const save = useMutation({
+    mutationFn: (body: { dm: boolean; comments: boolean; comment_text: string }) =>
+      api(`/channels/${channel.id}/instagram/inbox`, { method: "PUT", json: body }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["channels", sid] }); toast.success("ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const body = (o: Partial<{ dm: boolean; comments: boolean }>) => ({ dm: !!cfg.dm_reply, comments: !!cfg.comment_reply, comment_text: text, ...o });
+  return (
+    <div className="mt-3 rounded-xl bg-subtle p-3 space-y-3 text-[14px]">
+      <label className="flex items-center justify-between gap-3 cursor-pointer">
+        <span>جواب خودکار دایرکت<span className="block text-[12px] text-muted">دستیار چت به پیام‌ها و درخواست‌های پیام جواب می‌دهد.</span></span>
+        <Switch checked={!!cfg.dm_reply} disabled={save.isPending} onChange={(v) => save.mutate(body({ dm: v }))} label="جواب خودکار دایرکت" />
+      </label>
+      <label className="flex items-center justify-between gap-3 cursor-pointer">
+        <span>جواب خودکار کامنت<span className="block text-[12px] text-muted">زیر کامنت یک جواب کوتاه می‌نویسد و جواب کامل را دایرکت می‌دهد.</span></span>
+        <Switch checked={!!cfg.comment_reply} disabled={save.isPending} onChange={(v) => save.mutate(body({ comments: v }))} label="جواب خودکار کامنت" />
+      </label>
+      {cfg.comment_reply && (
+        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); save.mutate(body({})); }}>
+          <Input className="flex-1" maxLength={200} placeholder="جواب‌تون رو دایرکت دادیم 🌹" value={text} onChange={(e) => setText(e.target.value)} aria-label="متن جواب زیر کامنت" />
+          <Button size="sm" variant="secondary" type="submit" loading={save.isPending}>ذخیره</Button>
+        </form>
+      )}
+      {(cfg.dm_reply || cfg.comment_reply) && (
+        <Link href={`/app/s/${sid}/chat?tab=conversations`} className="text-[12px] text-primary hover:underline">گفتگوها در صفحهٔ AI چت</Link>
+      )}
+    </div>
+  );
+}
+
 export default function Channels() {
   const sid = useStoreId();
   const qc = useQueryClient();
@@ -221,6 +257,7 @@ export default function Channels() {
                   {c.config.pause_reason || "انتشار این حساب موقتاً متوقف است."} (ادامهٔ انتشار از {new Date(c.config.paused_until).toLocaleString("fa-IR", { dateStyle: "short", timeStyle: "short" })})
                 </p>
               )}
+              {c.platform === "instagram" && c.config?.mode === "private" && c.status === "connected" && <InstagramInbox channel={c} />}
               <div className="flex flex-wrap gap-2 mt-4">
                 {c.status !== "connected" && <Button size="sm" icon={<Plug className="size-4" />} onClick={() => setConnect({ platform: c.platform, channelId: c.id })}>اتصال مجدد</Button>}
                 {crawlable(c.platform) && (() => {
