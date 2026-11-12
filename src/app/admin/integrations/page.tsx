@@ -64,6 +64,59 @@ function PaymentCard() {
   );
 }
 
+/** LinkedIn: sellers sign in with their own account; pacing per account, and the messaging ids LinkedIn rotates. */
+function LinkedInCard() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["admin-li"], queryFn: () => api<any>("/admin/integrations/linkedin") });
+  const [f, setF] = useState<any>(null);
+  const [advanced, setAdvanced] = useState(false);
+  useEffect(() => { if (data) setF({ ...data, query_ids: { ...data.query_ids } }); }, [data]);
+  const save = useMutation({
+    mutationFn: () => api("/admin/integrations/linkedin", { method: "PUT", json: {
+      enabled: f.enabled, daily_limit: Number(f.daily_limit), gap_min_minutes: Number(f.gap_min_minutes),
+      gap_max_minutes: Number(f.gap_max_minutes), query_ids: f.query_ids } }),
+    onSuccess: (d: any) => { qc.setQueryData(["admin-li"], d); qc.invalidateQueries({ queryKey: ["platforms"] }); toast.success("ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  if (!f) return <FormSectionSkeleton fields={3} />;
+  const qid = (k: string) => (e: any) => setF({ ...f, query_ids: { ...f.query_ids, [k]: e.target.value } });
+  return (
+    <Card>
+      <CardHeader title="لینکدین" subtitle="ورود فروشنده با ایمیل و رمز یا کوکی: پست با عکس، جواب پیام و کامنت"
+        action={<Chip tone={f.enabled ? "success" : "neutral"}>{f.enabled ? "فعال" : "غیرفعال"}</Chip>} />
+      <div className="px-4 sm:px-5 pb-5 space-y-4">
+        <label className="flex items-center gap-3 text-[14px]"><Switch checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} />نمایش لینکدین برای فروشنده‌ها</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Field label="سقف روزانهٔ پست هر حساب">
+            <Input dir="ltr" type="number" min={1} max={20} className="text-left tnum" value={f.daily_limit} onChange={(e) => setF({ ...f, daily_limit: e.target.value })} />
+          </Field>
+          <Field label="حداقل فاصله (دقیقه)">
+            <Input dir="ltr" type="number" min={10} className="text-left tnum" value={f.gap_min_minutes} onChange={(e) => setF({ ...f, gap_min_minutes: e.target.value })} />
+          </Field>
+          <Field label="حداکثر فاصله (دقیقه)">
+            <Input dir="ltr" type="number" min={10} className="text-left tnum" value={f.gap_max_minutes} onChange={(e) => setF({ ...f, gap_max_minutes: e.target.value })} />
+          </Field>
+        </div>
+        <p className="text-[12px] text-muted leading-6">
+          همهٔ ترافیک حساب‌های لینکدین فقط از پروکسی‌های «لینکدین» در پنل ادمین › پروکسی‌ها می‌رود و هر حساب به یک پروکسی ثابت می‌چسبد. پیام‌ها هر ۲٫۵ تا ۵ دقیقه و کامنت‌ها هر ۱۰ تا ۱۵ دقیقه خوانده می‌شوند. این روش API رسمی لینکدین نیست و با تغییرات لینکدین ممکن است نیاز به به‌روزرسانی داشته باشد.
+        </p>
+        <button type="button" className="text-[13px] text-muted hover:text-fg transition-colors" onClick={() => setAdvanced(!advanced)}>
+          {advanced ? "بستن تنظیمات پیشرفته" : "تنظیمات پیشرفته (شناسه‌های پیام لینکدین)"}
+        </button>
+        {advanced && <div className="space-y-3">
+          <p className="text-[12px] text-muted">اگر خواندن پیام‌ها خطا داد، queryId تازه را از تب Network مرورگر (درخواست voyagerMessagingGraphQL) اینجا بگذار. خالی = پیش‌فرض.</p>
+          {(["conversations", "messages"] as const).map((k) => (
+            <Field key={k} label={k === "conversations" ? "queryId فهرست گفتگوها" : "queryId پیام‌های یک گفتگو"}>
+              <Input dir="ltr" className="text-left font-mono text-[12px]" placeholder={f.default_query_ids?.[k]} value={f.query_ids?.[k] ?? ""} onChange={qid(k)} />
+            </Field>
+          ))}
+        </div>}
+        <FormActions><Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ لینکدین</Button></FormActions>
+      </div>
+    </Card>
+  );
+}
+
 function InstagramCrawlerCard() {
   const qc = useQueryClient();
   const { data, error } = useQuery({ queryKey: ["admin-ig-crawler"], queryFn: () => api<any>("/admin/integrations/instagram-crawler"), retry: 1 });
@@ -132,7 +185,7 @@ export default function Integrations() {
   return (
     <>
       <PageHeader title="یکپارچه‌سازی‌ها" subtitle="درگاه پرداخت، کرال اینستاگرام و اتصال اپ Meta برای اینستاگرام." />
-      <div className="mb-4 max-w-3xl space-y-4"><PaymentCard /><InstagramCrawlerCard /></div>
+      <div className="mb-4 max-w-3xl space-y-4"><PaymentCard /><InstagramCrawlerCard /><LinkedInCard /></div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
           <CardHeader title="اینستاگرام" subtitle={login ? "ورود با نام کاربری و رمز (پست، استوری، ریلز)" : "Instagram API with Instagram Login"}
