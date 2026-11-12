@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowRight, ExternalLink, RotateCcw } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowRight, ExternalLink, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -35,6 +35,16 @@ export default function OperationDetail() {
     onSuccess: (n) => { toast.success("دوباره در صف قرار گرفت"); router.push(`/app/s/${sid}/activity/${n.id}`); },
     onError: (e: any) => toast.error(e.message),
   });
+  const qc = useQueryClient();
+  const cancel = useMutation({
+    mutationFn: () => api(`/operations/${opId}/cancel`, { method: "POST" }),
+    onSuccess: () => {
+      toast.success("لغو شد");
+      qc.invalidateQueries({ queryKey: ["operation", Number(opId)] });
+      qc.invalidateQueries({ queryKey: ["operations", sid] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
   if (!op) return <OperationSkeleton />;
   const ch = channels.find((c: any) => c.id === op.channel_id);
   const total = op.steps.reduce((a: number, s: any) => a + s.duration_ms, 0);
@@ -59,7 +69,9 @@ export default function OperationDetail() {
           <div className="flex gap-2">
             {op.product_id && <Link href={`/app/s/${sid}/products/${op.product_id}`}><Button variant="secondary" size="sm">مشاهدهٔ محصول</Button></Link>}
             {op.result?.remote_url && <a href={op.result.remote_url} target="_blank" rel="noreferrer"><Button variant="secondary" size="sm" icon={<ExternalLink className="size-4" />}>پست منتشرشده</Button></a>}
-            {["failed", "partial"].includes(op.status) && op.type !== "connect" && <Button size="sm" icon={<RotateCcw className="size-4" />} loading={retry.isPending} onClick={() => retry.mutate()}>تلاش دوباره</Button>}
+            {op.status === "queued" && <Button size="sm" variant="secondary" icon={<XCircle className="size-4" />} loading={cancel.isPending}
+              onClick={() => confirm("این عملیات از صف برداشته شود؟") && cancel.mutate()}>لغو</Button>}
+            {["failed", "partial", "cancelled"].includes(op.status) && op.type !== "connect" && <Button size="sm" icon={<RotateCcw className="size-4" />} loading={retry.isPending} onClick={() => retry.mutate()}>{op.status === "cancelled" ? "دوباره در صف" : "تلاش دوباره"}</Button>}
           </div>
         </div>
         {op.error_message_fa && (

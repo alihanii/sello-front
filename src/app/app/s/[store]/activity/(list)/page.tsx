@@ -1,10 +1,11 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, ChevronLeft } from "lucide-react";
+import { Activity, ChevronLeft, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { ago, faNum, jDateTime } from "@/lib/format";
 import { activityParams, storeQueries, useChannels, useStoreId } from "@/lib/hooks";
@@ -16,6 +17,11 @@ import { ListRowsSkeleton } from "@/components/ui/skeletons";
 export default function ActivityPage() {
   const sid = useStoreId();
   const qc = useQueryClient();
+  const cancel = useMutation({
+    mutationFn: (id: number) => api(`/operations/${id}/cancel`, { method: "POST" }),
+    onSuccess: () => { toast.success("لغو شد"); qc.invalidateQueries({ queryKey: ["operations", sid] }); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const sp = useSearchParams();
   const [type, setType] = useState("");
   const [status, setStatus] = useState(sp.get("status") ?? "");
@@ -64,6 +70,10 @@ export default function ActivityPage() {
                         {OP_TYPES[o.type]} · {o.actor === "ai" ? "توسط AI/خودکار" : "توسط کاربر"}{o.trigger === "retry" && ` · تلاش ${faNum(o.attempt)}`} · <span title={jDateTime(o.created_at)}>{ago(o.created_at)}</span>
                       </div>
                     </div>
+                    {o.status === "queued" && (
+                      <Button size="sm" variant="ghost" icon={<XCircle className="size-4" />} loading={cancel.isPending && cancel.variables === o.id}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (confirm("این عملیات از صف برداشته شود؟")) cancel.mutate(o.id); }}>لغو</Button>
+                    )}
                     <ChevronLeft className="size-4 text-muted mt-2" />
                   </Link>
                 </li>

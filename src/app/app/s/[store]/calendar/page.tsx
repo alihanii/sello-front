@@ -9,7 +9,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, CircleOff, Clock, MessageCirc
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import { asDate, faDigits, faNum, jTime, toman } from "@/lib/format";
+import { asDate, faDigits, faNum, jDateTime, jTime, toman } from "@/lib/format";
 import { ORDER_STATUS } from "@/lib/chat";
 import { useStoreId } from "@/lib/hooks";
 import { OP_TYPES } from "@/lib/meta";
@@ -218,7 +218,7 @@ export default function CalendarPage() {
         <Card className="p-5 mt-4">
           <div className="font-bold text-[14px] mb-2 flex items-center gap-2"><Clock className="size-4" />برنامه‌های آینده</div>
           <div className="flex flex-wrap gap-2">
-            {data.upcoming.map((u: any, i: number) => <Chip key={i} className="whitespace-normal! max-w-full" tone={u.type === "crawl" ? "crawl" : "success"}>{u.title_fa}{u.hour != null && ` · ساعت ${faDigits(u.hour)}`}</Chip>)}
+            {data.upcoming.map((u: any, i: number) => <Chip key={i} className="whitespace-normal! max-w-full" tone={u.type === "crawl" ? "crawl" : "success"}>{u.title_fa}{u.hour != null && ` · ساعت ${faDigits(u.hour)}`}{u.type === "publish" && u.at && ` · ${jDateTime(u.at)}`}</Chip>)}
           </div>
         </Card>
       )}
