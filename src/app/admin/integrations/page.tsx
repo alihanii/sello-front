@@ -17,6 +17,14 @@ const STEPS = [
   "SELLO_PUBLIC_BASE_URL باید آدرس عمومی بک‌اند باشد؛ اینستاگرام عکس‌ها را مستقیم از همین آدرس دانلود می‌کند.",
 ];
 
+const LOGIN_STEPS = [
+  "فروشنده با نام کاربری و رمز اینستاگرام وصل می‌شود؛ اپ Meta لازم نیست و حساب شخصی هم کار می‌کند.",
+  "همهٔ ترافیک این حساب‌ها فقط از پروکسی‌های «اینستاگرام» در پنل ادمین › پروکسی‌ها می‌رود. هر حساب به یک پروکسی ثابت می‌چسبد؛ فقط وقتی آن پروکسی خراب شود به پروکسی دیگری منتقل می‌شود.",
+  "برای هر چند حساب یک پروکسی جدا بگذار؛ پروکسی‌های تمیز و ثابت (نه IP مشترک دیتاسنتری پرمصرف) خطر محدود شدن را کم می‌کنند.",
+  "انتشارها با فاصلهٔ تصادفی بین حداقل و حداکثر و تا سقف روزانه انجام می‌شوند؛ اگر اینستاگرام هشدار بدهد، حساب خودکار استراحت می‌کند.",
+  "این روش API رسمی Meta نیست؛ با تغییرات اینستاگرام ممکن است بعضی وقت‌ها نیاز به به‌روزرسانی داشته باشد.",
+];
+
 function PaymentCard() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["admin-pay"], queryFn: () => api<any>("/admin/integrations/payment") });
@@ -112,12 +120,14 @@ export default function Integrations() {
   useEffect(() => { if (data) setF({ ...data, app_secret: "" }); }, [data]);
   const save = useMutation({
     mutationFn: () => api("/admin/integrations/instagram", { method: "PUT", json: {
-      enabled: f.enabled, app_id: f.app_id, proxy: f.proxy, app_secret: f.app_secret ? f.app_secret : null } }),
+      enabled: f.enabled, app_id: f.app_id, proxy: f.proxy, app_secret: f.app_secret ? f.app_secret : null, method: f.method,
+      daily_limit: Number(f.daily_limit), gap_min_minutes: Number(f.gap_min_minutes), gap_max_minutes: Number(f.gap_max_minutes) } }),
     onSuccess: (d: any) => { qc.setQueryData(["admin-ig"], d); qc.invalidateQueries({ queryKey: ["platforms"] }); toast.success("ذخیره شد"); },
     onError: (e: any) => toast.error(e.message),
   });
   if (!f) return <FormSectionSkeleton fields={4} />;
   const copy = () => { navigator.clipboard.writeText(f.redirect_uri); toast.success("کپی شد"); };
+  const login = f.method !== "oauth";
 
   return (
     <>
@@ -125,10 +135,28 @@ export default function Integrations() {
       <div className="mb-4 max-w-3xl space-y-4"><PaymentCard /><InstagramCrawlerCard /></div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
-          <CardHeader title="اینستاگرام" subtitle="Instagram API with Instagram Login"
-            action={<Chip tone={f.enabled && f.oauth_ready ? "success" : "neutral"}>{f.enabled ? (f.oauth_ready ? "فعال" : "ناقص") : "غیرفعال"}</Chip>} />
+          <CardHeader title="اینستاگرام" subtitle={login ? "ورود با نام کاربری و رمز (پست، استوری، ریلز)" : "Instagram API with Instagram Login"}
+            action={<Chip tone={f.enabled && (login || f.oauth_ready) ? "success" : "neutral"}>{f.enabled ? (login || f.oauth_ready ? "فعال" : "ناقص") : "غیرفعال"}</Chip>} />
           <div className="px-4 sm:px-5 pb-5 space-y-4">
             <label className="flex items-center gap-3 text-[14px]"><Switch checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} />نمایش اینستاگرام برای فروشنده‌ها</label>
+            <Field label="روش اتصال فروشنده‌ها">
+              <Select value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })} aria-label="روش اتصال">
+                <option value="login">نام کاربری و رمز (بدون اپ Meta)</option>
+                <option value="oauth">API رسمی Meta (نیاز به اپ تأییدشده)</option>
+              </Select>
+            </Field>
+            {login && <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Field label="سقف روزانهٔ هر حساب" hint="پست، استوری و ریلز با هم">
+                <Input dir="ltr" type="number" min={1} max={50} className="text-left tnum" value={f.daily_limit} onChange={(e) => setF({ ...f, daily_limit: e.target.value })} />
+              </Field>
+              <Field label="حداقل فاصله (دقیقه)">
+                <Input dir="ltr" type="number" min={1} className="text-left tnum" value={f.gap_min_minutes} onChange={(e) => setF({ ...f, gap_min_minutes: e.target.value })} />
+              </Field>
+              <Field label="حداکثر فاصله (دقیقه)">
+                <Input dir="ltr" type="number" min={1} className="text-left tnum" value={f.gap_max_minutes} onChange={(e) => setF({ ...f, gap_max_minutes: e.target.value })} />
+              </Field>
+            </div>}
+            {!login && <>
             <Field label="Instagram app ID"><Input dir="ltr" className="text-left tnum" value={f.app_id} onChange={(e) => setF({ ...f, app_id: e.target.value })} /></Field>
             <Field label="Instagram app secret" hint={f.has_secret ? "ذخیره شده؛ برای تغییر مقدار جدید وارد کن." : "هنوز وارد نشده."}>
               <Input dir="ltr" type="password" className="text-left font-mono" placeholder={f.has_secret ? "••••••••" : ""} value={f.app_secret} onChange={(e) => setF({ ...f, app_secret: e.target.value })} />
@@ -141,12 +169,13 @@ export default function Integrations() {
                 <Button variant="secondary" icon={<Copy className="size-4" />} onClick={copy} aria-label="کپی" /></div>
             </Field>
             <div className="text-[12px] text-muted" dir="ltr">scopes: {f.scopes}</div>
+            </>}
             <FormActions><Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ اینستاگرام</Button></FormActions>
           </div>
         </Card>
         <Card className="p-5">
           <div className="font-bold mb-3">راه‌اندازی</div>
-          <ol className="list-decimal ps-5 space-y-2 text-[13px] text-muted leading-6">{STEPS.map((s) => <li key={s}>{s}</li>)}</ol>
+          <ol className="list-decimal ps-5 space-y-2 text-[13px] text-muted leading-6">{(login ? LOGIN_STEPS : STEPS).map((s) => <li key={s}>{s}</li>)}</ol>
         </Card>
       </div>
     </>
