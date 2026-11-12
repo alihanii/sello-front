@@ -3,6 +3,7 @@ export const PLATFORMS: Record<string, { label: string; color: string }> = {
   bale: { label: "بله", color: "#00C896" },
   digikala: { label: "دیجی‌کالا", color: "#EF394E" },
   instagram: { label: "اینستاگرام", color: "#E1306C" },
+  linkedin: { label: "لینکدین", color: "#0A66C2" },
   site: { label: "وبسایت", color: "#1d4ed8" },
   link: { label: "لینک چت", color: "#0f766e" },
 };

@@ -25,6 +25,7 @@ const HELP: Record<string, string[]> = {
   digikala: ["شمارهٔ موبایل حساب فروشندگی دیجی‌کالا را وارد کن.", "کد تأییدی که دیجی‌کالا پیامک می‌کند را وارد کن.", "بعد از اتصال، محصولات با دسته، ویژگی‌ها و عکس‌ها در دیجی‌کالا ثبت و برای بررسی ارسال می‌شوند. قیمت و موجودی بعد از تأیید دیجی‌کالا در پنل خودشان ثبت می‌شود."],
   instagram: ["حساب اینستاگرام باید Business یا Creator باشد (تنظیمات اینستاگرام › نوع حساب). صفحهٔ فیسبوک لازم نیست.", "روی «ورود با اینستاگرام» بزن و دسترسی انتشار را تأیید کن.", "اینستاگرام روزانه حداکثر ۱۰۰ پست از طریق API قبول می‌کند؛ کاروسل تا ۱۰ عکس."],
   instagram_login: ["نام کاربری و رمز اینستاگرام را وارد کن؛ هر نوع حسابی (شخصی یا حرفه‌ای) قبول است.", "اگر اینستاگرام کد تأیید خواست (پیامک، ایمیل یا اپ احراز هویت)، همین‌جا واردش کن.", "پست، آلبوم تا ۱۰ عکس، استوری و ریلز منتشر می‌شود؛ انتشارها با فاصله و سقف روزانه انجام می‌شوند تا حساب محدود نشود."],
+  linkedin: ["ایمیل (یا شماره) و رمز حساب لینکدین را وارد کن؛ پست‌ها روی پروفایل شخصی‌ات منتشر می‌شوند.", "اگر لینکدین تأیید امنیتی خواست، یک بار در مرورگر وارد لینکدین شو و کوکی li_at را از همان مرورگر بده (راهنمایش پایین فرم است).", "پست با متن و تا ۹ عکس منتشر می‌شود؛ انتشارها با فاصله و سقف روزانه انجام می‌شوند تا حساب محدود نشود."],
 };
 
 /** While a username + password connect runs, Instagram may ask for a code (2FA or a login check). */
@@ -62,6 +63,7 @@ function ConnectDialog({ platform, channelId, oauth, login, onClose }: { platfor
   const [opId, setOpId] = useState<number | null>(null);
   const [dkChannel, setDkChannel] = useState<number | undefined>(channelId);
   const [codeSent, setCodeSent] = useState(false);
+  const [liCookie, setLiCookie] = useState(false);
   const set = (k: string) => (e: any) => setData({ ...data, [k]: e.target.value });
   const connect = useMutation({
     mutationFn: () => api(`/stores/${sid}/channels/connect`, { method: "POST", json: { platform, channel_id: dkChannel, data } }),
@@ -76,6 +78,11 @@ function ConnectDialog({ platform, channelId, oauth, login, onClose }: { platfor
   return (
     <Dialog open onClose={onClose} title={`اتصال ${PLATFORMS[platform].label}`}>
       <ol className="list-decimal ps-5 space-y-1 text-[13px] text-muted mb-5">{HELP[igLoginMode ? "instagram_login" : platform].map((h) => <li key={h}>{h}</li>)}</ol>
+      {platform === "linkedin" && !opId && (
+        <div className="rounded-xl bg-subtle p-3 text-[12px] text-muted leading-6 mb-5">
+          اتصال لینکدین از API رسمی لینکدین نیست و لینکدین به ابزارهای خودکار حساس است. رمز را فقط همین‌جا وارد کن، تا چند ساعت بعد از اتصال از کشور یا IP دیگری وارد نشو، و اگر لینکدین هشدار داد در مرورگر تأییدش کن.
+        </div>
+      )}
       {igLoginMode && !opId && (
         <div className="rounded-xl bg-subtle p-3 text-[12px] text-muted leading-6 mb-5">
           اتصال با نام کاربری از API رسمی Meta نیست. برای امنیت حساب: رمز را فقط همین‌جا وارد کن، تا چند ساعت بعد از اتصال از جای دیگری وارد نشو، و اگر اینستاگرام پرسید «این شما بودید؟» تأیید کن.
@@ -105,6 +112,19 @@ function ConnectDialog({ platform, channelId, oauth, login, onClose }: { platfor
               <Input dir="ltr" className="text-left font-mono text-[13px]" placeholder="vless://… یا socks5://user:pass@host:port" onChange={set("proxy")} />
             </Field>
           </>}
+          {platform === "linkedin" && !liCookie && <>
+            <Field label="ایمیل یا شمارهٔ لینکدین"><Input dir="ltr" className="text-left" placeholder="me@example.com" autoComplete="username" onChange={set("email")} required /></Field>
+            <Field label="رمز عبور"><Input dir="ltr" type="password" className="text-left" autoComplete="current-password" onChange={set("password")} required /></Field>
+          </>}
+          {platform === "linkedin" && liCookie && (
+            <Field label="کوکی li_at" hint="در مرورگری که در لینکدین واردی: F12 › Application (یا Storage) › Cookies › linkedin.com › مقدار li_at را کپی کن.">
+              <Input dir="ltr" className="text-left font-mono text-[13px]" placeholder="AQEDA…" onChange={set("li_at")} required />
+            </Field>
+          )}
+          {platform === "linkedin" && (
+            <button type="button" className="block mx-auto text-[13px] text-muted hover:text-fg transition-colors"
+              onClick={() => { setLiCookie(!liCookie); setData({}); }}>{liCookie ? "ورود با ایمیل و رمز" : "اتصال با کوکی مرورگر (وقتی لینکدین تأیید امنیتی خواست)"}</button>
+          )}
           {platform === "instagram" && !igLoginMode && oauth && (
             <Button type="button" className="w-full" loading={igLogin.isPending} onClick={() => igLogin.mutate()}>ورود با اینستاگرام</Button>
           )}
@@ -247,6 +267,34 @@ function InstagramInbox({ channel }: { channel: any }) {
   );
 }
 
+/** LinkedIn accounts: the chat assistant can answer their messages and the comments under their posts. */
+function LinkedInInbox({ channel }: { channel: any }) {
+  const sid = useStoreId();
+  const qc = useQueryClient();
+  const cfg = channel.config ?? {};
+  const save = useMutation({
+    mutationFn: (body: { dm: boolean; comments: boolean }) => api(`/channels/${channel.id}/linkedin/inbox`, { method: "PUT", json: body }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["channels", sid] }); toast.success("ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const body = (o: Partial<{ dm: boolean; comments: boolean }>) => ({ dm: !!cfg.dm_reply, comments: !!cfg.comment_reply, ...o });
+  return (
+    <div className="mt-3 rounded-xl bg-subtle p-3 space-y-3 text-[14px]">
+      <label className="flex items-center justify-between gap-3 cursor-pointer">
+        <span>جواب خودکار پیام‌ها<span className="block text-[12px] text-muted">دستیار چت به پیام‌های خصوصی لینکدین جواب می‌دهد.</span></span>
+        <Switch checked={!!cfg.dm_reply} disabled={save.isPending} onChange={(v) => save.mutate(body({ dm: v }))} label="جواب خودکار پیام‌ها" />
+      </label>
+      <label className="flex items-center justify-between gap-3 cursor-pointer">
+        <span>جواب خودکار کامنت<span className="block text-[12px] text-muted">زیر کامنت‌های پست‌های منتشرشده از اینجا جواب می‌دهد (لینکدین پیام به غیرمخاطب را اجازه نمی‌دهد).</span></span>
+        <Switch checked={!!cfg.comment_reply} disabled={save.isPending} onChange={(v) => save.mutate(body({ comments: v }))} label="جواب خودکار کامنت" />
+      </label>
+      {(cfg.dm_reply || cfg.comment_reply) && (
+        <Link href={`/app/s/${sid}/chat?tab=conversations`} className="text-[12px] text-primary hover:underline">گفتگوها در صفحهٔ AI چت</Link>
+      )}
+    </div>
+  );
+}
+
 export default function Channels() {
   const sid = useStoreId();
   const qc = useQueryClient();
@@ -296,18 +344,19 @@ export default function Channels() {
                 <PlatformIcon platform={c.platform} size={40} />
                 <div className="flex-1 min-w-0">
                   <div className="font-bold truncate">{c.display_name || PLATFORMS[c.platform].label}</div>
-                  <div className="text-muted text-[12px]" dir="ltr">{c.config?.username ? `@${c.config.username}` : c.external_account_id}</div>
+                  <div className="text-muted text-[12px] truncate" dir="ltr">{c.platform === "linkedin" ? (c.config?.public_id ? `linkedin.com/in/${c.config.public_id}` : "") : c.config?.username ? `@${c.config.username}` : c.external_account_id}</div>
                 </div>
                 <Chip tone={HEALTH[c.status].tone}>{HEALTH[c.status].label}</Chip>
               </div>
               <div className="text-[12px] text-muted mt-3">آخرین بررسی سلامت: {ago(c.last_health_at)}</div>
               {c.last_error && <p className="text-[13px] text-danger bg-danger/8 rounded-xl p-3 mt-3">{c.last_error}</p>}
-              {c.config?.mode === "private" && c.config?.paused_until && new Date(c.config.paused_until) > new Date() && (
+              {(c.config?.mode === "private" || c.platform === "linkedin") && c.config?.paused_until && new Date(c.config.paused_until) > new Date() && (
                 <p className="text-[13px] text-warning bg-warning/10 rounded-xl p-3 mt-3">
                   {c.config.pause_reason || "انتشار این حساب موقتاً متوقف است."} (ادامهٔ انتشار از {new Date(c.config.paused_until).toLocaleString("fa-IR", { dateStyle: "short", timeStyle: "short" })})
                 </p>
               )}
               {c.platform === "instagram" && c.config?.mode === "private" && c.status === "connected" && <InstagramInbox channel={c} />}
+              {c.platform === "linkedin" && c.status === "connected" && <LinkedInInbox channel={c} />}
               <div className="flex flex-wrap gap-2 mt-4">
                 {c.status !== "connected" && <Button size="sm" icon={<Plug className="size-4" />} onClick={() => setConnect({ platform: c.platform, channelId: c.id })}>اتصال مجدد</Button>}
                 {crawlable(c.platform) && (() => {
