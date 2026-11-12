@@ -156,7 +156,7 @@ function SocialChannelCard({ row }: { row: any }) {
               <Switch checked={!!row[f.key]} disabled={save.isPending} label={f.label} onChange={(v) => save.mutate(body({ [f.key]: v }))} />
             </label>
           ))}
-          {row.comments && keys.includes("comments") && (
+          {row.comments && keys.includes("comments") && row.default_comment_text && (
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); save.mutate(body({})); }}>
               <Input className="flex-1" maxLength={200} placeholder={row.default_comment_text} value={text} onChange={(e) => setText(e.target.value)} aria-label="متن جواب زیر کامنت" />
               <Button size="sm" variant="secondary" type="submit" loading={save.isPending}>ذخیره</Button>
