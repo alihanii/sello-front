@@ -55,12 +55,13 @@ export default function Products() {
     mutationFn: (body: any) => api(`/stores/${sid}/products/bulk`, { method: "POST",
       json: allMatching ? { filters, ...body } : { product_ids: selected, ...body } }),
     onSuccess: (r, v: any) => {
-      toast.success(v.action === "publish" ? `${faNum(r.queued)} انتشار در صف قرار گرفت؛ وضعیت را در «فعالیت‌ها» ببینید.`
+      toast.success(v.action === "publish" ? (v.at ? `${faNum(r.queued)} انتشار برای ${jDateTime(v.at)} زمان‌بندی شد؛ در «فعالیت‌ها» می‌توانی لغوش کنی.`
+        : `${faNum(r.queued)} انتشار در صف قرار گرفت؛ وضعیت را در «فعالیت‌ها» ببینید.`)
         : v.action === "edit" ? `${faNum(r.changed)} محصول تغییر کرد.` : "انجام شد");
       // Accounts that publish on a pace (Instagram login, LinkedIn): say when, and why, right away.
       for (const pc of r.paced ?? []) {
-        toast.info(`${pc.name}: ${faNum(pc.count)} انتشار نوبتی است و آخرینش حدود ${jDateTime(pc.last_at)} منتشر می‌شود.`, {
-          description: "برای جلوگیری از بن شدن حساب، بین انتشارهای هر حساب فاصله گذاشته می‌شود.", duration: 10_000,
+        toast.info(`${pc.name}: ${faNum(pc.count)} انتشار؛ ${pc.count > 1 ? "آخرینش " : ""}حدود ${jDateTime(pc.last_at)} منتشر می‌شود.`, {
+          description: "برای جلوگیری از بن شدن حساب، بین انتشارهای هر حساب فاصله گذاشته می‌شود و هر روز سقف دارد.", duration: 10_000,
         });
       }
       setSelected([]); setAllMatching(false); setPublishOpen(false); setEditOpen(false);
@@ -289,7 +290,7 @@ export default function Products() {
         sample={allMatching ? items : items.filter((p) => selected.includes(p.id))}
         onConfirm={(edit) => bulk.mutate({ action: "edit", edit })} />
       <PublishDialog open={publishOpen} onClose={() => setPublishOpen(false)} channels={channels} loading={bulk.isPending}
-        onConfirm={(ids: number[], showPrice: boolean, format: string) => bulk.mutate({ action: "publish", channel_ids: ids, show_price: showPrice, format })} />
+        onConfirm={(ids: number[], showPrice: boolean, format: string, at: string | null) => bulk.mutate({ action: "publish", channel_ids: ids, show_price: showPrice, format, at })} />
     </>
   );
 }

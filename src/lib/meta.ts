@@ -30,6 +30,7 @@ export const OP_STATUS: Record<string, { label: string; tone: string }> = {
   succeeded: { label: "موفق", tone: "success" },
   failed: { label: "ناموفق", tone: "danger" },
   partial: { label: "نیمه‌موفق", tone: "warning" },
+  cancelled: { label: "لغو شد", tone: "neutral" },
 };
 
 export const OP_TYPES: Record<string, string> = {
