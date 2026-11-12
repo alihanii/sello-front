@@ -35,7 +35,7 @@ export default function EditProduct() {
       <h1 className="text-[22px] font-extrabold mb-4">ویرایش محصول</h1>
       <ProductDetails key={p.updated_at} storeId={sid} saving={save.isPending} onSave={(d) => save.mutate(d)}
         initial={{ images: p.images.map((i: any) => i.url), title: p.title, sku: p.sku ?? "", category: p.category ?? "", brand: p.brand ?? "", tags: p.tags ?? [], price: p.price, stock_qty: p.stock_qty,
-                   description: p.description, attributes: p.attributes ?? {} }} />
+                   description: p.description, attributes: p.attributes ?? {}, video_url: p.video_url ?? "" }} />
     </>
   );
 }

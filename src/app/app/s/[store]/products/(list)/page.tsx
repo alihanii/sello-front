@@ -283,7 +283,7 @@ export default function Products() {
         sample={allMatching ? items : items.filter((p) => selected.includes(p.id))}
         onConfirm={(edit) => bulk.mutate({ action: "edit", edit })} />
       <PublishDialog open={publishOpen} onClose={() => setPublishOpen(false)} channels={channels} loading={bulk.isPending}
-        onConfirm={(ids: number[], showPrice: boolean) => bulk.mutate({ action: "publish", channel_ids: ids, show_price: showPrice })} />
+        onConfirm={(ids: number[], showPrice: boolean, format: string) => bulk.mutate({ action: "publish", channel_ids: ids, show_price: showPrice, format })} />
     </>
   );
 }

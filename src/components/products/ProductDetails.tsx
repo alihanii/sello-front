@@ -5,9 +5,10 @@ import { useState } from "react";
 import { Button, Card, Field, Input, NumberInput, Textarea, FormActions } from "@/components/ui/primitives";
 import { CategoryInput } from "./CategoryInput";
 import { IMAGE_ORDER_HINT, ImageUploader } from "./ImageUploader";
+import { VIDEO_HINT, VideoUploader } from "./VideoUploader";
 
-export type Details = { images: string[]; title: string; sku: string; category: string; brand: string; tags: string[]; price: number; stock_qty: number; description: string; attributes: Record<string, string> };
-export const EMPTY_DETAILS: Details = { images: [], title: "", sku: "", category: "", brand: "", tags: [], price: 0, stock_qty: 0, description: "", attributes: {} };
+export type Details = { images: string[]; title: string; sku: string; category: string; brand: string; tags: string[]; price: number; stock_qty: number; description: string; attributes: Record<string, string>; video_url?: string };
+export const EMPTY_DETAILS: Details = { images: [], title: "", sku: "", category: "", brand: "", tags: [], price: 0, stock_qty: 0, description: "", attributes: {}, video_url: "" };
 
 /** The whole product form: photos and details, nothing else. Used for manual add and for editing. */
 export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "ذخیره" }: {
@@ -27,6 +28,9 @@ export function ProductDetails({ storeId, initial, onSave, saving, saveLabel = "
       <Card className="p-5 space-y-4">
         <Field label="عکس‌ها" tip={IMAGE_ORDER_HINT}>
           <ImageUploader storeId={storeId} value={d.images} onChange={(v) => set("images", v)} hint={false} />
+        </Field>
+        <Field label="ویدیو" tip={VIDEO_HINT}>
+          <VideoUploader storeId={storeId} value={d.video_url ?? ""} onChange={(v) => set("video_url", v)} />
         </Field>
         <Field label="نام محصول"><Input value={d.title} onChange={(e) => set("title", e.target.value)} required maxLength={300} /></Field>
         <Field label="کد محصول" tip="کوتاه و یکتا، مثل H12. اگر خالی بماند، موقع ساخت محصول از کدی که در توضیحات نوشته‌ای (مثل «کد: H12») و اگر نبود از شمارهٔ محصول پر می‌شود. کد محصول در خط اول توضیحات هم نوشته می‌شود تا در پست کانال دیده شود؛ مشتری با فرستادن همین کد در چت سفارش می‌دهد و دستیار دقیقاً همین محصول را پیدا می‌کند.">

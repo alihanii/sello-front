@@ -24,10 +24,33 @@ const HELP: Record<string, string[]> = {
   bale: ["در بله به ‎@botfather پیام بده و ربات بساز.", "ربات را ادمین کانالت کن.", "توکن و آیدی کانال را وارد کن."],
   digikala: ["شمارهٔ موبایل حساب فروشندگی دیجی‌کالا را وارد کن.", "کد تأییدی که دیجی‌کالا پیامک می‌کند را وارد کن.", "بعد از اتصال، محصولات با دسته، ویژگی‌ها و عکس‌ها در دیجی‌کالا ثبت و برای بررسی ارسال می‌شوند. قیمت و موجودی بعد از تأیید دیجی‌کالا در پنل خودشان ثبت می‌شود."],
   instagram: ["حساب اینستاگرام باید Business یا Creator باشد (تنظیمات اینستاگرام › نوع حساب). صفحهٔ فیسبوک لازم نیست.", "روی «ورود با اینستاگرام» بزن و دسترسی انتشار را تأیید کن.", "اینستاگرام روزانه حداکثر ۱۰۰ پست از طریق API قبول می‌کند؛ کاروسل تا ۱۰ عکس."],
+  instagram_login: ["نام کاربری و رمز اینستاگرام را وارد کن؛ هر نوع حسابی (شخصی یا حرفه‌ای) قبول است.", "اگر اینستاگرام کد تأیید خواست (پیامک، ایمیل یا اپ احراز هویت)، همین‌جا واردش کن.", "پست، آلبوم تا ۱۰ عکس، استوری و ریلز منتشر می‌شود؛ انتشارها با فاصله و سقف روزانه انجام می‌شوند تا حساب محدود نشود."],
 };
 
-function ConnectDialog({ platform, channelId, oauth, onClose }: { platform: string; channelId?: number; oauth?: boolean; onClose: () => void }) {
+/** While a username + password connect runs, Instagram may ask for a code (2FA or a login check). */
+function InstagramCode({ opId, channelId }: { opId: number; channelId?: number }) {
+  const { data: op } = useQuery({ queryKey: ["operation", opId], queryFn: () => api(`/operations/${opId}`), enabled: false });
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
+  const send = useMutation({
+    mutationFn: () => api(`/channels/${channelId ?? op?.channel_id}/instagram/code`, { method: "POST", json: { code } }),
+    onSuccess: () => { setSent(true); toast.success("کد ارسال شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  if (!op?.result?.needs_code || op.status !== "running" || sent) return null;
+  return (
+    <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); send.mutate(); }}>
+      <Field label={op.result.code_label || "کد تأیید اینستاگرام"} hint="تا ۵ دقیقه منتظر می‌ماند.">
+        <Input dir="ltr" inputMode="numeric" autoComplete="one-time-code" className="text-left tnum" value={code} onChange={(e) => setCode(e.target.value)} required autoFocus />
+      </Field>
+      <Button type="submit" className="w-full" loading={send.isPending}>ارسال کد</Button>
+    </form>
+  );
+}
+
+function ConnectDialog({ platform, channelId, oauth, login, onClose }: { platform: string; channelId?: number; oauth?: boolean; login?: boolean; onClose: () => void }) {
   const sid = useStoreId();
+  const igLoginMode = platform === "instagram" && !!login;
   const [manual, setManual] = useState(!oauth);
   const igLogin = useMutation({
     mutationFn: () => api(`/stores/${sid}/channels/instagram/oauth-url${channelId ? `?channel_id=${channelId}` : ""}`),
@@ -52,9 +75,15 @@ function ConnectDialog({ platform, channelId, oauth, onClose }: { platform: stri
   });
   return (
     <Dialog open onClose={onClose} title={`اتصال ${PLATFORMS[platform].label}`}>
-      <ol className="list-decimal ps-5 space-y-1 text-[13px] text-muted mb-5">{HELP[platform].map((h) => <li key={h}>{h}</li>)}</ol>
+      <ol className="list-decimal ps-5 space-y-1 text-[13px] text-muted mb-5">{HELP[igLoginMode ? "instagram_login" : platform].map((h) => <li key={h}>{h}</li>)}</ol>
+      {igLoginMode && !opId && (
+        <div className="rounded-xl bg-subtle p-3 text-[12px] text-muted leading-6 mb-5">
+          اتصال با نام کاربری از API رسمی Meta نیست. برای امنیت حساب: رمز را فقط همین‌جا وارد کن، تا چند ساعت بعد از اتصال از جای دیگری وارد نشو، و اگر اینستاگرام پرسید «این شما بودید؟» تأیید کن.
+        </div>
+      )}
       {opId ? (
         <div className="space-y-3">
+          {igLoginMode && <InstagramCode opId={opId} channelId={channelId} />}
           <OperationWatcher opId={opId} storeId={sid} onDone={(o) => { qc.invalidateQueries({ queryKey: ["channels", sid] }); if (o.status === "succeeded") toast.success("کانال وصل شد"); }} />
           <Button variant="secondary" className="w-full" onClick={onClose}>بستن</Button>
         </div>
@@ -68,19 +97,23 @@ function ConnectDialog({ platform, channelId, oauth, onClose }: { platform: stri
             <Field label="موبایل حساب فروشندگی"><Input dir="ltr" className="text-left tnum" placeholder="09…" onChange={set("phone")} required disabled={codeSent} /></Field>
             {codeSent && <Field label="کد تأیید دیجی‌کالا"><Input dir="ltr" className="text-left tnum" onChange={set("code")} required autoFocus /></Field>}
           </>}
-          {platform === "instagram" && oauth && (
+          {igLoginMode && <>
+            <Field label="نام کاربری اینستاگرام"><Input dir="ltr" className="text-left" placeholder="myshop" autoComplete="username" onChange={set("username")} required /></Field>
+            <Field label="رمز عبور"><Input dir="ltr" type="password" className="text-left" autoComplete="current-password" onChange={set("password")} required /></Field>
+          </>}
+          {platform === "instagram" && !igLoginMode && oauth && (
             <Button type="button" className="w-full" loading={igLogin.isPending} onClick={() => igLogin.mutate()}>ورود با اینستاگرام</Button>
           )}
-          {platform === "instagram" && oauth && !manual && (
+          {platform === "instagram" && !igLoginMode && oauth && !manual && (
             <button type="button" className="block mx-auto text-[13px] text-muted hover:text-fg transition-colors" onClick={() => setManual(true)}>یا وارد کردن دستی توکن</button>
           )}
-          {platform === "instagram" && manual && (
+          {platform === "instagram" && !igLoginMode && manual && (
             <Field label="توکن بلندمدت اینستاگرام" hint="Instagram User Access Token با دسترسی instagram_business_content_publish">
               <Input dir="ltr" className="text-left font-mono text-[13px]" onChange={set("access_token")} required />
             </Field>
           )}
-          {(platform !== "instagram" || manual) && (
-            <FormActions><Button type="submit" className="w-full" variant={platform === "instagram" && oauth ? "secondary" : "primary"} loading={connect.isPending || sendCode.isPending}>
+          {(platform !== "instagram" || manual || igLoginMode) && (
+            <FormActions><Button type="submit" className="w-full" variant={platform === "instagram" && oauth && !igLoginMode ? "secondary" : "primary"} loading={connect.isPending || sendCode.isPending}>
               {platform === "digikala" && !codeSent ? "ارسال کد تأیید" : "اتصال"}
             </Button></FormActions>
           )}
@@ -183,6 +216,11 @@ export default function Channels() {
               </div>
               <div className="text-[12px] text-muted mt-3">آخرین بررسی سلامت: {ago(c.last_health_at)}</div>
               {c.last_error && <p className="text-[13px] text-danger bg-danger/8 rounded-xl p-3 mt-3">{c.last_error}</p>}
+              {c.config?.mode === "private" && c.config?.paused_until && new Date(c.config.paused_until) > new Date() && (
+                <p className="text-[13px] text-warning bg-warning/10 rounded-xl p-3 mt-3">
+                  {c.config.pause_reason || "انتشار این حساب موقتاً متوقف است."} (ادامهٔ انتشار از {new Date(c.config.paused_until).toLocaleString("fa-IR", { dateStyle: "short", timeStyle: "short" })})
+                </p>
+              )}
               <div className="flex flex-wrap gap-2 mt-4">
                 {c.status !== "connected" && <Button size="sm" icon={<Plug className="size-4" />} onClick={() => setConnect({ platform: c.platform, channelId: c.id })}>اتصال مجدد</Button>}
                 {crawlable(c.platform) && (() => {
@@ -227,6 +265,7 @@ export default function Channels() {
       </>}
       {connect?.crawlOnly && <InstagramCrawlDialog onClose={() => setConnect(null)} />}
       {connect && !connect.crawlOnly && <ConnectDialog platform={connect.platform} channelId={connect.channelId} oauth={platforms.find((p: any) => p.platform === "instagram")?.oauth}
+        login={platforms.find((p: any) => p.platform === "instagram")?.login}
         onClose={() => setConnect(null)} />}
     </>
   );
