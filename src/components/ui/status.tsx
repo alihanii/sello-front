@@ -37,7 +37,7 @@ export function ChannelStatusStrip({ channels, listings }: { channels: any[]; li
         const l = listings.find((x) => x.channel_id === ch.id);
         const status = l?.status ?? "not_published";
         const label = `${ch.display_name || PLATFORMS[ch.platform]?.label}: ${LISTING_STATUS[status]?.label}${
-          l?.published_by ? ` توسط ${l.published_by === "user" ? "کاربر" : "AI"}` : ""}${l?.published_at ? `، ${ago(l.published_at)}` : ""}${
+          l?.published_by ? ` توسط ${l.published_by === "user" ? "کاربر" : "AI"}` : ""}${l?.published_at ? `، ${ago(l.published_at)}` : ""}${l?.remote_status_fa ? ` (${l.remote_status_fa})` : ""}${
           l?.last_error_fa ? ` | ${l.last_error_fa}` : ""}`;
         return (
           <span key={ch.id} className="relative" title={label} aria-label={label}>

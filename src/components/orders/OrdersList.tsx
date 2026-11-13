@@ -17,7 +17,7 @@ import { ListRowsSkeleton } from "@/components/ui/skeletons";
 
 function SourceChip({ kind }: { kind: string }) {
   const s = ORDER_SOURCE[kind];
-  const Icon = kind === "ai" ? Bot : kind === "chat" ? MessagesSquare : kind === "site" ? Globe : FileText;
+  const Icon = kind === "ai" ? Bot : kind === "chat" ? MessagesSquare : kind === "site" ? Globe : kind === "digikala" ? ShoppingBag : FileText;
   return (
     <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-semibold whitespace-nowrap bg-subtle">
       <i className="inline-block size-2 rounded-full" style={{ background: s?.color }} aria-hidden />
@@ -32,17 +32,18 @@ function OrderCard({ o, highlight }: { o: any; highlight: boolean }) {
   const [note, setNote] = useState(o.seller_note);
   const [zoom, setZoom] = useState(false);
   const isAi = o.kind === "ai";
+  const isDk = o.kind === "digikala";  // status comes from Digikala itself
   const patch = useMutation({
     mutationFn: (body: any) => api(isAi ? `/ai-orders/${o.id}` : `/invoices/${o.id}`, { method: "PATCH", json: body }),
     onSuccess: () => { refresh(); toast.success("سفارش به‌روز شد"); },
     onError: (e: any) => toast.error(e.message),
   });
   const st = ORDER_STATUS[o.status];
-  const title = isAi ? `سفارش #${faNum(o.id)}` : o.kind === "invoice" ? `فاکتور ${faDigits(o.number)}` : o.kind === "site" ? `سفارش سایت ${faDigits(o.number)}` : `سفارش چت ${faDigits(o.number)}`;
+  const title = isAi ? `سفارش #${faNum(o.id)}` : o.kind === "invoice" ? `فاکتور ${faDigits(o.number)}` : o.kind === "site" ? `سفارش سایت ${faDigits(o.number)}` : isDk ? `سفارش دیجی‌کالا ${faDigits(o.ref || o.external_id)}` : `سفارش چت ${faDigits(o.number)}`;
   return (
     <Card id={`order-${o.key}`} className={cn("p-5 flex flex-col", highlight && "ring-2 ring-primary")}>
       <div className="flex items-center gap-3">
-        {o.platform && ["telegram", "bale", "instagram"].includes(o.platform)
+        {o.platform && ["telegram", "bale", "instagram", "digikala"].includes(o.platform)
           ? <PlatformIcon platform={o.platform} size={34} />
           : <span className="size-[34px] rounded-xl bg-subtle grid place-items-center shrink-0">{o.kind === "invoice" ? <FileText className="size-4 text-muted" /> : o.kind === "site" ? <Globe className="size-4 text-muted" /> : <ShoppingBag className="size-4 text-muted" />}</span>}
         <div className="flex-1 min-w-0">
@@ -50,7 +51,7 @@ function OrderCard({ o, highlight }: { o: any; highlight: boolean }) {
             {o.tracking_code && <span className="text-muted text-[12px] font-normal" dir="ltr">{o.tracking_code}</span>}</div>
           <div className="text-[12px] text-muted">{jDateTime(o.submitted_at || o.created_at)}{o.platform && !isAi && platformLabel(o.platform) ? ` · ${platformLabel(o.platform)}` : ""}</div>
         </div>
-        <Chip tone={st?.tone}>{st?.label}</Chip>
+        {isDk ? <Chip tone={o.status === "cancelled" ? "neutral" : "success"}>{o.external_status_fa || st?.label}</Chip> : <Chip tone={st?.tone}>{st?.label}</Chip>}
       </div>
       <div className="mt-3"><SourceChip kind={o.kind} /></div>
       <ul className="mt-3 space-y-1.5 text-[14px]">
@@ -74,7 +75,7 @@ function OrderCard({ o, highlight }: { o: any; highlight: boolean }) {
         {o.customer_address && <div className="flex items-start gap-1.5 text-muted"><MapPin className="size-3.5 mt-1 shrink-0" />{o.customer_address}</div>}
         {o.note && <div className="text-muted">یادداشت: {o.note}</div>}
       </div>
-      {(o.receipt_url || o.payment_ref || o.receipt_text) && (
+      {!isDk && (o.receipt_url || o.payment_ref || o.receipt_text) && (
         <div className="mt-3 rounded-2xl bg-subtle p-3 flex gap-3">
           {o.receipt_url ? <button onClick={() => setZoom(true)} className="cursor-zoom-in shrink-0"><img src={mediaUrl(o.receipt_url, 80)} alt="فیش پرداخت" className="size-20 rounded-xl object-cover" /></button>
             : <Receipt className="size-6 text-muted shrink-0" />}
@@ -88,9 +89,10 @@ function OrderCard({ o, highlight }: { o: any; highlight: boolean }) {
       <Textarea className="mt-3 !min-h-11" rows={1} placeholder="یادداشت تو (فقط برای خودت)" value={note} onChange={(e) => setNote(e.target.value)}
         onBlur={() => note !== o.seller_note && patch.mutate({ seller_note: note })} />
       <div className="flex flex-wrap gap-2 mt-auto pt-4">
-        {!["confirmed", "cancelled"].includes(o.status) && <Button size="sm" icon={<Check className="size-4" />} loading={patch.isPending && patch.variables?.status === "confirmed"}
+        {isDk && <a href="https://seller.digikala.com/pwa/orders" target="_blank" rel="noreferrer"><Button size="sm" variant="secondary">پنل دیجی‌کالا</Button></a>}
+        {!isDk && !["confirmed", "cancelled"].includes(o.status) && <Button size="sm" icon={<Check className="size-4" />} loading={patch.isPending && patch.variables?.status === "confirmed"}
           onClick={() => confirm("پرداخت تأیید شود؟ موجودی محصولات کم می‌شود.") && patch.mutate({ status: "confirmed" })}>تأیید پرداخت</Button>}
-        {["awaiting_payment", "payment_submitted"].includes(o.status) && <Button size="sm" variant="danger" icon={<X className="size-4" />}
+        {!isDk && ["awaiting_payment", "payment_submitted"].includes(o.status) && <Button size="sm" variant="danger" icon={<X className="size-4" />}
           onClick={() => confirm(o.kind === "invoice" ? "فیش رد شود؟ مشتری می‌تواند با همان لینک دوباره فیش بفرستد." : "سفارش رد شود؟") && patch.mutate({ status: "rejected" })}>رد</Button>}
         {isAi && <Link href={`/app/s/${sid}/chat?tab=conversations&c=${o.conversation_id}`}><Button size="sm" variant="ghost" icon={<MessagesSquare className="size-4" />}>گفتگو</Button></Link>}
       </div>

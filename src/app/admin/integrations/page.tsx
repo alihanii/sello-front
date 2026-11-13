@@ -65,6 +65,36 @@ function PaymentCard() {
   );
 }
 
+/** Digikala: one switch for the whole integration (connect, publish, order sync) and how often orders are read. */
+function DigikalaCard() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["admin-dk"], queryFn: () => api<any>("/admin/integrations/digikala") });
+  const [f, setF] = useState<any>(null);
+  useEffect(() => { if (data) setF({ ...data }); }, [data]);
+  const save = useMutation({
+    mutationFn: () => api("/admin/integrations/digikala", { method: "PUT", json: { enabled: f.enabled, sync_minutes: Number(f.sync_minutes) } }),
+    onSuccess: (d: any) => { qc.setQueryData(["admin-dk"], d); qc.invalidateQueries({ queryKey: ["platforms"] }); toast.success("ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  if (!f) return <FormSectionSkeleton fields={2} />;
+  return (
+    <Card>
+      <CardHeader title="دیجی‌کالا" subtitle="اتصال پنل فروشنده با کد پیامکی: انتشار محصول تا ثبت قیمت و موجودی، و دریافت سفارش‌ها"
+        action={<Chip tone={f.enabled ? "success" : "neutral"}>{f.enabled ? "فعال" : "غیرفعال"}</Chip>} />
+      <div className="px-4 sm:px-5 pb-5 space-y-4">
+        <label className="flex items-center gap-3 text-[14px]"><Switch checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} />دیجی‌کالا برای فروشنده‌ها روشن باشد</label>
+        <Field label="هر چند دقیقه سفارش‌های تازه خوانده شود">
+          <Input dir="ltr" type="number" min={5} max={720} className="text-left tnum max-w-[160px]" value={f.sync_minutes} onChange={(e) => setF({ ...f, sync_minutes: e.target.value })} />
+        </Field>
+        <p className="text-[12px] text-muted leading-6">
+          خاموش که باشد، فروشنده‌ها نمی‌توانند دیجی‌کالا را وصل کنند، محصول منتشر کنند یا سفارش بگیرند؛ حساب‌های وصل‌شده ({f.connected_channels ?? 0} حساب) پاک نمی‌شوند و با روشن کردن دوباره کار می‌کنند. دیجی‌کالا فقط از داخل ایران در دسترس است، پس سرور باید داخل ایران باشد.
+        </p>
+        <FormActions><Button loading={save.isPending} onClick={() => save.mutate()}>ذخیرهٔ دیجی‌کالا</Button></FormActions>
+      </div>
+    </Card>
+  );
+}
+
 /** LinkedIn: sellers sign in with their own account; pacing per account, and the messaging ids LinkedIn rotates. */
 function LinkedInCard() {
   const qc = useQueryClient();
@@ -238,8 +268,8 @@ export default function Integrations() {
 
   return (
     <>
-      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="پیامک ورود، درگاه پرداخت، کرال اینستاگرام و اتصال اپ Meta برای اینستاگرام." />
-      <div className="mb-4 max-w-3xl space-y-4"><SmsCard /><PaymentCard /><InstagramCrawlerCard /><LinkedInCard /></div>
+      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="پیامک ورود، درگاه پرداخت، کرال اینستاگرام، دیجی‌کالا، لینکدین و اتصال اپ Meta برای اینستاگرام." />
+      <div className="mb-4 max-w-3xl space-y-4"><SmsCard /><PaymentCard /><InstagramCrawlerCard /><DigikalaCard /><LinkedInCard /></div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
           <CardHeader title="اینستاگرام" subtitle={login ? "ورود با نام کاربری و رمز (پست، استوری، ریلز)" : "Instagram API with Instagram Login"}
