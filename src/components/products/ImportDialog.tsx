@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileSpreadsheet, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { API_URL, api, getToken } from "@/lib/api";
+import { API_URL, api, authHeaders } from "@/lib/api";
 import { faNum, toman } from "@/lib/format";
 import { Button, Chip, Dialog, cn, FormActions } from "@/components/ui/primitives";
 import { VirtualList } from "@/components/ui/VirtualList";
@@ -24,7 +24,7 @@ export function ImportDialog({ storeId, open, onClose }: { storeId: number; open
   const close = () => { reset(); onClose(); };
 
   const template = async (format: "xlsx" | "csv") => {
-    const res = await fetch(`${API_URL}/api/v1/stores/${storeId}/products/import-template?format=${format}`, { headers: { Authorization: `Bearer ${getToken()}` } });
+    const res = await fetch(`${API_URL}/api/v1/stores/${storeId}/products/import-template?format=${format}`, { headers: await authHeaders() });
     if (!res.ok) return toast.error("دانلود فایل نمونه انجام نشد.");
     const url = URL.createObjectURL(await res.blob());
     Object.assign(document.createElement("a"), { href: url, download: `sello-products-template.${format}` }).click();

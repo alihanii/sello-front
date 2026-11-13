@@ -3,7 +3,7 @@
 import { ImagePlus, Star, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { API_URL, getToken, mediaUrl } from "@/lib/api";
+import { API_URL, authHeaders, mediaUrl } from "@/lib/api";
 import { Spinner, cn } from "@/components/ui/primitives";
 
 export const IMAGE_ORDER_HINT = "عکس اول، عکس اصلی است. برای تغییر ترتیب بکشید و رها کنید.";
@@ -21,7 +21,7 @@ export function ImageUploader({ storeId, value, onChange, max = 10, hint = true 
     const fd = new FormData();
     list.forEach((f) => fd.append("files", f));
     try {
-      const res = await fetch(`${API_URL}/api/v1/stores/${storeId}/uploads`, { method: "POST", body: fd, headers: { Authorization: `Bearer ${getToken()}` } });
+      const res = await fetch(`${API_URL}/api/v1/stores/${storeId}/uploads`, { method: "POST", body: fd, headers: await authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.detail?.message ?? "آپلود ناموفق بود");
       onChange([...value, ...data.urls]);

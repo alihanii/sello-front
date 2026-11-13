@@ -5,15 +5,16 @@ import {
   Activity, CalendarDays, ChevronDown, CreditCard, LayoutDashboard, LogOut, Menu, MessageCircle, Moon, Package,
   Plug, Settings, Shield, Store, Sun,
   ShoppingBag,
-  Globe,
+  Globe, KeyRound,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { api, mediaUrl, setToken } from "@/lib/api";
+import { api, logout as signOut, mediaUrl } from "@/lib/api";
 import { faDigits, faNum } from "@/lib/format";
 import { prefetchStorePage, useMe, useOperationsStream, useStores } from "@/lib/hooks";
-import { Button, Sheet, cn } from "@/components/ui/primitives";
+import { Button, Dialog, Field, Input, Sheet, cn } from "@/components/ui/primitives";
+import { toast } from "sonner";
 import { NotificationBell } from "./Notifications";
 import { Logo } from "./Brand";
 
@@ -66,6 +67,7 @@ const TONE = {
 /** The seller's menu in the header: who is signed in, days left on the plan, dark mode and logout, in one dropdown. */
 function AccountMenu({ me, onLogout }: { me: any; onLogout: () => void }) {
   const [open, setOpen] = useState(false);
+  const [pw, setPw] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const plan = usePlan();
   const { dark, toggle } = useTheme();
@@ -123,6 +125,11 @@ function AccountMenu({ me, onLogout }: { me: any; onLogout: () => void }) {
               <span className={cn("block size-4 rounded-full bg-white shadow transition-transform", dark ? "-translate-x-4" : "translate-x-0")} />
             </span>
           </button>
+          <button role="menuitem" onClick={() => { setOpen(false); setPw(true); }}
+            className="flex items-center gap-3 h-11 px-3 rounded-2xl text-[14px] font-bold hover:bg-subtle transition cursor-pointer text-start">
+            <KeyRound className="size-[18px] text-muted" aria-hidden />
+            <span className="flex-1">{me?.has_password ? "تغییر رمز عبور" : "گذاشتن رمز عبور"}</span>
+          </button>
           <button role="menuitem" onClick={onLogout}
             className="flex items-center gap-3 h-11 px-3 rounded-2xl text-[14px] font-bold text-danger hover:bg-danger/10 transition cursor-pointer text-start">
             <LogOut className="size-[18px]" aria-hidden />
@@ -130,7 +137,50 @@ function AccountMenu({ me, onLogout }: { me: any; onLogout: () => void }) {
           </button>
         </div>
       </div>
+      <PasswordDialog open={pw} onClose={() => setPw(false)} hasPassword={!!me?.has_password} phone={me?.phone ?? ""} />
     </div>
+  );
+}
+
+/** Set or change the sign-in password. Other devices are signed out when it changes. */
+function PasswordDialog({ open, onClose, hasPassword, phone }: { open: boolean; onClose: () => void; hasPassword: boolean; phone: string }) {
+  const qc = useQueryClient();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (open) { setCurrent(""); setNext(""); } }, [open]);
+  const save = async () => {
+    setBusy(true);
+    try {
+      await api("/auth/password", { method: "POST", json: { password: next, current_password: current || undefined } });
+      toast.success(hasPassword ? "رمز عوض شد؛ دستگاه‌های دیگر از حساب خارج شدند." : "رمز ذخیره شد؛ دفعهٔ بعد با شماره و رمز وارد شو.");
+      qc.invalidateQueries({ queryKey: ["me"] });
+      onClose();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog open={open} onClose={onClose} title={hasPassword ? "تغییر رمز عبور" : "گذاشتن رمز عبور"}>
+      <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
+        <p className="text-[13px] text-muted">با رمز، بدون منتظر ماندن برای پیامک وارد می‌شوی. ورود با کد پیامکی هم همیشه هست.</p>
+        <input type="text" name="username" autoComplete="username" value={phone} readOnly hidden />
+        {hasPassword && (
+          <Field label="رمز فعلی" hint="اگر یادت نیست: خارج شو، در صفحهٔ ورود «رمز را فراموش کرده‌ام» را بزن.">
+            <Input dir="ltr" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} className="text-left" />
+          </Field>
+        )}
+        <Field label="رمز تازه" hint="دست‌کم ۸ نویسه">
+          <Input dir="ltr" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} className="text-left" />
+        </Field>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onClose}>انصراف</Button>
+          <Button type="submit" loading={busy} disabled={next.length < 8}>ذخیره</Button>
+        </div>
+      </form>
+    </Dialog>
   );
 }
 
@@ -235,7 +285,7 @@ export function AppShell({ storeId, children }: { storeId: number; children: Rea
     ...(me?.role === "admin" ? [{ href: "/admin", icon: Shield, label: "پنل ادمین", exact: true }] : []),
   ];
   const isActive = (href: string, exact?: boolean) => (exact ? path === href : path.startsWith(href));
-  const logout = () => { setToken(null); router.push("/login"); };
+  const logout = async () => { await signOut(); router.push("/login"); };
   const moreActive = [...items.filter((i) => !i.tab), ...secondary].some((i) => isActive(i.href, (i as any).exact));
 
   return (

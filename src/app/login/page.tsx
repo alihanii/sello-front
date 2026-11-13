@@ -1,14 +1,14 @@
 "use client";
 
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { api, setToken } from "@/lib/api";
+import { api, ensureToken, hasSession, setSession } from "@/lib/api";
 import { faDigits } from "@/lib/format";
 import { Logo, ThemeToggle } from "@/components/shell/AppShell";
-import { Button, Field, Input } from "@/components/ui/primitives";
+import { Button, Field, Input, Spinner } from "@/components/ui/primitives";
 
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -42,14 +42,51 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
   );
 }
 
+function PasswordInput({ value, onChange, autoComplete, autoFocus }: { value: string; onChange: (v: string) => void; autoComplete: string; autoFocus?: boolean }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <Input dir="ltr" type={show ? "text" : "password"} name={autoComplete === "new-password" ? "new-password" : "password"} autoComplete={autoComplete} autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)}
+        className="text-left pr-11 border-fg/20! hover:border-fg/30! focus:border-primary!" />
+      <button type="button" onClick={() => setShow(!show)} aria-label={show ? "پنهان کردن رمز" : "نمایش رمز"}
+        className="absolute inset-y-0 right-0 w-11 grid place-items-center text-muted hover:text-fg cursor-pointer">
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
+    </div>
+  );
+}
+
+type Step = "phone" | "password" | "code" | "setpw";
+
+/** Where to go after signing in: a path inside the app from ?next=, else the panel. */
+function nextPath() {
+  try {
+    const n = new URLSearchParams(window.location.search).get("next") ?? "";
+    return n.startsWith("/") && !n.startsWith("//") ? n : "/app";
+  } catch {
+    return "/app";
+  }
+}
+
 export default function Login() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
-  const [step, setStep] = useState<"phone" | "code">("phone");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [hasPassword, setHasPassword] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [step, setStep] = useState<Step>("phone");
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [devCode, setDevCode] = useState("");
+  // Already signed in (e.g. «ورود» on the landing page): straight to the panel instead of asking again.
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    if (!hasSession()) { setChecking(false); return; }
+    ensureToken().then((t) => (t ? router.replace(nextPath()) : setChecking(false))).catch(() => setChecking(false));
+  }, [router]);
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -57,31 +94,48 @@ export default function Login() {
     return () => clearTimeout(t);
   }, [timer]);
 
-  const send = async () => {
+  const run = async (fn: () => Promise<void>) => {
     setLoading(true);
     try {
-      const r = await api("/auth/otp/send", { method: "POST", json: { phone } });
-      setStep("code");
-      setTimer(r.ttl);
-      setDevCode(r.dev_code ?? "");
+      await fn();
     } catch (e: any) {
       toast.error(e.message);
     } finally {
       setLoading(false);
     }
   };
-  const verify = async () => {
-    setLoading(true);
-    try {
-      const r = await api("/auth/otp/verify", { method: "POST", json: { phone, code } });
-      setToken(r.access_token);
-      router.replace("/app");
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setLoading(false);
-    }
+  const sendCode = async () => {
+    const r = await api("/auth/otp/send", { method: "POST", json: { phone } });
+    setCode("");
+    setStep("code");
+    setTimer(r.ttl);
+    setDevCode(r.dev_code ?? "");
   };
+  // Accounts with a password sign in with it by default; new numbers and accounts without one get a code.
+  const start = () => run(async () => {
+    // Password typed or filled in by the browser / password manager: sign in with it straight away.
+    if (password) { signedIn(await api("/auth/password/login", { method: "POST", json: { phone, password } })); return; }
+    const r = await api("/auth/lookup", { method: "POST", json: { phone } });
+    setHasPassword(!!r.has_password);
+    if (r.method === "password") setStep("password"); else await sendCode();
+  });
+  const signedIn = (r: any) => {
+    setSession(r);
+    if (!r.has_password || forgot) { setStep("setpw"); return; }
+    router.replace(nextPath());
+  };
+  const verify = () => run(async () => signedIn(await api("/auth/otp/verify", { method: "POST", json: { phone, code } })));
+  const loginPassword = () => run(async () => signedIn(await api("/auth/password/login", { method: "POST", json: { phone, password } })));
+  const savePassword = () => run(async () => {
+    await api("/auth/password", { method: "POST", json: { password: newPassword } });
+    toast.success("رمز ذخیره شد؛ دفعهٔ بعد با همین رمز وارد شو.");
+    router.replace(nextPath());
+  });
+  const changePhone = () => { setStep("phone"); setCode(""); setPassword(""); };
+
+  if (checking) {
+    return <div className="min-h-dvh grid place-items-center"><Spinner className="size-6 text-primary" /></div>;
+  }
 
   return (
     <div className="relative min-h-dvh flex flex-col overflow-hidden">
@@ -93,25 +147,52 @@ export default function Login() {
       </header>
       <main className="relative flex-1 grid place-items-center px-4 py-10">
         <div className="w-full max-w-[360px]">
-          {step === "phone" ? (
-            <form onSubmit={(e) => { e.preventDefault(); send(); }}>
+          {step === "phone" && (
+            <form onSubmit={(e) => { e.preventDefault(); start(); }}>
               <div className="text-center mb-8">
                 <h1 className="text-[26px] font-black tracking-tight">ورود یا ثبت‌نام</h1>
-                <p className="text-muted text-[15px] mt-2">شمارهٔ موبایلت را وارد کن تا کد تأیید بفرستیم.</p>
+                <p className="text-muted text-[15px] mt-2">شماره و رمزت را وارد کن؛ اگر رمز نداری خالی بگذار تا کد پیامکی بفرستیم.</p>
               </div>
               <div className="space-y-4">
                 <Field label="شمارهٔ موبایل">
-                  <Input dir="ltr" inputMode="tel" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
+                  <Input dir="ltr" type="tel" inputMode="tel" name="username" id="username" autoComplete="username" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
                 </Field>
-                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>دریافت کد تأیید</Button>
+                <Field label="رمز عبور" hint="اختیاری؛ حساب تازه یا بدون رمز با کد پیامکی وارد می‌شود.">
+                  <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" />
+                </Field>
+                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>{password ? "ورود" : "ادامه"}</Button>
               </div>
             </form>
-          ) : (
+          )}
+          {step === "password" && (
+            <form onSubmit={(e) => { e.preventDefault(); loginPassword(); }}>
+              <div className="text-center mb-8">
+                <h1 className="text-[26px] font-black tracking-tight">رمز عبور</h1>
+                <p className="text-muted text-[15px] mt-2">رمز حساب <span className="tnum font-semibold text-fg" dir="ltr">{faDigits(phone)}</span> را وارد کن.</p>
+                <button type="button" onClick={changePhone} className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-primary cursor-pointer hover:underline">
+                  <ArrowRight className="size-4" /> تغییر شماره
+                </button>
+              </div>
+              {/* Hidden username field so password managers save the pair. */}
+              <input type="text" name="username" autoComplete="username" value={phone} readOnly className="sr-only" tabIndex={-1} aria-hidden />
+              <div className="space-y-4">
+                <Field label="رمز عبور">
+                  <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" autoFocus />
+                </Field>
+                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={!password}>ورود</Button>
+              </div>
+              <div className="flex items-center justify-between text-[13px] mt-6">
+                <button type="button" className="text-primary font-semibold cursor-pointer hover:underline" onClick={() => { setForgot(false); run(sendCode); }}>ورود با کد پیامکی</button>
+                <button type="button" className="text-muted font-semibold cursor-pointer hover:underline" onClick={() => { setForgot(true); run(sendCode); }}>رمز را فراموش کرده‌ام</button>
+              </div>
+            </form>
+          )}
+          {step === "code" && (
             <form onSubmit={(e) => { e.preventDefault(); verify(); }}>
               <div className="text-center mb-8">
                 <h1 className="text-[26px] font-black tracking-tight">کد تأیید</h1>
                 <p className="text-muted text-[15px] mt-2">کد ۶ رقمی به <span className="tnum font-semibold text-fg" dir="ltr">{faDigits(phone)}</span> ارسال شد.</p>
-                <button type="button" onClick={() => { setStep("phone"); setCode(""); }} className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-primary cursor-pointer hover:underline">
+                <button type="button" onClick={changePhone} className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-primary cursor-pointer hover:underline">
                   <ArrowRight className="size-4" /> تغییر شماره
                 </button>
               </div>
@@ -122,10 +203,29 @@ export default function Login() {
                 )}
                 <Button type="submit" className="w-full" size="lg" loading={loading} disabled={code.length !== 6}>ورود</Button>
               </div>
-              <div className="text-center text-[13px] text-muted mt-6">
+              <div className="flex items-center justify-center gap-4 text-[13px] text-muted mt-6">
                 {timer > 0 ? <span className="tnum">ارسال دوباره تا {faDigits(timer)} ثانیه</span> : (
-                  <button type="button" className="text-primary font-semibold cursor-pointer hover:underline" onClick={send}>ارسال دوبارهٔ کد</button>
+                  <button type="button" className="text-primary font-semibold cursor-pointer hover:underline" onClick={() => run(sendCode)}>ارسال دوبارهٔ کد</button>
                 )}
+                {hasPassword && (
+                  <button type="button" className="text-primary font-semibold cursor-pointer hover:underline" onClick={() => { setPassword(""); setStep("password"); }}>ورود با رمز</button>
+                )}
+              </div>
+            </form>
+          )}
+          {step === "setpw" && (
+            <form onSubmit={(e) => { e.preventDefault(); savePassword(); }}>
+              <div className="text-center mb-8">
+                <h1 className="text-[26px] font-black tracking-tight">{forgot ? "رمز تازه" : "یک رمز بگذار"}</h1>
+                <p className="text-muted text-[15px] mt-2">دفعهٔ بعد با شماره و همین رمز وارد می‌شوی و منتظر پیامک نمی‌مانی. ورود با کد هم همیشه هست.</p>
+              </div>
+              <input type="text" name="username" autoComplete="username" value={phone} readOnly className="sr-only" tabIndex={-1} aria-hidden />
+              <div className="space-y-4">
+                <Field label="رمز عبور" hint="دست‌کم ۸ نویسه">
+                  <PasswordInput value={newPassword} onChange={setNewPassword} autoComplete="new-password" autoFocus />
+                </Field>
+                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={newPassword.length < 8}>ذخیرهٔ رمز و ورود</Button>
+                <Button type="button" variant="ghost" className="w-full" onClick={() => router.replace(nextPath())}>{forgot ? "بعداً" : "فعلاً نه"}</Button>
               </div>
             </form>
           )}

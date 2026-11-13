@@ -3,7 +3,7 @@
 import { queryOptions, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
-import { API_URL, api, getToken } from "./api";
+import { API_URL, api, ensureToken } from "./api";
 
 export function useStoreId(): number {
   const p = useParams<{ store: string }>();
@@ -70,10 +70,20 @@ export function prefetchStorePage(qc: QueryClient, sid: number, href: string) {
 export function useOperationsStream(storeId: number) {
   const qc = useQueryClient();
   useEffect(() => {
-    const token = getToken();
-    if (!storeId || !token) return;
-    const es = new EventSource(`${API_URL}/api/v1/stores/${storeId}/operations/stream?token=${encodeURIComponent(token)}`);
-    es.onmessage = (e) => {
+    if (!storeId) return;
+    let es: EventSource | null = null;
+    let stopped = false;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    // The access token in the URL is checked when the stream opens and lasts 15 minutes, so a dropped stream
+    // reconnects with a fresh token instead of letting EventSource retry with the old one.
+    const open = async () => {
+      const token = await ensureToken().catch(() => null);
+      if (stopped || !token) { if (!stopped) retry = setTimeout(open, 10_000); return; }
+      es = new EventSource(`${API_URL}/api/v1/stores/${storeId}/operations/stream?token=${encodeURIComponent(token)}`);
+      es.onerror = () => { es?.close(); if (!stopped) retry = setTimeout(open, 3_000); };
+      es.onmessage = onMessage;
+    };
+    const onMessage = (e: MessageEvent) => {
       const op = JSON.parse(e.data);
       qc.setQueryData(["operation", op.id], (old: any) => (old ? { ...old, ...op } : old));
       qc.invalidateQueries({ queryKey: ["operations", storeId] });
@@ -87,6 +97,7 @@ export function useOperationsStream(storeId: number) {
         qc.invalidateQueries({ queryKey: ["calendar", storeId] });
       }
     };
-    return () => es.close();
+    open();
+    return () => { stopped = true; clearTimeout(retry); es?.close(); };
   }, [storeId, qc]);
 }

@@ -166,6 +166,52 @@ function InstagramCrawlerCard() {
   );
 }
 
+function SmsCard() {
+  const qc = useQueryClient();
+  const { data, error } = useQuery({ queryKey: ["admin-sms"], queryFn: () => api<any>("/admin/integrations/sms"), retry: 1 });
+  const [f, setF] = useState<any>(null);
+  const [testPhone, setTestPhone] = useState("");
+  useEffect(() => { if (data) setF({ ...data, api_key: "" }); }, [data]);
+  const save = useMutation({
+    mutationFn: () => api("/admin/integrations/sms", { method: "PUT", json: {
+      enabled: f.enabled, template: f.template, sender: f.sender, api_key: f.api_key ? f.api_key : null } }),
+    onSuccess: (d: any) => { qc.setQueryData(["admin-sms"], d); setF({ ...d, api_key: "" }); toast.success("ذخیره شد"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const test = useMutation({
+    mutationFn: () => api<any>("/admin/integrations/sms/test", { method: "POST", json: { phone: testPhone } }),
+    onSuccess: (r: any) => (r.ok ? toast.success(r.message) : toast.error(r.message)),
+    onError: (e: any) => toast.error(e.message),
+  });
+  if (error) return <Card className="p-5 text-[14px] text-danger">تنظیمات پیامک از سرور خوانده نشد: {(error as any).message}</Card>;
+  if (!f) return <FormSectionSkeleton fields={3} />;
+  return (
+    <Card>
+      <CardHeader title="پیامک ورود (کاوه‌نگار)" subtitle="کد ورود با سرویس Verify Lookup کاوه‌نگار فرستاده می‌شود. مقدارهای env سرور (SELLO_SMS_API_KEY، SELLO_KAVENEGAR_TEMPLATE) هم کار می‌کنند؛ آنچه این‌جا ذخیره شود بر آن‌ها مقدم است."
+        action={<Chip tone={f.ready ? "success" : "warning"}>{f.ready ? "فعال" : f.dev_mode ? "حالت توسعه (کد روی صفحه)" : "خاموش"}</Chip>} />
+      <div className="px-4 sm:px-5 pb-5 space-y-4">
+        <label className="flex items-center gap-3 text-[14px]"><Switch checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} />ارسال کد ورود با پیامک</label>
+        <Field label="کلید API" hint={f.has_key ? `ذخیره شده (${f.key_hint})؛ برای تغییر مقدار جدید وارد کن.` : "console.kavenegar.com ← تنظیمات ← API Key"}>
+          <Input dir="ltr" type="password" autoComplete="off" className="text-left font-mono" placeholder={f.has_key ? "••••••••" : ""} value={f.api_key} onChange={(e) => setF({ ...f, api_key: e.target.value })} />
+        </Field>
+        <Field label="نام الگو (Verify Lookup)" hint="در کنسول ← اعتبارسنجی ← الگوها؛ متن الگو باید %token داشته باشد، مثلاً «کد ورود شما به فروشیفای: %token».">
+          <Input dir="ltr" className="text-left font-mono" placeholder="foroshify-login" value={f.template} onChange={(e) => setF({ ...f, template: e.target.value })} />
+        </Field>
+        <Field label="خط ارسال (اختیاری)" hint="فقط وقتی الگو خالی باشد، پیام ساده از این خط فرستاده می‌شود.">
+          <Input dir="ltr" inputMode="numeric" className="text-left font-mono" placeholder="2000660110" value={f.sender} onChange={(e) => setF({ ...f, sender: e.target.value })} />
+        </Field>
+        <Field label="شمارهٔ آزمایشی (اختیاری)" hint="با «تست» کلید و اعتبار بررسی می‌شود؛ اگر شماره بدهی، یک کد نمونه (۱۲۳۴۵۶) هم فرستاده می‌شود.">
+          <Input dir="ltr" inputMode="tel" className="text-left tnum" placeholder="09xxxxxxxxx" value={testPhone} onChange={(e) => setTestPhone(e.target.value)} />
+        </Field>
+        <FormActions>
+          <Button variant="secondary" loading={test.isPending} disabled={!f.has_key} onClick={() => test.mutate()}>تست</Button>
+          <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button>
+        </FormActions>
+      </div>
+    </Card>
+  );
+}
+
 export default function Integrations() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["admin-ig"], queryFn: () => api<any>("/admin/integrations/instagram") });
@@ -184,8 +230,8 @@ export default function Integrations() {
 
   return (
     <>
-      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="درگاه پرداخت، کرال اینستاگرام و اتصال اپ Meta برای اینستاگرام." />
-      <div className="mb-4 max-w-3xl space-y-4"><PaymentCard /><InstagramCrawlerCard /><LinkedInCard /></div>
+      <PageHeader title="یکپارچه‌سازی‌ها" subtitle="پیامک ورود، درگاه پرداخت، کرال اینستاگرام و اتصال اپ Meta برای اینستاگرام." />
+      <div className="mb-4 max-w-3xl space-y-4"><SmsCard /><PaymentCard /><InstagramCrawlerCard /><LinkedInCard /></div>
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
           <CardHeader title="اینستاگرام" subtitle={login ? "ورود با نام کاربری و رمز (پست، استوری، ریلز)" : "Instagram API with Instagram Login"}

@@ -3,7 +3,7 @@
 import { Film, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { API_URL, getToken, mediaUrl } from "@/lib/api";
+import { API_URL, authHeaders, mediaUrl } from "@/lib/api";
 import { Spinner, cn } from "@/components/ui/primitives";
 
 export const VIDEO_HINT = "برای ریلز و استوری ویدیویی اینستاگرام. MP4 یا MOV، حداکثر ۳ دقیقه و ۵۰ مگابایت؛ عمودی (۹:۱۶) بهتر دیده می‌شود.";
@@ -21,7 +21,7 @@ export function VideoUploader({ storeId, value, onChange }: { storeId: number; v
     const fd = new FormData();
     fd.append("file", file);
     try {
-      const res = await fetch(`${API_URL}/api/v1/stores/${storeId}/uploads/video`, { method: "POST", body: fd, headers: { Authorization: `Bearer ${getToken()}` } });
+      const res = await fetch(`${API_URL}/api/v1/stores/${storeId}/uploads/video`, { method: "POST", body: fd, headers: await authHeaders() });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((typeof data?.detail === "string" ? data.detail : data?.detail?.message) ?? "آپلود ویدیو ناموفق بود");
       onChange(data.url);
