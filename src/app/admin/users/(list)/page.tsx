@@ -1,14 +1,54 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Search, ShieldPlus } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate } from "@/lib/format";
-import { Card, Chip, Input, PageHeader } from "@/components/ui/primitives";
+import { toast } from "sonner";
+import { Button, Card, Chip, Dialog, Field, Input, PageHeader } from "@/components/ui/primitives";
 import { InlineSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { VirtualTbody } from "@/components/ui/VirtualList";
+
+/** Creates an admin account for a phone number (or makes an existing account an admin). */
+function AddAdmin() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    setBusy(true);
+    try {
+      const r = await api<any>("/admin/users/admin", { method: "POST", json: { phone } });
+      toast.success(r.created ? "حساب ادمین ساخته شد؛ با همین شماره و کد پیامکی وارد می‌شود." : "این حساب حالا ادمین است.");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      setOpen(false);
+      setPhone("");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <Button variant="secondary" icon={<ShieldPlus className="size-4" />} onClick={() => setOpen(true)}>افزودن ادمین</Button>
+      <Dialog open={open} onClose={() => setOpen(false)} title="افزودن ادمین">
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
+          <p className="text-[13px] text-muted leading-6">اگر این شماره حساب ندارد، حساب ادمین ساخته می‌شود. اگر دارد، همان حساب ادمین می‌شود (و اگر بلاک بود فعال می‌شود).</p>
+          <Field label="شمارهٔ موبایل">
+            <Input dir="ltr" type="tel" inputMode="tel" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum" />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>انصراف</Button>
+            <Button type="submit" loading={busy} disabled={phone.length < 10}>ساخت ادمین</Button>
+          </div>
+        </form>
+      </Dialog>
+    </>
+  );
+}
 
 export default function Users() {
   const [q, setQ] = useState("");
@@ -16,7 +56,7 @@ export default function Users() {
   const { data } = useQuery({ queryKey: ["admin-users", q], queryFn: () => api<any[]>(`/admin/users?q=${encodeURIComponent(q)}`) });
   return (
     <>
-      <PageHeader title="کاربران" subtitle={data ? `${faNum(data.length)} کاربر` : <InlineSkeleton />} />
+      <PageHeader title="کاربران" subtitle={data ? `${faNum(data.length)} کاربر` : <InlineSkeleton />} actions={<AddAdmin />} />
       <div className="relative mb-4 max-w-md"><Search className="size-4 absolute top-3.5 start-3 text-muted" /><Input className="ps-9" placeholder="جستجوی موبایل یا نام" value={q} onChange={(e) => setQ(e.target.value)} /></div>
       <Card strong ref={scroller} className="overflow-auto max-h-[calc(100dvh-220px)]">
         {!data ? <TableSkeleton rows={10} cols={7} /> : (
