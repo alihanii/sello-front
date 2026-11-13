@@ -5,6 +5,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type DefaultValues, type FieldValues, type UseFormProps } from "react-hook-form";
 import { z } from "zod";
+import { cleanPhone, mobileProblem } from "./phone";
 
 export { z };
 
@@ -15,8 +16,9 @@ const digits = (v: string) => toLatin(v ?? "").replace(/[\s-]/g, "");
 export const rules = {
   required: (label: string) => z.string().trim().min(1, `${label} را وارد کن.`),
   text: (max: number) => z.string().trim().max(max, `حداکثر ${max} کاراکتر.`),
-  mobile: z.string().transform(digits).refine((v) => v === "" || /^09\d{9}$/.test(v), "موبایل باید ۱۱ رقم و با ۰۹ شروع شود."),
-  mobileRequired: z.string().transform(digits).refine((v) => /^09\d{9}$/.test(v), "موبایل باید ۱۱ رقم و با ۰۹ شروع شود."),
+  // Mobile: starts with 09, exactly 11 digits; the message says which part is wrong (lib/phone.ts).
+  mobile: z.string().superRefine((v, ctx) => { const m = mobileProblem(v, false); if (m) ctx.addIssue({ code: "custom", message: m }); }).transform(cleanPhone),
+  mobileRequired: z.string().superRefine((v, ctx) => { const m = mobileProblem(v, true); if (m) ctx.addIssue({ code: "custom", message: m }); }).transform(cleanPhone),
   phone: z.string().transform(digits).refine((v) => v === "" || /^\+?\d{7,14}$/.test(v), "شمارهٔ تلفن معتبر نیست."),
   card: z.string().transform(digits).refine((v) => v === "" || /^\d{16}$/.test(v), "شماره کارت باید ۱۶ رقم باشد."),
   sheba: z.string().transform((v) => digits(v).toUpperCase()).transform((v) => (v && !v.startsWith("IR") ? `IR${v}` : v))

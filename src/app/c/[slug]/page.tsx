@@ -6,7 +6,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { API_URL, mediaUrl } from "@/lib/api";
 import { faDigits } from "@/lib/format";
-import { Button, Card, Input, cn } from "@/components/ui/primitives";
+import { Button, Card, Input, PhoneInput, cn } from "@/components/ui/primitives";
+import { cleanPhone, mobileProblem, shownProblem } from "@/lib/phone";
 import { Logo } from "@/components/shell/Brand";
 
 type Msg = { id: number; role: "customer" | "ai" | "seller"; text: string; image_url: string; buttons: string[][] | null; created_at?: string };
@@ -37,7 +38,6 @@ function merge(list: Msg[], incoming: Msg[]): Msg[] {
   return [...out.filter((x) => x.id > 0).sort((a, b) => a.id - b.id), ...out.filter((x) => x.id < 0)];
 }
 
-const toLatin = (s: string) => s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 
 /**
  * The store's own chat page (`/c/<slug>`), for the Instagram / Telegram bio. Same assistant and journey as the
@@ -66,6 +66,7 @@ function ChatPage() {
   const lastRef = useRef(0);
   const [askPhone, setAskPhone] = useState(false);
   const [phone, setPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [preview, setPreview] = useState<{ file: File; url: string } | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -208,11 +209,14 @@ function ChatPage() {
           {busy && <div className="flex justify-end"><span className="rounded-2xl bg-raised border border-edge px-4 py-2.5"><span className="flex gap-1">{[0, 1, 2].map((i) => <i key={i} className="size-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 120}ms` }} />)}</span></span></div>}
         </div>
         {askPhone && (
-          <form className="px-3 py-2.5 flex items-center gap-2 border-t border-edge bg-raised" onSubmit={(e) => { e.preventDefault(); const p = toLatin(phone).replace(/\D/g, ""); if (p.length >= 10) { send(p); setPhone(""); } }}>
-            <Phone className="size-4 text-muted shrink-0" />
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" dir="ltr" className="text-left tnum" placeholder="09…" autoFocus aria-label="شماره موبایل" />
-            <Button type="submit" size="sm" disabled={toLatin(phone).replace(/\D/g, "").length < 10}>ارسال شماره</Button>
-            <button type="button" onClick={() => setAskPhone(false)} aria-label="بستن" className="size-9 grid place-items-center text-muted cursor-pointer"><X className="size-4" /></button>
+          <form className="px-3 py-2.5 border-t border-edge bg-raised" onSubmit={(e) => { e.preventDefault(); setPhoneTouched(true); if (mobileProblem(phone)) return; send(cleanPhone(phone)); setPhone(""); setPhoneTouched(false); }}>
+            <div className="flex items-center gap-2">
+              <Phone className="size-4 text-muted shrink-0" />
+              <PhoneInput value={phone} onChange={(e) => setPhone(e.target.value)} onBlur={() => setPhoneTouched(true)} placeholder="09…" autoFocus aria-label="شماره موبایل" aria-invalid={!!shownProblem(phone, phoneTouched)} />
+              <Button type="submit" size="sm" disabled={!!mobileProblem(phone)}>ارسال شماره</Button>
+              <button type="button" onClick={() => setAskPhone(false)} aria-label="بستن" className="size-9 grid place-items-center text-muted cursor-pointer"><X className="size-4" /></button>
+            </div>
+            {shownProblem(phone, phoneTouched) && <p role="alert" className="text-[12px] text-danger mt-1.5 ps-6">{shownProblem(phone, phoneTouched)}</p>}
           </form>
         )}
         {!askPhone && !preview && choices.length > 0 && (

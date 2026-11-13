@@ -11,7 +11,8 @@ import { storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { PLATFORMS } from "@/lib/meta";
 import { OperationWatcher } from "@/components/OperationWatcher";
 import { PlatformIcon } from "@/components/ui/status";
-import { Button, Card, Chip, Dialog, Field, Input, PageHeader, Switch, FormActions, cn } from "@/components/ui/primitives";
+import { Button, Card, Chip, Dialog, Field, Input, PageHeader, PhoneInput, Switch, FormActions, cn } from "@/components/ui/primitives";
+import { mobileProblem, shownProblem } from "@/lib/phone";
 import { ChannelsBodySkeleton } from "@/components/ui/skeletons";
 
 const HEALTH: Record<string, { label: string; tone: string }> = {
@@ -63,6 +64,7 @@ function ConnectDialog({ platform, channelId, oauth, login, onClose }: { platfor
   const [opId, setOpId] = useState<number | null>(null);
   const [dkChannel, setDkChannel] = useState<number | undefined>(channelId);
   const [codeSent, setCodeSent] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [liCookie, setLiCookie] = useState(false);
   const set = (k: string) => (e: any) => setData({ ...data, [k]: e.target.value });
   const connect = useMutation({
@@ -95,13 +97,13 @@ function ConnectDialog({ platform, channelId, oauth, login, onClose }: { platfor
           <Button variant="secondary" className="w-full" onClick={onClose}>بستن</Button>
         </div>
       ) : (
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (platform === "digikala" && !codeSent) sendCode.mutate(); else connect.mutate(); }}>
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (platform === "digikala" && !codeSent) { setPhoneTouched(true); if (mobileProblem(data.phone ?? "")) return; sendCode.mutate(); } else connect.mutate(); }}>
           {(platform === "telegram" || platform === "bale") && <>
             <Field label="توکن ربات"><Input dir="ltr" className="text-left font-mono text-[13px]" placeholder="123456:ABC…" onChange={set("bot_token")} required /></Field>
             <Field label="آیدی کانال" hint="مثل ‎@myshop یا شناسهٔ عددی کانال خصوصی"><Input dir="ltr" className="text-left" placeholder="@myshop" onChange={set("chat_id")} required /></Field>
           </>}
           {platform === "digikala" && <>
-            <Field label="موبایل حساب فروشندگی"><Input dir="ltr" className="text-left tnum" placeholder="09…" onChange={set("phone")} required disabled={codeSent} /></Field>
+            <Field label="موبایل حساب فروشندگی" error={shownProblem(data.phone ?? "", phoneTouched)}><PhoneInput placeholder="09…" autoComplete="off" value={data.phone ?? ""} onChange={set("phone")} onBlur={() => setPhoneTouched(true)} required disabled={codeSent} aria-invalid={!!shownProblem(data.phone ?? "", phoneTouched)} /></Field>
             {codeSent && <Field label="کد تأیید دیجی‌کالا"><Input dir="ltr" className="text-left tnum" onChange={set("code")} required autoFocus /></Field>}
           </>}
           {igLoginMode && <>

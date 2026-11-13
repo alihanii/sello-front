@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { API_URL } from "@/lib/api";
 import { rules, useZodForm, z } from "@/lib/form";
-import { Button, Field, FormActions, Input, Textarea } from "@/components/ui/primitives";
+import { Button, Field, FormActions, Input, PhoneInput, Textarea } from "@/components/ui/primitives";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -74,7 +74,7 @@ export function ReceiptForm({ inv, code, onSent }: { inv: any; code: string; onS
         <Input dir="ltr" inputMode="numeric" className="text-left tnum" {...register("payment_ref")} /></Field>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="نام و نام خانوادگی" error={msg("name")}><Input autoComplete="name" {...register("name")} /></Field>
-        {inv.ask_phone && <Field label="موبایل" error={msg("phone")}><Input dir="ltr" inputMode="tel" className="text-left" autoComplete="tel" placeholder="09xxxxxxxxx" {...register("phone")} aria-invalid={!!msg("phone")} /></Field>}
+        {inv.ask_phone && <Field label="موبایل" error={msg("phone")}><PhoneInput {...register("phone")} aria-invalid={!!msg("phone")} /></Field>}
       </div>
       {inv.ask_address && <Field label="آدرس کامل و کد پستی" error={msg("address")}><Textarea rows={2} className="!min-h-20" autoComplete="street-address" {...register("address")} aria-invalid={!!msg("address")} /></Field>}
       <Field label="توضیح برای فروشنده (اختیاری)" error={msg("note")}><Input {...register("note")} /></Field>
