@@ -187,10 +187,17 @@ function SmsCard() {
   if (!f) return <FormSectionSkeleton fields={3} />;
   return (
     <Card>
-      <CardHeader title="پیامک ورود (کاوه‌نگار)" subtitle="کد ورود با سرویس Verify Lookup کاوه‌نگار فرستاده می‌شود. مقدارهای env سرور (SELLO_SMS_API_KEY، SELLO_KAVENEGAR_TEMPLATE) هم کار می‌کنند؛ آنچه این‌جا ذخیره شود بر آن‌ها مقدم است."
-        action={<Chip tone={f.ready ? "success" : "warning"}>{f.ready ? "فعال" : f.dev_mode ? "حالت توسعه (کد روی صفحه)" : "خاموش"}</Chip>} />
+      <CardHeader title="پیامک ورود (کاوه‌نگار)" subtitle="مقدارهای env سرور (SELLO_SMS_API_KEY، SELLO_KAVENEGAR_TEMPLATE) هم کار می‌کنند؛ آنچه این‌جا ذخیره شود بر آن‌ها مقدم است."
+        action={<Chip tone={f.enabled ? (f.ready ? "success" : "warning") : "neutral"}>{f.enabled ? (f.ready ? "پیامک روشن" : "ناقص") : "خاموش: کد روی صفحه"}</Chip>} />
       <div className="px-4 sm:px-5 pb-5 space-y-4">
-        <label className="flex items-center gap-3 text-[14px]"><Switch checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} />ارسال کد ورود با پیامک</label>
+        <div className="space-y-2">
+          <label className="flex items-center gap-3 text-[14px] font-semibold"><Switch checked={f.enabled} onChange={(v) => setF({ ...f, enabled: v })} />ارسال کد ورود با پیامک (کاوه‌نگار)</label>
+          {f.enabled ? (
+            <p className="text-[13px] text-muted leading-6">روشن: کد ورود با پیامک واقعی فرستاده می‌شود و روی صفحهٔ ورود نمایش داده نمی‌شود.</p>
+          ) : (
+            <p className="text-[13px] text-warning leading-6">خاموش: کد ورود روی خود صفحهٔ ورود نمایش داده می‌شود و پیامکی نمی‌رود. فقط تا راه‌افتادن کاوه‌نگار استفاده کن؛ تا آن موقع هر کسی با هر شمارهٔ دلخواه (حتی شمارهٔ ادمین) می‌تواند وارد شود.</p>
+          )}
+        </div>
         <Field label="کلید API" hint={f.has_key ? `ذخیره شده (${f.key_hint})؛ برای تغییر مقدار جدید وارد کن.` : "console.kavenegar.com ← تنظیمات ← API Key"}>
           <Input dir="ltr" type="password" autoComplete="off" className="text-left font-mono" placeholder={f.has_key ? "••••••••" : ""} value={f.api_key} onChange={(e) => setF({ ...f, api_key: e.target.value })} />
         </Field>
