@@ -56,7 +56,6 @@ jobs:
           cid=$(docker create sello-front:latest)
           mkdir out && docker cp "$cid:/app" out/app && docker rm "$cid" >/dev/null
           tar czf sello-front-app.tar.gz -C out/app .
-          docker image inspect node:22-alpine -f '{{.Id}}' | cut -c8-19 > base-id
           # The image's own settings (ENV, WORKDIR, EXPOSE, CMD), for `docker commit` on the server.
           cat > commit.py <<'PY'
           import json, shlex, sys
@@ -74,7 +73,6 @@ jobs:
           name: sello-front-app
           path: |
             sello-front-app.tar.gz
-            base-id
             sello-front-commit.sh
           retention-days: 3
           compression-level: 0
@@ -115,10 +113,13 @@ jobs:
 
       - name: Ship the Node base image (only when the server doesn't have this one)
         run: |
-          BASE="sello-node:$(cat base-id)"
+          # Tagged by its id, so a new Node 22 release is shipped once and an unchanged one never again.
+          docker pull -q node:22-alpine
+          BASE="sello-node:$(docker image inspect node:22-alpine -f '{{.Id}}' | cut -c8-19)"
+          test "$BASE" != "sello-node:" || { echo "::error::could not read the node:22-alpine image id"; exit 1; }
           echo "BASE=$BASE" >> "$GITHUB_ENV"
           if ! ssh server "docker image inspect $BASE >/dev/null 2>&1"; then
-            docker pull -q node:22-alpine && docker tag node:22-alpine "$BASE"
+            docker tag node:22-alpine "$BASE"
             docker save "$BASE" | gzip -1 > base.tar.gz && ls -lh base.tar.gz
             ~/retry 3 900 bash -c "ssh server 'gunzip | docker load' < base.tar.gz"
           fi
