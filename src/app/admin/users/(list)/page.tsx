@@ -7,7 +7,8 @@ import { useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { ago, faDigits, faNum, jDate } from "@/lib/format";
 import { toast } from "sonner";
-import { Button, Card, Chip, Dialog, Field, Input, PageHeader } from "@/components/ui/primitives";
+import { Button, Card, Chip, Dialog, Field, Input, PageHeader, PhoneInput } from "@/components/ui/primitives";
+import { mobileProblem, shownProblem } from "@/lib/phone";
 import { InlineSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { VirtualTbody } from "@/components/ui/VirtualList";
 
@@ -16,6 +17,7 @@ function AddAdmin() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
+  const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const save = async () => {
     setBusy(true);
@@ -25,6 +27,7 @@ function AddAdmin() {
       qc.invalidateQueries({ queryKey: ["admin-users"] });
       setOpen(false);
       setPhone("");
+      setTouched(false);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -37,12 +40,12 @@ function AddAdmin() {
       <Dialog open={open} onClose={() => setOpen(false)} title="افزودن ادمین">
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
           <p className="text-[13px] text-muted leading-6">اگر این شماره حساب ندارد، حساب ادمین ساخته می‌شود. اگر دارد، همان حساب ادمین می‌شود (و اگر بلاک بود فعال می‌شود).</p>
-          <Field label="شمارهٔ موبایل">
-            <Input dir="ltr" type="tel" inputMode="tel" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum" />
+          <Field label="شمارهٔ موبایل" error={shownProblem(phone, touched)}>
+            <PhoneInput autoFocus value={phone} onChange={(e) => setPhone(e.target.value)} onBlur={() => setTouched(true)} aria-invalid={!!shownProblem(phone, touched)} />
           </Field>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>انصراف</Button>
-            <Button type="submit" loading={busy} disabled={phone.length < 10}>ساخت ادمین</Button>
+            <Button type="submit" loading={busy} disabled={!!mobileProblem(phone)}>ساخت ادمین</Button>
           </div>
         </form>
       </Dialog>

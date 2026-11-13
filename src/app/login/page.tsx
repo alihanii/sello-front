@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { api, ensureToken, hasSession, setSession } from "@/lib/api";
 import { faDigits } from "@/lib/format";
 import { Logo, ThemeToggle } from "@/components/shell/AppShell";
-import { Button, Field, Input, Spinner } from "@/components/ui/primitives";
+import { Button, Field, Input, PhoneInput, Spinner } from "@/components/ui/primitives";
+import { mobileProblem, shownProblem } from "@/lib/phone";
 
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -78,6 +79,8 @@ export default function Login() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const submittedCode = useRef("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [hasPassword, setHasPassword] = useState(false);
@@ -155,6 +158,14 @@ export default function Login() {
     toast.success("رمز ذخیره شد؛ دفعهٔ بعد با همین رمز وارد شو.");
     router.replace(nextPath());
   });
+  // A full 6-digit code submits by itself (each code once; a new one can be tried after it changes).
+  useEffect(() => {
+    if (code.length !== 6) { submittedCode.current = ""; return; }
+    if (step !== "code" || loading || cooldown > 0 || submittedCode.current === code) return;
+    submittedCode.current = code;
+    verify();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, step, loading, cooldown]);
   const changePhone = () => { setStep("phone"); setCode(""); setPassword(""); setCooldown(0); setBlockMsg(""); };
   const block = cooldown > 0 && blockMsg ? (
     <p role="alert" className="text-[13px] text-center text-danger bg-danger/10 rounded-lg py-2 px-3 leading-6">
@@ -184,10 +195,11 @@ export default function Login() {
               </div>
               <div className="space-y-4">
                 <Field label="شمارهٔ موبایل">
-                  <Input dir="ltr" type="tel" inputMode="tel" name="username" autoComplete="username" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
+                  <PhoneInput name="username" autoComplete="username" autoFocus value={phone} onChange={(e) => setPhone(e.target.value)} onBlur={() => setPhoneTouched(true)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
+                  {shownProblem(phone, phoneTouched) && <p role="alert" className="mt-1.5 text-[13px] text-danger">{shownProblem(phone, phoneTouched)}</p>}
                 </Field>
                 {block}
-                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>ادامه</Button>
+                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={!!mobileProblem(phone)}>ادامه</Button>
               </div>
             </form>
           )}

@@ -7,7 +7,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { faDigits, faNum } from "@/lib/format";
-import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Tabs } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Field, PageHeader, PhoneInput, Tabs } from "@/components/ui/primitives";
+import { cleanPhone, mobileProblem, shownProblem } from "@/lib/phone";
 import { FormSectionSkeleton } from "@/components/ui/skeletons";
 
 type Mode = "all" | "selected" | "none";
@@ -27,11 +28,12 @@ const ICONS: Record<string, React.ReactNode> = { site_builder: <Globe className=
 function FeatureCard({ f }: { f: any }) {
   const qc = useQueryClient();
   const [phone, setPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const save = useMutation({
     mutationFn: (json: any) => api(`/admin/features/${f.key}`, { method: "PUT", json }),
     onSuccess: (d: any) => {
       qc.setQueryData(["admin-features"], (old: any[] | undefined) => (old ?? []).map((x) => (x.key === d.key ? d : x)));
-      setPhone(""); toast.success("ذخیره شد");
+      setPhone(""); setPhoneTouched(false); toast.success("ذخیره شد");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -47,11 +49,11 @@ function FeatureCard({ f }: { f: any }) {
           <p className="text-[13px] text-muted mt-2">{MODE_TEXT[f.mode as Mode]}</p>
         </div>
         <div className={f.mode === "selected" ? "" : "opacity-60"}>
-          <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (phone.trim()) save.mutate({ mode: f.mode, phones: [phone.trim()] }); }}>
-            <Field label="افزودن کاربر با شمارهٔ موبایل" className="flex-1">
-              <Input dir="ltr" inputMode="tel" className="text-left" placeholder="09121234567" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <form className="flex items-start gap-2" onSubmit={(e) => { e.preventDefault(); if (!mobileProblem(phone)) save.mutate({ mode: f.mode, phones: [cleanPhone(phone)] }); }}>
+            <Field label="افزودن کاربر با شمارهٔ موبایل" className="flex-1" error={shownProblem(phone, phoneTouched)}>
+              <PhoneInput placeholder="09121234567" autoComplete="off" value={phone} onChange={(e) => setPhone(e.target.value)} onBlur={() => setPhoneTouched(true)} aria-invalid={!!shownProblem(phone, phoneTouched)} />
             </Field>
-            <Button type="submit" variant="secondary" icon={<Plus className="size-4" />} loading={save.isPending} disabled={!phone.trim()}>افزودن</Button>
+            <Button type="submit" variant="secondary" className="mt-[26px]" icon={<Plus className="size-4" />} loading={save.isPending} disabled={!!mobileProblem(phone)}>افزودن</Button>
           </form>
           <ul className="mt-3 divide-y divide-edge">
             {f.users.length === 0 && <li className="text-[13px] text-muted py-2">هنوز کسی انتخاب نشده.</li>}

@@ -5,7 +5,8 @@ import { Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, Select, Switch, FormActions } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Chip, Field, Input, PageHeader, PhoneInput, Select, Switch, FormActions } from "@/components/ui/primitives";
+import { mobileProblem, shownProblem } from "@/lib/phone";
 import { FormSectionSkeleton } from "@/components/ui/skeletons";
 
 const STEPS = [
@@ -207,11 +208,11 @@ function SmsCard() {
         <Field label="خط ارسال (اختیاری)" hint="فقط وقتی الگو خالی باشد، پیام ساده از این خط فرستاده می‌شود.">
           <Input dir="ltr" inputMode="numeric" className="text-left font-mono" placeholder="2000660110" value={f.sender} onChange={(e) => setF({ ...f, sender: e.target.value })} />
         </Field>
-        <Field label="شمارهٔ آزمایشی (اختیاری)" hint="با «تست» کلید و اعتبار بررسی می‌شود؛ اگر شماره بدهی، یک کد نمونه (۱۲۳۴۵۶) هم فرستاده می‌شود.">
-          <Input dir="ltr" inputMode="tel" className="text-left tnum" placeholder="09xxxxxxxxx" value={testPhone} onChange={(e) => setTestPhone(e.target.value)} />
+        <Field label="شمارهٔ آزمایشی (اختیاری)" error={shownProblem(testPhone, true, false)} hint="با «تست» کلید و اعتبار بررسی می‌شود؛ اگر شماره بدهی، یک کد نمونه (۱۲۳۴۵۶) هم فرستاده می‌شود.">
+          <PhoneInput autoComplete="off" value={testPhone} onChange={(e) => setTestPhone(e.target.value)} />
         </Field>
         <FormActions>
-          <Button variant="secondary" loading={test.isPending} disabled={!f.has_key} onClick={() => test.mutate()}>تست</Button>
+          <Button variant="secondary" loading={test.isPending} disabled={!f.has_key || !!mobileProblem(testPhone, false)} onClick={() => test.mutate()}>تست</Button>
           <Button loading={save.isPending} onClick={() => save.mutate()}>ذخیره</Button>
         </FormActions>
       </div>

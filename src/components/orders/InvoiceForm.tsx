@@ -11,7 +11,7 @@ import { useStoreId } from "@/lib/hooks";
 import { rules, useZodForm, z } from "@/lib/form";
 import { ORDER_PLATFORMS, copyText, orderQueries, useInvalidateOrders } from "@/lib/orders";
 import { Banner } from "@/components/ui/Banner";
-import { Button, Card, CardHeader, Dialog, Field, Input, NumberInput, Select, Switch, Textarea, cn, FormActions } from "@/components/ui/primitives";
+import { Button, Card, CardHeader, Dialog, Field, Input, NumberInput, PhoneInput, Select, Switch, Textarea, cn, FormActions } from "@/components/ui/primitives";
 
 
 function ProductPicker({ onPick }: { onPick: (p: any) => void }) {
@@ -205,7 +205,7 @@ export function InvoiceForm({ chat = false, onDone }: { chat?: boolean; onDone: 
                   <Select value={field.value} onChange={(e) => field.onChange(e.target.value)}>{ORDER_PLATFORMS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}</Select>
                 )} /></Field>}
               <Field label="نام" error={errors.customer_name?.message as string}><Input {...register("customer_name")} /></Field>
-              <Field label="موبایل" error={errors.customer_phone?.message as string}><Input dir="ltr" inputMode="tel" className="text-left" placeholder="09xxxxxxxxx" {...register("customer_phone")} aria-invalid={!!errors.customer_phone} /></Field>
+              <Field label="موبایل" error={errors.customer_phone?.message as string}><PhoneInput {...register("customer_phone")} aria-invalid={!!errors.customer_phone} /></Field>
               <Field label="آدرس" className="sm:col-span-2" error={errors.customer_address?.message as string}><Textarea rows={2} className="!min-h-16" {...register("customer_address")} /></Field>
             </div>
           </Card>

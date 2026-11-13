@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { CircleHelp, Loader2, X } from "lucide-react";
 import { Children, Fragment, createContext, forwardRef, isValidElement, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Dropdown, type DropdownOption } from "./Dropdown";
+import { cleanPhone } from "@/lib/phone";
 import { fieldCls, widthCls } from "./styles";
 
 export const cn = clsx;
@@ -143,6 +144,16 @@ export function NumberInput({ value, onChange, grouping = true, className, ...p 
       onChange={(e) => onChange(Number(toLatin(e.target.value).replace(/\D/g, "")) || 0)} />
   );
 }
+
+/** Mobile number box: Latin digits only (Persian/Arabic digits are converted as they are typed), at most 11, LTR. Works with
+ * register() and with a plain value/onChange. */
+export const PhoneInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(function PhoneInput({ className, onChange, ...p }, ref) {
+  return (
+    <Input ref={ref} dir="ltr" type="tel" inputMode="tel" autoComplete="tel" maxLength={22} placeholder="09xxxxxxxxx" {...p}
+      className={cn("text-left tnum", className)}
+      onChange={(e) => { const clean = cleanPhone(e.target.value); if (clean !== e.target.value) e.target.value = clean; onChange?.(e); }} />
+  );
+});
 
 export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...p }, ref) {
   return <textarea ref={ref} className={cn(inputCls, widthCls(className), "py-2.5 min-h-24 leading-7", className)} {...p} />;
