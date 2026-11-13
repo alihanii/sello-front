@@ -41,7 +41,8 @@ export default function Crawl() {
   useEffect(() => {
     const ch = channels.find((c: any) => String(c.id) === preChannel);
     if (!ch) return;
-    setForm({ type: ch.platform === "digikala" ? "marketplace_listing" : "channel_posts", channel_id: String(ch.id), schedule: "manual", extraction_mode: "llm" });
+    if (!["telegram", "bale"].includes(ch.platform)) return;
+    setForm({ type: "channel_posts", channel_id: String(ch.id), schedule: "manual", extraction_mode: "llm" });
     setOpen(true);
   }, [preChannel, channels.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const editing = !!form.id;
@@ -72,7 +73,7 @@ export default function Crawl() {
 
   return (
     <>
-      <PageHeader title="کرال" subtitle="محصولات را از پیج اینستاگرام، پست‌های کانال، پنل دیجی‌کالا یا یک لینک بیرون بکش."
+      <PageHeader title="کرال" subtitle="محصولات را از پیج اینستاگرام، پست‌های کانال یا یک لینک بیرون بکش."
         actions={<Button icon={<Plus className="size-4" />} onClick={openNew}>منبع جدید</Button>} />
       <AiSetupBanner />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -170,7 +171,7 @@ export default function Crawl() {
             <Field label="نوع منبع">
               <Select value={form.type} disabled={editing} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                 <option value="channel_posts">پست‌های کانال تلگرام یا بله</option>
-                <option value="marketplace_listing">لیست محصولات من در دیجی‌کالا</option>
+                {editing && form.type === "marketplace_listing" && <option value="marketplace_listing">لیست محصولات من در دیجی‌کالا (دیگر پشتیبانی نمی‌شود)</option>}
               </Select>
             </Field>
             <Field label="کانال">

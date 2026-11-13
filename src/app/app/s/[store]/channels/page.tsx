@@ -23,7 +23,7 @@ const HEALTH: Record<string, { label: string; tone: string }> = {
 const HELP: Record<string, string[]> = {
   telegram: ["در تلگرام به ‎@BotFather پیام بده و یک ربات بساز؛ توکن را کپی کن.", "ربات را به کانالت اضافه کن و ادمین کن (با دسترسی ارسال پیام).", "توکن و آیدی کانال (مثلاً ‎@myshop) را اینجا وارد کن."],
   bale: ["در بله به ‎@botfather پیام بده و ربات بساز.", "ربات را ادمین کانالت کن.", "توکن و آیدی کانال را وارد کن."],
-  digikala: ["شمارهٔ موبایل حساب فروشندگی دیجی‌کالا را وارد کن.", "کد تأییدی که دیجی‌کالا پیامک می‌کند را وارد کن.", "بعد از اتصال، محصولات با دسته، ویژگی‌ها و عکس‌ها در دیجی‌کالا ثبت و برای بررسی ارسال می‌شوند. قیمت و موجودی بعد از تأیید دیجی‌کالا در پنل خودشان ثبت می‌شود."],
+  digikala: ["شمارهٔ موبایل حساب فروشندگی دیجی‌کالا را وارد کن.", "کد تأییدی که دیجی‌کالا پیامک می‌کند را وارد کن.", "بعد از اتصال، محصولات با دسته، ویژگی‌ها و عکس‌ها (با کمک هوش مصنوعی) در دیجی‌کالا ثبت و برای بررسی ارسال می‌شوند؛ بعد از تأیید دیجی‌کالا قیمت و موجودی خودکار ثبت می‌شود و سفارش‌های دیجی‌کالا در صفحهٔ سفارش‌ها می‌آید."],
   instagram: ["حساب اینستاگرام باید Business یا Creator باشد (تنظیمات اینستاگرام › نوع حساب). صفحهٔ فیسبوک لازم نیست.", "روی «ورود با اینستاگرام» بزن و دسترسی انتشار را تأیید کن.", "اینستاگرام روزانه حداکثر ۱۰۰ پست از طریق API قبول می‌کند؛ کاروسل تا ۱۰ عکس."],
   instagram_login: ["نام کاربری و رمز اینستاگرام را وارد کن؛ هر نوع حسابی (شخصی یا حرفه‌ای) قبول است.", "اگر اینستاگرام کد تأیید خواست (پیامک، ایمیل یا اپ احراز هویت)، همین‌جا واردش کن.", "پست، آلبوم تا ۱۰ عکس، استوری و ریلز منتشر می‌شود؛ انتشارها با فاصله و سقف روزانه انجام می‌شوند تا حساب محدود نشود."],
   linkedin: ["ایمیل (یا شماره) و رمز حساب لینکدین را وارد کن؛ پست‌ها روی پروفایل شخصی‌ات منتشر می‌شوند.", "اگر لینکدین تأیید امنیتی خواست، یک بار در مرورگر وارد لینکدین شو و کوکی li_at را از همان مرورگر بده (راهنمایش پایین فرم است).", "پست با متن و تا ۹ عکس منتشر می‌شود؛ انتشارها با فاصله و سقف روزانه انجام می‌شوند تا حساب محدود نشود."],
@@ -297,6 +297,34 @@ function LinkedInInbox({ channel }: { channel: any }) {
   );
 }
 
+/** Digikala: review states, price + stock after approval and orders are read on a timer; this reads them now. */
+function DigikalaSync({ channel }: { channel: any }) {
+  const sid = useStoreId();
+  const qc = useQueryClient();
+  const cfg = channel.config ?? {};
+  const sync = useMutation({
+    mutationFn: () => api<any>(`/channels/${channel.id}/digikala/sync`, { method: "POST" }),
+    onSuccess: (r: any) => {
+      qc.invalidateQueries({ queryKey: ["channels", sid] });
+      qc.invalidateQueries({ queryKey: ["orders", sid] });
+      const o = r?.orders, l = r?.listings;
+      toast.success(`همگام شد: ${o ? `${o.new} سفارش تازه` : "سفارش‌ها خوانده نشد"}${l?.live ? `، ${l.live} محصول فعال شد` : ""}`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const res = cfg.sync_result ?? {};
+  return (
+    <div className="mt-3 rounded-2xl bg-subtle p-3 text-[13px] space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <span>همگام‌سازی سفارش‌ها و وضعیت محصولات: {cfg.synced_at ? ago(cfg.synced_at) : "هنوز انجام نشده"}</span>
+        <Button size="sm" variant="secondary" loading={sync.isPending} onClick={() => sync.mutate()}>همگام‌سازی</Button>
+      </div>
+      {res.orders && <div className="text-muted">{`${res.orders.orders} سفارش خوانده شد`}{res.listings?.checked ? `، ${res.listings.checked} محصول در انتظار تأیید/قیمت بررسی شد` : ""}</div>}
+      {cfg.sync_error && <div className="text-warning">{cfg.sync_error}</div>}
+    </div>
+  );
+}
+
 export default function Channels() {
   const sid = useStoreId();
   const qc = useQueryClient();
@@ -359,6 +387,7 @@ export default function Channels() {
               )}
               {c.platform === "instagram" && c.config?.mode === "private" && c.status === "connected" && <InstagramInbox channel={c} />}
               {c.platform === "linkedin" && c.status === "connected" && <LinkedInInbox channel={c} />}
+              {c.platform === "digikala" && c.status === "connected" && <DigikalaSync channel={c} />}
               <div className="flex flex-wrap gap-2 mt-4">
                 {c.status !== "connected" && <Button size="sm" icon={<Plug className="size-4" />} onClick={() => setConnect({ platform: c.platform, channelId: c.id })}>اتصال مجدد</Button>}
                 {crawlable(c.platform) && (() => {
@@ -387,8 +416,9 @@ export default function Channels() {
               {p.can_crawl && <Chip tone={p.crawl_only ? "crawl" : "neutral"}>کرال</Chip>}
             </div>
             {p.crawl_only && <div className="text-[12px] text-muted mt-2">فعلاً فقط کرال؛ انتشار خاموش است.</div>}
+            {!p.enabled && p.reason && <div className="text-[12px] text-muted mt-2">{p.reason}</div>}
             <Button className="mt-4" variant="secondary" size="sm" icon={<Plus className="size-4" />} disabled={!p.enabled}
-              onClick={() => setConnect({ platform: p.platform, crawlOnly: !!p.crawl_only })}>{!p.enabled ? "به‌زودی" : p.crawl_only ? "افزودن پیج" : "اتصال"}</Button>
+              onClick={() => setConnect({ platform: p.platform, crawlOnly: !!p.crawl_only })}>{!p.enabled ? (p.reason ? "خاموش" : "به‌زودی") : p.crawl_only ? "افزودن پیج" : "اتصال"}</Button>
           </Card>
         ))}
       </div>
