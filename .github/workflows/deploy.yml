@@ -1,5 +1,6 @@
 # build: on every pull request and push to main, build the frontend image (a failed build stops here).
-# deploy: on push to main only, copy the built image to the server over SSH and restart the frontend.
+# deploy: on push to main only, send the built app (not the whole image: the server keeps the Node base) over SSH,
+# with timeouts and retries, and restart the frontend.
 # The stack (docker-compose.yml, nginx site, .env) is set up on the server by sello-back's deploy workflow.
 #
 # Repository secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, optional SSH_PORT (default 22).
@@ -48,15 +49,33 @@ jobs:
             --build-arg NEXT_PUBLIC_IMGPROXY_URL="${{ vars.NEXT_PUBLIC_IMGPROXY_URL }}" \
             -t sello-front:latest .
 
-      - name: Save image
+      - name: Pack the app (not the whole image)
         if: github.event_name != 'pull_request'
-        run: docker save sello-front:latest | gzip -1 > sello-front.tar.gz
-
+        run: |
+          # The server keeps the Node base image; a deploy sends only /app of the built image (plus how to run it).
+          cid=$(docker create sello-front:latest)
+          mkdir out && docker cp "$cid:/app" out/app && docker rm "$cid" >/dev/null
+          tar czf sello-front-app.tar.gz -C out/app .
+          docker image inspect node:22-alpine -f '{{.Id}}' | cut -c8-19 > base-id
+          # The image's own settings (ENV, WORKDIR, EXPOSE, CMD), for `docker commit` on the server.
+          cat > commit.py <<'PY'
+          import json, shlex, sys
+          c = json.load(sys.stdin)
+          ch = ["ENV " + k + "=" + json.dumps(v) for k, _, v in (e.partition("=") for e in c.get("Env") or [])]
+          ch += ["WORKDIR " + (c.get("WorkingDir") or "/"), "CMD " + json.dumps(c.get("Cmd") or [])]
+          ch += ["EXPOSE " + port for port in (c.get("ExposedPorts") or {})]
+          print("docker commit " + " ".join("--change " + shlex.quote(x) for x in ch) + ' "$1" sello-front:latest')
+          PY
+          docker image inspect sello-front:latest -f '{{json .Config}}' | python3 commit.py > sello-front-commit.sh
+          cat sello-front-commit.sh; ls -lh sello-front-app.tar.gz
       - uses: actions/upload-artifact@v4
         if: github.event_name != 'pull_request'
         with:
-          name: sello-front-image
-          path: sello-front.tar.gz
+          name: sello-front-app
+          path: |
+            sello-front-app.tar.gz
+            base-id
+            sello-front-commit.sh
           retention-days: 3
           compression-level: 0
 
@@ -64,10 +83,11 @@ jobs:
     needs: build
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: sello-front-image
+          name: sello-front-app
 
       - name: SSH setup
         env:
@@ -79,15 +99,40 @@ jobs:
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          printf 'Host server\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/id_deploy\n  ServerAliveInterval 30\n' \
+          printf 'Host server\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/id_deploy\n  ServerAliveInterval 15\n  ServerAliveCountMax 6\n  ConnectTimeout 30\n' \
             "$SSH_HOST" "$SSH_USER" "$SSH_PORT" > ~/.ssh/config
+          # retry N TIMEOUT CMD…: a transfer that dies or stalls is tried again, up to N times.
+          cat > ~/retry <<'SH'
+          #!/usr/bin/env bash
+          n=$1 t=$2; shift 2
+          for i in $(seq 1 "$n"); do
+            timeout "$t" "$@" && exit 0
+            echo "::warning::attempt $i of $n failed: $*"; sleep $((i * 5))
+          done
+          exit 1
+          SH
+          chmod +x ~/retry
 
-      - name: Copy image and restart
+      - name: Ship the Node base image (only when the server doesn't have this one)
+        run: |
+          BASE="sello-node:$(cat base-id)"
+          echo "BASE=$BASE" >> "$GITHUB_ENV"
+          if ! ssh server "docker image inspect $BASE >/dev/null 2>&1"; then
+            docker pull -q node:22-alpine && docker tag node:22-alpine "$BASE"
+            docker save "$BASE" | gzip -1 > base.tar.gz && ls -lh base.tar.gz
+            ~/retry 3 900 bash -c "ssh server 'gunzip | docker load' < base.tar.gz"
+          fi
+
+      - name: Copy the app and restart
         run: |
           ssh server "test -f '$DEPLOY_PATH/docker-compose.yml'" || { echo "::error::Deploy sello-back first: it sets up $DEPLOY_PATH"; exit 1; }
-          scp sello-front.tar.gz "server:$DEPLOY_PATH/"
-          ssh server "set -e; cd '$DEPLOY_PATH'
-            gunzip -c sello-front.tar.gz | docker load && rm sello-front.tar.gz
+          ~/retry 4 300 scp sello-front-app.tar.gz sello-front-commit.sh "server:$DEPLOY_PATH/"
+          timeout 600 ssh server "set -e; cd '$DEPLOY_PATH'
+            # The app on the base image, on the server itself: no build, no internet needed.
+            cid=\$(docker create $BASE)
+            rm -rf sello-front-app && mkdir sello-front-app && tar xzf sello-front-app.tar.gz -C sello-front-app && rm sello-front-app.tar.gz
+            docker cp sello-front-app/. \$cid:/app
+            sh sello-front-commit.sh \$cid >/dev/null && docker rm \$cid >/dev/null && rm -rf sello-front-app sello-front-commit.sh
             docker compose up -d --no-deps frontend  # only ours: the store may not be deployed yet
             docker image prune -f >/dev/null || true  # the other repo's deploy may be pruning at the same time
             docker compose ps"
