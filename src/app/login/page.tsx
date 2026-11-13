@@ -46,10 +46,10 @@ function PasswordInput({ value, onChange, autoComplete, autoFocus }: { value: st
   const [show, setShow] = useState(false);
   return (
     <div className="relative">
-      <Input dir="ltr" type={show ? "text" : "password"} autoComplete={autoComplete} autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)}
-        className="text-left pe-11 border-fg/20! hover:border-fg/30! focus:border-primary!" />
+      <Input dir="ltr" type={show ? "text" : "password"} name={autoComplete === "new-password" ? "new-password" : "password"} autoComplete={autoComplete} autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)}
+        className="text-left pr-11 border-fg/20! hover:border-fg/30! focus:border-primary!" />
       <button type="button" onClick={() => setShow(!show)} aria-label={show ? "پنهان کردن رمز" : "نمایش رمز"}
-        className="absolute inset-y-0 end-0 w-11 grid place-items-center text-muted hover:text-fg cursor-pointer">
+        className="absolute inset-y-0 right-0 w-11 grid place-items-center text-muted hover:text-fg cursor-pointer">
         {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
       </button>
     </div>
@@ -113,9 +113,11 @@ export default function Login() {
   };
   // Accounts with a password sign in with it by default; new numbers and accounts without one get a code.
   const start = () => run(async () => {
+    // Password typed or filled in by the browser / password manager: sign in with it straight away.
+    if (password) { signedIn(await api("/auth/password/login", { method: "POST", json: { phone, password } })); return; }
     const r = await api("/auth/lookup", { method: "POST", json: { phone } });
     setHasPassword(!!r.has_password);
-    if (r.method === "password") { setPassword(""); setStep("password"); } else await sendCode();
+    if (r.method === "password") setStep("password"); else await sendCode();
   });
   const signedIn = (r: any) => {
     setSession(r);
@@ -149,13 +151,16 @@ export default function Login() {
             <form onSubmit={(e) => { e.preventDefault(); start(); }}>
               <div className="text-center mb-8">
                 <h1 className="text-[26px] font-black tracking-tight">ورود یا ثبت‌نام</h1>
-                <p className="text-muted text-[15px] mt-2">شمارهٔ موبایلت را وارد کن.</p>
+                <p className="text-muted text-[15px] mt-2">شماره و رمزت را وارد کن؛ اگر رمز نداری خالی بگذار تا کد پیامکی بفرستیم.</p>
               </div>
               <div className="space-y-4">
                 <Field label="شمارهٔ موبایل">
-                  <Input dir="ltr" inputMode="tel" autoComplete="username" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
+                  <Input dir="ltr" type="tel" inputMode="tel" name="username" id="username" autoComplete="username" autoFocus placeholder="09xxxxxxxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="text-left tnum border-fg/20! hover:border-fg/30! focus:border-primary!" />
                 </Field>
-                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>ادامه</Button>
+                <Field label="رمز عبور" hint="اختیاری؛ حساب تازه یا بدون رمز با کد پیامکی وارد می‌شود.">
+                  <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" />
+                </Field>
+                <Button type="submit" className="w-full" size="lg" loading={loading} disabled={phone.length < 10}>{password ? "ورود" : "ادامه"}</Button>
               </div>
             </form>
           )}
@@ -169,7 +174,7 @@ export default function Login() {
                 </button>
               </div>
               {/* Hidden username field so password managers save the pair. */}
-              <input type="text" name="username" autoComplete="username" value={phone} readOnly hidden />
+              <input type="text" name="username" autoComplete="username" value={phone} readOnly className="sr-only" tabIndex={-1} aria-hidden />
               <div className="space-y-4">
                 <Field label="رمز عبور">
                   <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" autoFocus />
@@ -214,7 +219,7 @@ export default function Login() {
                 <h1 className="text-[26px] font-black tracking-tight">{forgot ? "رمز تازه" : "یک رمز بگذار"}</h1>
                 <p className="text-muted text-[15px] mt-2">دفعهٔ بعد با شماره و همین رمز وارد می‌شوی و منتظر پیامک نمی‌مانی. ورود با کد هم همیشه هست.</p>
               </div>
-              <input type="text" name="username" autoComplete="username" value={phone} readOnly hidden />
+              <input type="text" name="username" autoComplete="username" value={phone} readOnly className="sr-only" tabIndex={-1} aria-hidden />
               <div className="space-y-4">
                 <Field label="رمز عبور" hint="دست‌کم ۸ نویسه">
                   <PasswordInput value={newPassword} onChange={setNewPassword} autoComplete="new-password" autoFocus />
