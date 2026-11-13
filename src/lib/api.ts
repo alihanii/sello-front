@@ -3,10 +3,13 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000
 export class ApiError extends Error {
   status: number;
   action?: { type: string; label: string };
-  constructor(status: number, message: string, action?: { type: string; label: string }) {
+  /** Seconds until the server accepts another try (wrong SMS code, lock). */
+  retryAfter?: number;
+  constructor(status: number, message: string, action?: { type: string; label: string }, retryAfter?: number) {
     super(message);
     this.status = status;
     this.action = action;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -177,12 +180,14 @@ export async function api<T = any>(path: string, init: RequestInit & { json?: un
   if (!res.ok) {
     let msg = "خطایی رخ داد.";
     let action;
+    let retryAfter;
     try {
       const data = await res.json();
       msg = data?.detail?.message ?? (typeof data?.detail === "string" ? data.detail : msg);
       action = data?.detail?.action;
+      retryAfter = data?.detail?.retry_after;
     } catch {}
-    throw new ApiError(res.status, msg, action);
+    throw new ApiError(res.status, msg, action, retryAfter);
   }
   const type = res.headers.get("content-type") ?? "";
   return (type.includes("json") ? res.json() : res.text()) as Promise<T>;
