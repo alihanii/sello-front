@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api, getToken } from "@/lib/api";
+import { api, hasSession } from "@/lib/api";
 import { Logo, ThemeToggle } from "@/components/shell/AppShell";
 import { PlanCards } from "@/components/plans/PlanCards";
 import { Button, Skeleton } from "@/components/ui/primitives";
@@ -21,7 +21,7 @@ export default function Pricing() {
         <h1 className="text-[26px] sm:text-[36px] font-black tracking-tight">{plans && new Set(plans.map((p) => p.tier)).size > 1 ? "پلن مناسب فروشگاهت را انتخاب کن" : "یک پلن، همهٔ امکانات"}</h1>
         <p className="text-muted mt-2">فقط مدت اشتراک را انتخاب کن؛ هرچه طولانی‌تر، ارزان‌تر.</p>
       </div>
-      {plans ? <PlanCards plans={plans} onSelect={() => router.push(getToken() ? "/app/billing" : "/login")} /> : <Skeleton className="h-96" />}
+      {plans ? <PlanCards plans={plans} onSelect={() => router.push(hasSession() ? "/app/billing" : "/login")} /> : <Skeleton className="h-96" />}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { ArrowLeft, Check, Clock, Crown, History, Layers, MessageSquareText, Rec
 import Link from "next/link";
 import { Logo } from "@/components/shell/Brand";
 import { PlatformIcon } from "@/components/ui/PlatformIcon";
+import { SessionNav } from "./SessionNav";
 import { ThemeSwitch } from "./ThemeSwitch";
 import "./landing.css";
 
@@ -19,8 +20,7 @@ export default function Landing() {
             <a href="#what" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">چی کار می‌کنه</a>
             <a href="#chat" className="hidden md:inline-flex h-10 items-center px-3 rounded-[10px] text-[14px] font-semibold text-muted hover:text-fg">دستیار چت</a>
             <ThemeSwitch />
-            <Link prefetch={false} href="/login" className="ld-btn ld-btn-quiet ld-btn-sm">ورود</Link>
-            <Link prefetch={false} href="/login" className="ld-btn ld-btn-primary ld-btn-sm">شروع رایگان</Link>
+            <SessionNav />
           </nav>
         </header>
       </div>

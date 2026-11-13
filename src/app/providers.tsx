@@ -12,11 +12,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, gcTime: 15 * 60_000, retry: 1, refetchOnWindowFocus: false } } }),
   );
   useEffect(() => {
+    // Another account (or none): drop the cached data of the previous one. Sign-out in another tab arrives as the same event.
     const reset = () => client.clear();
-    const onStorage = (e: StorageEvent) => e.key === "sello-token" && reset();
     window.addEventListener(AUTH_EVENT, reset);
-    window.addEventListener("storage", onStorage);
-    return () => { window.removeEventListener(AUTH_EVENT, reset); window.removeEventListener("storage", onStorage); };
+    return () => window.removeEventListener(AUTH_EVENT, reset);
   }, [client]);
   return (
     <QueryClientProvider client={client}>

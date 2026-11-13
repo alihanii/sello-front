@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { API_URL, api, getToken, mediaUrl } from "@/lib/api";
+import { API_URL, api, authHeaders, mediaUrl } from "@/lib/api";
 import { ago, faDigits, faNum, jDateTime, toman } from "@/lib/format";
 import { productListParams, storeQueries, useChannels, useStoreId } from "@/lib/hooks";
 import { ChannelStatusStrip, SourceBadge } from "@/components/ui/status";
@@ -89,7 +89,7 @@ export default function Products() {
   const toggle = (id: number, on: boolean) => { setAllMatching(false); setSelected(on ? [...selected, id] : selected.filter((x) => x !== id)); };
 
   const exportCsv = async () => {
-    const res = await fetch(`${API_URL}/api/v1/stores/${sid}/products.csv`, { headers: { Authorization: `Bearer ${getToken()}` } });
+    const res = await fetch(`${API_URL}/api/v1/stores/${sid}/products.csv`, { headers: await authHeaders() });
     const url = URL.createObjectURL(await res.blob());
     Object.assign(document.createElement("a"), { href: url, download: `products-${sid}.csv` }).click();
   };
