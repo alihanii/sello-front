@@ -183,7 +183,10 @@ export async function api<T = any>(path: string, init: RequestInit & { json?: un
     let retryAfter;
     try {
       const data = await res.json();
-      msg = data?.detail?.message ?? (typeof data?.detail === "string" ? data.detail : msg);
+      msg = data?.detail?.message ?? (typeof data?.detail === "string" ? data.detail
+        // FastAPI validation errors: [{msg: "Value error, …"}]
+        : Array.isArray(data?.detail) && typeof data.detail[0]?.msg === "string" ? data.detail[0].msg.replace(/^Value error, /, "")
+        : msg);
       action = data?.detail?.action;
       retryAfter = data?.detail?.retry_after;
     } catch {}

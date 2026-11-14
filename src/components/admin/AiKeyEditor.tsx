@@ -16,6 +16,8 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
   const qc = useQueryClient();
   const [k, setK] = useState<any>({ api_key: "", ...value });
   const kindInfo = kinds.find((x) => x.kind === k.kind);
+  const base = String(k.base_url ?? "").trim();
+  const badBase = !!base && !/^https?:\/\//i.test(base);
   const models = useMutation({
     mutationFn: () => api<{ models: string[] }>(`/admin/ai/models${value.id ? `?provider_id=${value.id}` : ""}`, {
       method: "POST", json: { kind: k.kind, base_url: k.base_url, api_key: k.api_key, proxy: k.proxy ?? "" } }),
@@ -37,14 +39,15 @@ export function KeyEditor({ value, kinds, onClose }: { value: any; kinds: any[];
         <Field label="نام نمایشی"><Input value={k.name} onChange={(e) => setK({ ...k, name: e.target.value })} placeholder="مثلاً Gemini اصلی" /></Field>
         <Field label="نوع سرویس"><Select value={k.kind} onChange={(e) => setK({ ...k, kind: e.target.value, base_url: "", default_model: kinds.find((x) => x.kind === e.target.value)?.model ?? k.default_model })}>
           {kinds.map((x) => <option key={x.kind} value={x.kind}>{x.label}</option>)}</Select></Field>
-        <Field label="آدرس پایه (Base URL)" hint={kindInfo?.hint || `پیش‌فرض: ${kindInfo?.base_url}`}>
-          <Input dir="ltr" className="text-left" value={k.base_url} placeholder={kindInfo?.base_url} onChange={(e) => setK({ ...k, base_url: e.target.value })} />
+        <Field label="آدرس پایه (Base URL)" hint={badBase ? "آدرس پایه نامعتبر است؛ باید با https:// شروع شود. خالی بگذار تا آدرس پیش‌فرض استفاده شود." : kindInfo?.hint || `پیش‌فرض: ${kindInfo?.base_url}`}>
+          {/* Browsers fill the field above a password box with the saved login phone; this isn't a login form. */}
+          <Input dir="ltr" className={`text-left${badBase ? " border-danger" : ""}`} name="ai-base-url" autoComplete="off" value={k.base_url} placeholder={kindInfo?.base_url} onChange={(e) => setK({ ...k, base_url: e.target.value })} />
         </Field>
         <Field label="کلید API" hint={value.id ? `کلید فعلی: ••••${value.key_hint}؛ برای تغییر، کلید جدید وارد کنید` : "رمزنگاری‌شده ذخیره می‌شود و دیگر نمایش داده نمی‌شود"}>
-          <Input dir="ltr" type="password" className="text-left font-mono" value={k.api_key} onChange={(e) => setK({ ...k, api_key: e.target.value })} autoComplete="off" />
+          <Input dir="ltr" type="password" className="text-left font-mono" name="ai-api-key" value={k.api_key} onChange={(e) => setK({ ...k, api_key: e.target.value })} autoComplete="new-password" />
         </Field>
         <Field label="پروکسی (اختیاری)" hint={k.kind === "metis" || k.kind === "avalai" ? `${k.kind === "metis" ? "متیس" : "اول‌ای‌آی"} از داخل ایران پروکسی لازم ندارد.` : "گوگل، OpenAI، OpenRouter و Anthropic درخواست ایران را رد می‌کنند؛ اگر سرور داخل ایران است: http://user:pass@host:port یا socks5://host:port"}>
-          <Input dir="ltr" className="text-left font-mono text-[13px]" value={k.proxy ?? ""} onChange={(e) => setK({ ...k, proxy: e.target.value })} placeholder="socks5://127.0.0.1:1080" />
+          <Input dir="ltr" className="text-left font-mono text-[13px]" name="ai-proxy" autoComplete="off" value={k.proxy ?? ""} onChange={(e) => setK({ ...k, proxy: e.target.value })} placeholder="socks5://127.0.0.1:1080" />
         </Field>
         <Field label="مدل پیش‌فرض" hint="«دریافت مدل‌ها» فقط مدل‌های متنی مناسب را می‌آورد (مدل‌های صوتی، TTS و تصویری حذف می‌شوند). مدل تصویری را در «مسیردهی کارها» برای تمیز کردن عکس انتخاب کن.">
           <div className="flex gap-2">
