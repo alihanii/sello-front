@@ -41,8 +41,8 @@ export default function Landing() {
             <PlatformIcon platform="instagram" size={30} />
           </a>
           {/* eNamad trust seal, kept as eNamad gives it (referrerpolicy origin, code attribute). */}
-          <a referrerPolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=8696042&Code=9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4">
-            <img referrerPolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=8696042&Code=9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4" alt="" style={{ cursor: "pointer" }} {...{ code: "9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4" }} />
+          <a referrerPolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=8696042&Code=9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4" title="نماد اعتماد الکترونیکی فروشیفای" className="inline-grid place-items-center min-w-16 min-h-16 p-1.5 rounded-xl border border-line bg-raised text-[11px] text-center leading-5 hover:border-primary transition-colors">
+            <img referrerPolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=8696042&Code=9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4" alt="نماد اعتماد الکترونیکی" width={64} height={70} className="block h-auto" style={{ cursor: "pointer" }} {...{ code: "9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4" }} />
           </a>
           <span>© فروشیفای</span>
         </div>
