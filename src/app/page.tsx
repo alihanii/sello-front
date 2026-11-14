@@ -36,7 +36,16 @@ export default function Landing() {
       <footer className="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-center justify-between gap-3 text-[13px] text-muted border-t border-line">
         <Logo compact />
         <span>ادمین ۲۴ ساعتهٔ فروشگاه‌های تلگرام، بله، اینستاگرام و دیجی‌کالا</span>
-        <span>© فروشیفای</span>
+        <div className="flex items-center gap-3">
+          <a href="https://www.instagram.com/forooshify/" target="_blank" rel="noopener noreferrer" aria-label="فروشیفای در اینستاگرام" title="اینستاگرام فروشیفای" className="inline-flex rounded-[10px] hover:opacity-80">
+            <PlatformIcon platform="instagram" size={30} />
+          </a>
+          {/* eNamad trust seal, kept as eNamad gives it (referrerpolicy origin, code attribute). */}
+          <a referrerPolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=8696042&Code=9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4">
+            <img referrerPolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=8696042&Code=9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4" alt="" style={{ cursor: "pointer" }} {...{ code: "9AKcvh62oAQm0dwjAHrIPbvlMXcx1YN4" }} />
+          </a>
+          <span>© فروشیفای</span>
+        </div>
       </footer>
     </div>
   );
