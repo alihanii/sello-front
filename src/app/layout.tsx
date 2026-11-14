@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   appleWebApp: { title: "فروشیفای" },
   openGraph: { type: "website", siteName: "فروشیفای", locale: "fa_IR", title: "فروشیفای | ادمین هوشمند فروشگاه", description: DESCRIPTION },
   twitter: { card: "summary_large_image", title: "فروشیفای | ادمین هوشمند فروشگاه", description: DESCRIPTION },
+  // eNamad trust-seal ownership check: renders <meta name="enamad" content="76550020" /> in the server HTML.
+  other: { enamad: "76550020" },
 };
 
 export const viewport: Viewport = {
